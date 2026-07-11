@@ -772,8 +772,15 @@ jobs:
     # Only release on a strict v<MAJOR>.<MINOR>.<PATCH>[-pre] tag.
     # Manual workflow_dispatch can publish only when it is run from one
     # of those tags. PRs and branch pushes skip this job.
+    # Use !cancelled() + explicit result checks: the implicit success()
+    # would skip this job when a transitive dependency (resolve-et) is
+    # skipped because no et-bin release is configured.
     if: |
-      startsWith(github.ref, 'refs/tags/v')
+      !cancelled()
+      && needs.build.result == 'success'
+      && needs.build-linux-x64.result == 'success'
+      && needs.build-linux-arm64.result == 'success'
+      && startsWith(github.ref, 'refs/tags/v')
       && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.publish_release))
     permissions:
       contents: write
@@ -880,7 +887,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: release
     if: |
-      startsWith(github.ref, 'refs/tags/v')
+      !cancelled()
+      && needs.release.result == 'success'
+      && startsWith(github.ref, 'refs/tags/v')
       && !contains(github.ref_name, '-')
       && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.publish_release))
     permissions:
@@ -922,7 +931,9 @@ jobs:
     # Only stable release tags update the Cask. Prerelease tags
     # (e.g. v1.2.0-rc.1) are skipped so brew users stay on stable.
     if: |
-      startsWith(github.ref, 'refs/tags/v')
+      !cancelled()
+      && needs.release.result == 'success'
+      && startsWith(github.ref, 'refs/tags/v')
       && !contains(github.ref_name, '-')
       && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.publish_release))
     steps:
