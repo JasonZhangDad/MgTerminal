@@ -29,7 +29,7 @@ function createFakePort() {
   };
 }
 
-function loadPreloadWithFakeElectron() {
+function loadPreloadWithFakeElectron(origin = "app://magiesTerminal") {
   const handlers = new Map();
   let exposedApi = null;
   const fakeElectron = {
@@ -70,7 +70,7 @@ function loadPreloadWithFakeElectron() {
   };
   delete require.cache[preloadPath];
   global.window = {
-    location: { origin: "app://magiesTerminal" },
+    location: { origin },
     magiesTerminal: undefined,
   };
 
@@ -94,6 +94,15 @@ function loadPreloadWithFakeElectron() {
     },
   };
 }
+
+test("packaged Chromium origin exposes the preload bridge", () => {
+  const preload = loadPreloadWithFakeElectron("app://magiesterminal");
+  try {
+    assert.ok(preload.api);
+  } finally {
+    preload.cleanup();
+  }
+});
 
 test("stores early terminal data until the listener is registered", () => {
   const backlog = createTerminalDataBacklog();

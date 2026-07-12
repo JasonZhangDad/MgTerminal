@@ -847,7 +847,7 @@ const figSpecApi = {
 const existing = (typeof window !== "undefined" && window.magiesTerminal) ? window.magiesTerminal : {};
 
 function getAllowedRendererOrigins() {
-  const origins = new Set(["app://magiesTerminal"]);
+  const origins = new Set(["app://magiesterminal"]);
   const devServerUrl = process.env.VITE_DEV_SERVER_URL;
   if (typeof devServerUrl === "string" && devServerUrl.length > 0) {
     try {
@@ -875,7 +875,7 @@ function getAllowedRendererOrigins() {
 function isTrustedRendererLocation(allowedOrigins) {
   try {
     const origin = window?.location?.origin;
-    return typeof origin === "string" && allowedOrigins.has(origin);
+    return typeof origin === "string" && allowedOrigins.has(origin.toLowerCase());
   } catch {
     return false;
   }

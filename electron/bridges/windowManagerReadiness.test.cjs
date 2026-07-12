@@ -1182,7 +1182,7 @@ test("main window clears renderer readiness when the main frame starts navigatin
   assert.equal(rendererReadyIds.has(7), true);
   assert.deepEqual(clearedReadyIds, []);
 
-  webContentsHandlers["did-start-navigation"]({}, "app://magiesTerminal/index.html", false, true);
+  webContentsHandlers["did-start-navigation"]({}, "app://magiesterminal/index.html", false, true);
   assert.equal(rendererReadyIds.has(7), false);
   assert.deepEqual(clearedReadyIds, [7]);
 });
