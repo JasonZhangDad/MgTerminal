@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.2.4] - 2026-07-12
+
+### 安全
+- 凭据加密不可用时停止保存，禁止回退为明文
+- SSH 深链默认关闭，拒绝包含密码的 URL，连接前必须确认
+- OSC52 剪贴板默认关闭
+- 收紧 Electron CSP，启用 ASAR 完整性及安全 fuses
+- 移除 macOS disable-library-validation 权限
+
 ## [0.2.3] - 2026-07-11
 
 ### 修复
