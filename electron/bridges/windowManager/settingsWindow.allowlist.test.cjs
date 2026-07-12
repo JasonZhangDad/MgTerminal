@@ -13,13 +13,25 @@ test("settings window allows packaged app:// navigation by host, not WHATWG orig
 
   assert.match(
     source,
-    /parsedUrl\.protocol === ["']app:["'] && parsedUrl\.host === ["']magiesTerminal["']/,
-    "Settings window must allow app://magiesTerminal by protocol+host (origin is the string null in packaged builds)",
+    /parsedUrl\.protocol === ["']app:["'] && parsedUrl\.host\.toLowerCase\(\) === ["']magiesterminal["']/,
+    "Settings window must allow Chromium's normalized app://magiesterminal host",
   );
   assert.equal(
     /return allowedOrigins\.has\(new URL\(String\(targetUrl\)\)\.origin\);/.test(source),
     false,
     "Settings window must not rely only on URL.origin for app:// allowlisting",
+  );
+});
+
+test("packaged app permissions accept Chromium's normalized hostname", () => {
+  const source = fs.readFileSync(
+    path.join(projectRoot, "electron/main.cjs"),
+    "utf8",
+  );
+
+  assert.match(
+    source,
+    /parsed\.host\.toLowerCase\(\) === ["']magiesterminal["']/,
   );
 });
 

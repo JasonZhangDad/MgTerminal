@@ -192,7 +192,7 @@ function createSettingsWindowApi(ctx) {
           // app:// is a privileged custom scheme. Chromium/Node report its
           // WHATWG origin as the string "null", so matching `app://magiesTerminal`
           // via `.origin` fails in packaged builds and blocks settings navigation.
-          if (parsedUrl.protocol === "app:" && parsedUrl.host === "magiesTerminal") return true;
+          if (parsedUrl.protocol === "app:" && parsedUrl.host.toLowerCase() === "magiesterminal") return true;
           return allowedOrigins.has(parsedUrl.origin);
         } catch {
           return false;

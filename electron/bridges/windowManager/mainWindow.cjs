@@ -202,7 +202,7 @@ function createMainWindowApi(ctx) {
       const isAllowedTopLevelUrl = (targetUrl) => {
         try {
           const parsedUrl = new URL(String(targetUrl));
-          if (parsedUrl.protocol === "app:" && parsedUrl.host === "magiesTerminal") return true;
+          if (parsedUrl.protocol === "app:" && parsedUrl.host.toLowerCase() === "magiesterminal") return true;
           return allowedOrigins.has(parsedUrl.origin);
         } catch {
           return false;

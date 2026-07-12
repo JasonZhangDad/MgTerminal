@@ -971,7 +971,7 @@ if (!gotLock) {
           try {
             const parsed = new URL(String(rawUrl));
             if (parsed.protocol === "app:") {
-              return parsed.host === "magiesTerminal";
+              return parsed.host.toLowerCase() === "magiesterminal";
             }
             return allowedHttpOrigins.has(parsed.origin);
           } catch {
