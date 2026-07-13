@@ -14,6 +14,8 @@
  * Deploy: `npx wrangler deploy` from this directory.
  */
 
+/* global fetch, Response, Headers, URL */
+
 const REPO = "JasonZhangDad/MgTerminal";
 const API_LATEST = `https://api.github.com/repos/${REPO}/releases/latest`;
 const MANIFEST_TTL_SECONDS = 300;
