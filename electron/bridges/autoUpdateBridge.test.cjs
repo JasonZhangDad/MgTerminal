@@ -8,6 +8,7 @@ const BRIDGE_PATH = require.resolve("./autoUpdateBridge.cjs");
 const WINDOW_MANAGER_PATH = require.resolve("./windowManager.cjs");
 const GLOBAL_SHORTCUT_PATH = require.resolve("./globalShortcutBridge.cjs");
 const DIRTY_EDITOR_GUARD_PATH = require.resolve("./dirtyEditorGuard.cjs");
+const MAC_SELF_UPDATE_PATH = require.resolve("./macSelfUpdate.cjs");
 
 // electron-updater pulls in native/electron-only code, so it can't be required
 // in a plain `node --test` process. We intercept the bare `electron-updater`
@@ -23,7 +24,7 @@ const ELECTRON_UPDATER_ID = "electron-updater";
  * assert on their interactions. Restores Module._load and the bridge cache on
  * exit so tests stay isolated.
  */
-async function withMocks({ autoUpdater, autoUpdaterExports, windowManager, globalShortcutBridge, dirtyEditorGuard, browserWindows, isAutoUpdateSupported } = {}, fn) {
+async function withMocks({ autoUpdater, autoUpdaterExports, windowManager, globalShortcutBridge, dirtyEditorGuard, browserWindows, isAutoUpdateSupported, macSelfUpdate, platform, app } = {}, fn) {
   const fakeAutoUpdater = autoUpdater || {
     autoDownload: true,
     autoInstallOnAppQuit: false,
@@ -69,6 +70,9 @@ async function withMocks({ autoUpdater, autoUpdaterExports, windowManager, globa
       if (withExt === DIRTY_EDITOR_GUARD_PATH && fakeDirtyEditorGuard) {
         return fakeDirtyEditorGuard;
       }
+      if (withExt === MAC_SELF_UPDATE_PATH && macSelfUpdate) {
+        return macSelfUpdate;
+      }
     }
     return originalLoad.call(this, request, parent, isMain);
   };
@@ -82,6 +86,7 @@ async function withMocks({ autoUpdater, autoUpdaterExports, windowManager, globa
     const fakeApp = {
       getPath: () => path.join("/", "tmp", "nc-autoupdate-test"),
       getVersion: () => "1.1.17",
+      ...app,
     };
     bridge.init({
       electronModule: {
@@ -94,6 +99,10 @@ async function withMocks({ autoUpdater, autoUpdaterExports, windowManager, globa
       // would short-circuit every install handler test. Default to supported
       // unless a test explicitly opts into the unsupported path.
       isAutoUpdateSupported: isAutoUpdateSupported || (() => true),
+      // Install handler behavior branches on platform (darwin bundle swap vs
+      // quitAndInstall); default to win32 so existing tests exercise the
+      // quitAndInstall path regardless of the host OS.
+      platform: platform || "win32",
     });
     // Await so the Module._load patch stays installed for the *entire* test
     // body, including after the now-async install handler yields on its first
@@ -236,14 +245,105 @@ function makeIpcMain() {
   };
 }
 
-test("in-place update support excludes unsigned macOS and packaged Linux formats", () => {
+test("in-place update support covers win32, macOS (bundle swap), and Linux AppImage only", () => {
   delete require.cache[BRIDGE_PATH];
   const bridge = require("./autoUpdateBridge.cjs");
 
   assert.equal(bridge.isPlatformAutoUpdateSupported("win32"), true);
-  assert.equal(bridge.isPlatformAutoUpdateSupported("darwin"), false);
+  // macOS installs via the custom bundle swap (macSelfUpdate.cjs), not
+  // Squirrel.Mac, so unsigned builds stay updatable.
+  assert.equal(bridge.isPlatformAutoUpdateSupported("darwin"), true);
   assert.equal(bridge.isPlatformAutoUpdateSupported("linux"), false);
   assert.equal(bridge.isPlatformAutoUpdateSupported("linux", "/tmp/MagiesTerminal.AppImage"), true);
+});
+
+test("install handler on macOS swaps the bundle and relaunches instead of quitAndInstall", async () => {
+  const order = [];
+  const autoUpdater = new EventEmitter();
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = false;
+  autoUpdater.quitAndInstall = () => {
+    order.push("quitAndInstall");
+  };
+
+  const macSelfUpdate = {
+    installs: [],
+    resolveMacBundlePath: (exePath) => `${exePath}-bundle.app`,
+    async installMacUpdateFromZip(options) {
+      order.push("swap");
+      this.installs.push(options);
+    },
+  };
+  const app = {
+    getPath: (name) => (name === "exe"
+      ? "/Applications/MagiesTerminal.app/Contents/MacOS/MagiesTerminal"
+      : path.join("/", "tmp", "nc-autoupdate-test")),
+    relaunch: () => {
+      order.push("relaunch");
+    },
+    quit: () => {
+      order.push("quit");
+    },
+  };
+
+  await withMocks({ autoUpdater, macSelfUpdate, platform: "darwin", app }, async ({ bridge, fakeWindowManager }) => {
+    const ipcMain = makeIpcMain();
+    bridge.registerHandlers(ipcMain);
+
+    // Simulate electron-updater finishing the download (captures the zip path).
+    autoUpdater.emit("update-downloaded", { downloadedFile: "/tmp/MagiesTerminal-9.9.9-mac-arm64.zip" });
+
+    const result = await ipcMain.invoke("magiesTerminal:update:install");
+
+    assert.deepEqual(result, { success: true });
+    // Swap happens first; only then the app commits to quit and relaunches.
+    assert.deepEqual(order, ["swap", "relaunch", "quit"]);
+    assert.equal(order.includes("quitAndInstall"), false);
+    // The swap received the downloaded zip and the resolved bundle path.
+    assert.deepEqual(macSelfUpdate.installs, [{
+      zipPath: "/tmp/MagiesTerminal-9.9.9-mac-arm64.zip",
+      bundlePath: "/Applications/MagiesTerminal.app/Contents/MacOS/MagiesTerminal-bundle.app",
+    }]);
+    // Quit flags committed only after the successful swap.
+    assert.deepEqual(fakeWindowManager.calls, [true]);
+  });
+});
+
+test("install handler on macOS rolls back cleanly when the bundle swap fails", async () => {
+  const autoUpdater = new EventEmitter();
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = false;
+  autoUpdater.quitAndInstall = () => {
+    throw new Error("must not be called on macOS");
+  };
+
+  const macSelfUpdate = {
+    resolveMacBundlePath: () => "/Applications/MagiesTerminal.app",
+    async installMacUpdateFromZip() {
+      throw new Error("No downloaded update found. Download the update first.");
+    },
+  };
+  let relaunched = false;
+  const app = {
+    getPath: () => path.join("/", "tmp", "nc-autoupdate-test"),
+    relaunch: () => {
+      relaunched = true;
+    },
+    quit: () => {},
+  };
+
+  await withMocks({ autoUpdater, macSelfUpdate, platform: "darwin", app }, async ({ bridge, fakeWindowManager }) => {
+    const ipcMain = makeIpcMain();
+    bridge.registerHandlers(ipcMain);
+
+    const result = await ipcMain.invoke("magiesTerminal:update:install");
+
+    assert.equal(result.success, false);
+    assert.match(result.error, /downloaded/i);
+    assert.equal(relaunched, false);
+    // The quitting-for-update flag must not be left set (failInstall resets it).
+    assert.notEqual(fakeWindowManager.calls[fakeWindowManager.calls.length - 1], true);
+  });
 });
 
 test("install handler marks quitting-for-update before quitAndInstall", async () => {

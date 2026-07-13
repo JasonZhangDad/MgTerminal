@@ -56,9 +56,11 @@ function writeAutoUpdatePreference(enabled) {
  */
 function isPlatformAutoUpdateSupported(platform, appImagePath) {
   if (platform === "win32") return true;
-  // Squirrel.Mac requires the application to be code-signed. Current macOS
-  // releases are intentionally unsigned, so they must use manual downloads.
-  if (platform === "darwin") return false;
+  // macOS: Squirrel.Mac requires a code-signed app and current releases are
+  // unsigned, so the install step is a custom bundle swap (macSelfUpdate.cjs).
+  // Check + download still go through electron-updater, which never hands the
+  // file to Squirrel while autoInstallOnAppQuit is false.
+  if (platform === "darwin") return true;
   // Linux: only AppImage supports in-place update.
   // The APPIMAGE env variable is set by the AppImage runtime.
   return platform === "linux" && Boolean(appImagePath);
@@ -88,6 +90,14 @@ let _isDownloading = false;
  *  harmless check-phase errors. */
 let _isInstalling = false;
 let _lastInstallError = null;
+
+/** Platform override for tests; defaults to process.platform (set in init). */
+let _platform = process.platform;
+
+/** Absolute path of the update file electron-updater downloaded (macOS zip).
+ *  Captured from the update-downloaded event; consumed by the macOS
+ *  self-update install path. */
+let _downloadedFile = null;
 
 /** Track whether a checkForUpdates call is in flight (set before call, cleared on result event) */
 let _isChecking = false;
@@ -158,8 +168,9 @@ function setupGlobalListeners() {
     });
   });
 
-  updater.on("update-downloaded", () => {
+  updater.on("update-downloaded", (event) => {
     _isDownloading = false;
+    _downloadedFile = event?.downloadedFile || _downloadedFile;
     _lastStatus = { ..._lastStatus, status: 'ready', percent: 100 };
     broadcastToAllWindows("magiesTerminal:update:downloaded");
   });
@@ -366,10 +377,25 @@ function scheduleQuittingForUpdateWatchdog() {
 
 function init(deps) {
   _deps = deps;
+  _platform = deps?.platform || process.platform;
   _isAutoUpdateSupported = typeof deps?.isAutoUpdateSupported === "function"
     ? deps.isAutoUpdateSupported
     : defaultIsAutoUpdateSupported;
   setupGlobalListeners();
+
+  // macOS: electron-updater's MacUpdater calls the native (Squirrel.Mac)
+  // autoUpdater.setFeedURL after a download completes even though we never use
+  // Squirrel to install. On an unsigned app any native error event would be an
+  // unhandled EventEmitter 'error' and crash the main process — swallow it.
+  if (_platform === "darwin") {
+    try {
+      _deps?.electronModule?.autoUpdater?.on?.("error", (err) => {
+        console.warn("[AutoUpdate] Native Squirrel autoUpdater error (ignored — installs use macSelfUpdate):", err?.message || err);
+      });
+    } catch {
+      // ignore — native autoUpdater unavailable in this context
+    }
+  }
 }
 
 /**
@@ -551,6 +577,48 @@ function registerHandlers(ipcMain) {
         notifyNeedsSave();
         return { success: false, needsSave: true };
       }
+    }
+
+    // macOS: unsigned builds cannot use Squirrel.Mac (quitAndInstall), so the
+    // downloaded zip is installed by swapping the .app bundle in place, then
+    // relaunching into the new version. The swap happens BEFORE the quit flags
+    // are set: it can take a few seconds (ditto extract) and can fail, and a
+    // failed swap must leave close-to-tray / quit guards untouched.
+    if (_platform === "darwin") {
+      const { app } = _deps?.electronModule || {};
+      let macSelfUpdate;
+      try {
+        macSelfUpdate = require("./macSelfUpdate.cjs");
+      } catch (err) {
+        return { success: false, error: "macOS self-update module unavailable." };
+      }
+      try {
+        _isInstalling = true;
+        _lastInstallError = null;
+        _lastStatus = { ..._lastStatus, status: 'installing', error: null };
+        await macSelfUpdate.installMacUpdateFromZip({
+          zipPath: _downloadedFile,
+          bundlePath: macSelfUpdate.resolveMacBundlePath(app?.getPath?.("exe") || process.execPath),
+        });
+      } catch (err) {
+        const message = err?.message || "Install failed";
+        console.error("[AutoUpdate] macOS self-update failed:", message);
+        failInstall(message);
+        return { success: false, error: message };
+      }
+      // Bundle swapped on disk — commit to a real quit and relaunch into the
+      // new version. Same quit choreography as the quitAndInstall path below.
+      setQuittingForUpdate(true);
+      try {
+        const globalShortcutBridge = require("./globalShortcutBridge.cjs");
+        globalShortcutBridge.cleanup();
+      } catch {
+        // ignore — bridge may not be available
+      }
+      app?.relaunch?.();
+      app?.quit?.();
+      scheduleQuittingForUpdateWatchdog();
+      return { success: true };
     }
 
     // Commit the app to a real quit BEFORE quitAndInstall fires app.quit().
