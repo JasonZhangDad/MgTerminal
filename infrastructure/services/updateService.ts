@@ -2,18 +2,19 @@
  * Update Service
  *
  * Combines two update mechanisms:
- * 1. GitHub API-based version comparison (used by useUpdateCheck for notification banner)
+ * 1. Official server manifest version comparison (used by useUpdateCheck for notification banner)
  * 2. electron-updater bridge (used by SettingsSystemTab for download/install)
  */
 
 import { magiesTerminalBridge } from "./magiesTerminalBridge";
 
 // ================================
-// Part 1: GitHub API Version Check
+// Part 1: Official Server Version Check
 // ================================
 
-const GITHUB_API_URL = 'https://api.github.com/repos/JasonZhangDad/MgTerminal/releases/latest';
-const RELEASES_PAGE_URL = 'https://github.com/JasonZhangDad/MgTerminal/releases';
+const RELEASE_MANIFEST_URL = 'https://shell.magies.top/releases/latest.json';
+const RELEASE_ASSET_BASE_URL = 'https://shell.magies.top/releases/latest';
+const RELEASES_PAGE_URL = 'https://shell.magies.top/#download';
 
 export interface ReleaseInfo {
   version: string;       // e.g. "1.0.0" (without 'v' prefix)
@@ -70,33 +71,35 @@ export function compareVersions(a: string, b: string): number {
 }
 
 /**
- * Check for updates via GitHub API (compares version strings).
+ * Check for updates via the official server manifest (compares version strings).
  * Used by useUpdateCheck for the notification banner.
  */
 export async function checkForUpdates(currentVersion: string): Promise<UpdateCheckResult> {
   try {
-    const response = await fetch(GITHUB_API_URL, {
-      headers: { Accept: 'application/vnd.github.v3+json' },
+    const response = await fetch(RELEASE_MANIFEST_URL, {
+      headers: { Accept: 'application/json' },
     });
 
     if (!response.ok) {
-      throw new Error(`GitHub API returned ${response.status}`);
+      throw new Error(`Update server returned ${response.status}`);
     }
 
     const data = await response.json();
-    const latestVersion = (data.tag_name as string).replace(/^v/i, '');
+    const tagName = data.tag as string;
+    const latestVersion = (data.version as string | undefined)?.replace(/^v/i, '')
+      || tagName.replace(/^v/i, '');
 
     const latestRelease: ReleaseInfo = {
       version: latestVersion,
-      tagName: data.tag_name,
-      name: data.name || data.tag_name,
+      tagName,
+      name: data.name || tagName,
       body: data.body || '',
-      htmlUrl: data.html_url,
-      publishedAt: data.published_at,
-      assets: (data.assets || []).map((a: { name: string; browser_download_url: string; size: number }) => ({
+      htmlUrl: RELEASES_PAGE_URL,
+      publishedAt: data.syncedAt || '',
+      assets: (data.assets || []).map((a: { name: string; size?: number }) => ({
         name: a.name,
-        browserDownloadUrl: a.browser_download_url,
-        size: a.size,
+        browserDownloadUrl: `${RELEASE_ASSET_BASE_URL}/${encodeURIComponent(a.name)}`,
+        size: a.size || 0,
       })),
     };
 
@@ -117,9 +120,7 @@ export async function checkForUpdates(currentVersion: string): Promise<UpdateChe
  * Get release page URL for a specific version
  */
 export function getReleaseUrl(version?: string): string {
-  if (version) {
-    return `${RELEASES_PAGE_URL}/tag/v${version.replace(/^v/i, '')}`;
-  }
+  void version;
   return RELEASES_PAGE_URL;
 }
 
@@ -219,10 +220,8 @@ export function onError(
   return magiesTerminalBridge.get()?.onUpdateError?.(cb);
 }
 
-/** Returns the GitHub Releases page URL, optionally for a specific version tag. */
+/** Returns the official download page URL. */
 export function getReleasesUrl(version?: string): string {
-  if (version) {
-    return `${RELEASES_PAGE_URL}/tag/v${version}`;
-  }
-  return `${RELEASES_PAGE_URL}/latest`;
+  void version;
+  return RELEASES_PAGE_URL;
 }
