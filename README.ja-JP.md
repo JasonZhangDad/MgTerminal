@@ -71,7 +71,6 @@
 - [技術スタック](#技術スタック)
 - [コントリビューション](#コントリビューション)
 - [コントリビューター](#コントリビューター)
-- [Star 履歴](#star-履歴)
 - [ライセンス](#ライセンス)
 
 ---
@@ -251,19 +250,6 @@ npm run pack:linux   # Linux (AppImage + DEB + RPM)
 # ライセンス
 
 このプロジェクトは **GPL-3.0 ライセンス** の下でライセンスされています - 詳細は [LICENSE](LICENSE) ファイルをご覧ください。
-
----
-
-<a name="star-履歴"></a>
-# Star 履歴
-
-<a href="https://star-history.com/#JasonZhangDad/MgTerminal&Date">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=JasonZhangDad/MgTerminal&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=JasonZhangDad/MgTerminal&type=Date" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=JasonZhangDad/MgTerminal&type=Date" />
- </picture>
-</a>
 
 ---
 

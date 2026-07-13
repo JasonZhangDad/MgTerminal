@@ -71,7 +71,6 @@
 - [技术栈](#技术栈)
 - [参与贡献](#参与贡献)
 - [贡献者](#贡献者)
-- [Star 历史](#star-历史)
 - [开源协议](#开源协议)
 
 ---
@@ -251,19 +250,6 @@ npm run pack:linux   # Linux (AppImage + DEB + RPM)
 # 开源协议
 
 本项目采用 **GPL-3.0 协议** 开源 - 查看 [LICENSE](LICENSE) 文件了解详情。
-
----
-
-<a name="star-历史"></a>
-# Star 历史
-
-<a href="https://star-history.com/#JasonZhangDad/MgTerminal&Date">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=JasonZhangDad/MgTerminal&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=JasonZhangDad/MgTerminal&type=Date" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=JasonZhangDad/MgTerminal&type=Date" />
- </picture>
-</a>
 
 ---
 

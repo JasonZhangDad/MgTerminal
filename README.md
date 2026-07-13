@@ -70,7 +70,6 @@
 - [Tech Stack](#tech-stack)
 - [Contributing](#contributing)
 - [Contributors](#contributors)
-- [Star History](#star-history)
 - [License](#license)
 
 ---
@@ -250,19 +249,6 @@ See [agents.md](agents.md) for architecture overview and coding conventions.
 # License
 
 This project is licensed under the **GPL-3.0 License** - see the [LICENSE](LICENSE) file for details.
-
----
-
-<a name="star-history"></a>
-# Star History
-
-<a href="https://star-history.com/#JasonZhangDad/MgTerminal&Date">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=JasonZhangDad/MgTerminal&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=JasonZhangDad/MgTerminal&type=Date" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=JasonZhangDad/MgTerminal&type=Date" />
- </picture>
-</a>
 
 ---
 
