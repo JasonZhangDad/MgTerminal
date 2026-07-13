@@ -2,6 +2,7 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const path = require("node:path");
 const Module = require("node:module");
+const { EventEmitter } = require("node:events");
 
 const BRIDGE_PATH = require.resolve("./autoUpdateBridge.cjs");
 const WINDOW_MANAGER_PATH = require.resolve("./windowManager.cjs");
@@ -235,6 +236,16 @@ function makeIpcMain() {
   };
 }
 
+test("in-place update support excludes unsigned macOS and packaged Linux formats", () => {
+  delete require.cache[BRIDGE_PATH];
+  const bridge = require("./autoUpdateBridge.cjs");
+
+  assert.equal(bridge.isPlatformAutoUpdateSupported("win32"), true);
+  assert.equal(bridge.isPlatformAutoUpdateSupported("darwin"), false);
+  assert.equal(bridge.isPlatformAutoUpdateSupported("linux"), false);
+  assert.equal(bridge.isPlatformAutoUpdateSupported("linux", "/tmp/MagiesTerminal.AppImage"), true);
+});
+
 test("install handler marks quitting-for-update before quitAndInstall", async () => {
   const order = [];
   const autoUpdater = {
@@ -371,6 +382,44 @@ test("install handler rolls back quitting-for-update when quitAndInstall throws"
     assert.deepEqual(fakeWindowManager.calls, [true, false]);
     assert.equal(fakeWindowManager.isQuittingForUpdate(), false);
   });
+});
+
+test("install handler surfaces updater errors emitted during quitAndInstall", async () => {
+  const autoUpdater = new EventEmitter();
+  Object.assign(autoUpdater, {
+    autoDownload: true,
+    autoInstallOnAppQuit: false,
+    logger: undefined,
+    quitAndInstall() {
+      this.emit("error", new Error("Downloaded installer is unavailable"));
+    },
+  });
+  const fakeWindowManager = {
+    calls: [],
+    setQuittingForUpdate(value) {
+      this.calls.push(value);
+    },
+    isQuittingForUpdate() {
+      return this.calls[this.calls.length - 1] === true;
+    },
+  };
+  const win = makeBroadcastWindow();
+
+  await withMocks(
+    { autoUpdater, windowManager: fakeWindowManager, browserWindows: [win] },
+    async ({ bridge }) => {
+      const ipcMain = makeIpcMain();
+      bridge.registerHandlers(ipcMain);
+      const result = await ipcMain.invoke("magiesTerminal:update:install");
+
+      assert.deepEqual(result, {
+        success: false,
+        error: "Downloaded installer is unavailable",
+      });
+      assert.deepEqual(fakeWindowManager.calls, [true, false]);
+      assert.equal(win.sentChannels.includes("magiesTerminal:update:error"), true);
+    },
+  );
 });
 
 test("install handler watchdog clears quitting-for-update if the app never quits", async () => {

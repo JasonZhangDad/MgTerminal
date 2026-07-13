@@ -54,16 +54,18 @@ function writeAutoUpdatePreference(enabled) {
  * (no APPIMAGE env) can exercise the install path without pretending to be
  * an AppImage process.
  */
-function defaultIsAutoUpdateSupported() {
-  if (process.platform === "darwin" || process.platform === "win32") {
-    return true;
-  }
+function isPlatformAutoUpdateSupported(platform, appImagePath) {
+  if (platform === "win32") return true;
+  // Squirrel.Mac requires the application to be code-signed. Current macOS
+  // releases are intentionally unsigned, so they must use manual downloads.
+  if (platform === "darwin") return false;
   // Linux: only AppImage supports in-place update.
   // The APPIMAGE env variable is set by the AppImage runtime.
-  if (process.platform === "linux" && process.env.APPIMAGE) {
-    return true;
-  }
-  return false;
+  return platform === "linux" && Boolean(appImagePath);
+}
+
+function defaultIsAutoUpdateSupported() {
+  return isPlatformAutoUpdateSupported(process.platform, process.env.APPIMAGE);
 }
 
 let _isAutoUpdateSupported = defaultIsAutoUpdateSupported;
@@ -82,13 +84,18 @@ let _listenersRegistered = false;
 /** Track whether a download is in progress to distinguish download errors from check errors */
 let _isDownloading = false;
 
+/** Track the explicit install phase so updater errors are never mistaken for
+ *  harmless check-phase errors. */
+let _isInstalling = false;
+let _lastInstallError = null;
+
 /** Track whether a checkForUpdates call is in flight (set before call, cleared on result event) */
 let _isChecking = false;
 
 /**
  * Snapshot of the last known update status so newly opened windows can hydrate
  * without waiting for the next IPC event.
- * @type {{ status: 'idle' | 'downloading' | 'ready' | 'error', percent: number, error: string | null, version: string | null, isChecking: boolean }}
+ * @type {{ status: 'idle' | 'available' | 'downloading' | 'ready' | 'installing' | 'error', percent: number, error: string | null, version: string | null, isChecking: boolean }}
  */
 let _lastStatus = { status: 'idle', percent: 0, error: null, version: null, isChecking: false };
 function getAutoUpdater() {
@@ -159,6 +166,10 @@ function setupGlobalListeners() {
 
   updater.on("error", (err) => {
     _isChecking = false;
+    if (_isInstalling) {
+      failInstall(err?.message || "Update install failed");
+      return;
+    }
     // Only broadcast download-phase errors; check-phase errors (e.g. network failures
     // during checkForUpdates) are not download failures and must not set autoDownloadStatus.
     if (!_isDownloading) {
@@ -244,6 +255,15 @@ function setQuittingForUpdate(enabled) {
   } catch {
     // ignore — window manager may not be available
   }
+}
+
+function failInstall(message) {
+  const error = message || "Update install failed";
+  _isInstalling = false;
+  _lastInstallError = error;
+  _lastStatus = { ..._lastStatus, status: 'error', error };
+  setQuittingForUpdate(false);
+  broadcastToAllWindows("magiesTerminal:update:error", { error });
 }
 
 /**
@@ -335,10 +355,7 @@ function scheduleQuittingForUpdateWatchdog() {
     _quittingForUpdateWatchdog = null;
     // Still alive after the grace period — the install did not quit the app.
     console.warn("[AutoUpdate] App still running after quitAndInstall; clearing quitting-for-update state");
-    setQuittingForUpdate(false);
-    broadcastToAllWindows("magiesTerminal:update:error", {
-      error: "Update install did not restart the app. Please download the latest release manually.",
-    });
+    failInstall("Update install did not restart the app. Please download the latest release manually.");
   }, QUITTING_FOR_UPDATE_WATCHDOG_MS);
   // Don't let the watchdog keep the event loop (and thus the process) alive —
   // if the app is otherwise ready to quit, the timer must not block it.
@@ -492,6 +509,9 @@ function registerHandlers(ipcMain) {
 
   // ---- Install (quit & install) ------------------------------------------
   ipcMain.handle("magiesTerminal:update:install", async () => {
+    if (_isInstalling) {
+      return { success: true, installing: true };
+    }
     if (!isAutoUpdateSupported()) {
       return {
         success: false,
@@ -554,6 +574,9 @@ function registerHandlers(ipcMain) {
     }
 
     try {
+      _isInstalling = true;
+      _lastInstallError = null;
+      _lastStatus = { ..._lastStatus, status: 'installing', error: null };
       updater.quitAndInstall(false, true);
     } catch (err) {
       // quitAndInstall threw synchronously — the app will NOT quit. Roll back
@@ -561,10 +584,16 @@ function registerHandlers(ipcMain) {
       // instead of permanently bypassing close-to-tray + the dirty-editor
       // guard (#1215 review).
       console.error("[AutoUpdate] quitAndInstall failed:", err?.message || err);
-      setQuittingForUpdate(false);
       const message = err?.message || "Install failed";
-      broadcastToAllWindows("magiesTerminal:update:error", { error: message });
+      failInstall(message);
       return { success: false, error: message };
+    }
+
+    // electron-updater reports several immediate install failures by emitting
+    // `error` instead of throwing. The listener above handles the rollback;
+    // don't return a false success to the renderer in that case.
+    if (!_isInstalling && _lastInstallError) {
+      return { success: false, error: _lastInstallError };
     }
 
     // quitAndInstall can also fail to quit asynchronously (e.g. Squirrel.Mac's
@@ -607,4 +636,10 @@ function registerHandlers(ipcMain) {
   console.log("[AutoUpdate] Handlers registered");
 }
 
-module.exports = { init, registerHandlers, isAutoUpdateSupported, startAutoCheck };
+module.exports = {
+  init,
+  registerHandlers,
+  isAutoUpdateSupported,
+  isPlatformAutoUpdateSupported,
+  startAutoCheck,
+};
