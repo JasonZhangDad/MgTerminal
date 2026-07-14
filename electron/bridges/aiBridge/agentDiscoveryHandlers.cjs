@@ -6,17 +6,50 @@ function getCursorPlatformPackageName(platform = process.platform, arch = proces
   return null;
 }
 
+/**
+ * Detect whether the Cursor SDK npm packages are present.
+ *
+ * Prefer package.json resolution over full `import("@cursor/sdk")`:
+ * the SDK pulls native modules (e.g. sqlite3) that may be missing/unbuilt in
+ * bare Node test runners even when the packages are correctly installed for
+ * the Electron app. Installation for discovery/settings must not depend on
+ * native bindings loading successfully.
+ */
+function isCursorSdkPackageInstalled(platform = process.platform, arch = process.arch) {
+  const platformPackageName = getCursorPlatformPackageName(platform, arch);
+  if (!platformPackageName) return false;
+  try {
+    // @cursor/sdk blocks "./package.json" via exports — resolve the package entry instead.
+    require.resolve("@cursor/sdk");
+    // Platform native package still exposes package.json for resolve.
+    try {
+      require.resolve(`${platformPackageName}/package.json`);
+    } catch {
+      require.resolve(platformPackageName);
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function probeCursorSdkAvailability(shellEnv, options = {}) {
   const platformPackageName = getCursorPlatformPackageName();
   if (!platformPackageName) {
     return { installed: false, available: false, authenticated: false, authSource: null, version: null };
   }
 
-  try {
-    await import("@cursor/sdk");
-    require.resolve(`${platformPackageName}/package.json`);
-  } catch {
-    return { installed: false, available: false, authenticated: false, authSource: null, version: null };
+  // Prefer lightweight resolve (no native sqlite3 load). Full import is only a
+  // fallback for unusual packaging layouts.
+  let installed = isCursorSdkPackageInstalled();
+  if (!installed) {
+    try {
+      await import("@cursor/sdk");
+      require.resolve(platformPackageName);
+      installed = true;
+    } catch {
+      return { installed: false, available: false, authenticated: false, authSource: null, version: null };
+    }
   }
 
   const hasEnvApiKey = Boolean(shellEnv?.CURSOR_API_KEY);
@@ -397,4 +430,9 @@ function registerAgentDiscoveryHandlers(ctx) {
   }
 }
 
-module.exports = { registerAgentDiscoveryHandlers };
+module.exports = {
+  registerAgentDiscoveryHandlers,
+  getCursorPlatformPackageName,
+  isCursorSdkPackageInstalled,
+  probeCursorSdkAvailability,
+};
