@@ -40,7 +40,7 @@
 
 ---
 
-<img width="3142" height="1764" alt="Screenshot 2026-07-02 at 22 51 24" src="https://github.com/user-attachments/assets/3116165d-623a-4d3a-a28a-914befb9b72d" />
+<img width="3142" height="1764" alt="MagiesTerminal workspace with Magies Agent" src="./docs/screenshots/readme-hero.png" />
 
 ---
 

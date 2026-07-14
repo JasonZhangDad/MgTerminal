@@ -1,6 +1,7 @@
 import type { SyncPayload } from "./sync";
 
-const CREDENTIAL_ENCRYPTION_PREFIX = "enc:v1:";
+const CREDENTIAL_ENCRYPTION_PREFIX_V1 = "enc:v1:";
+const CREDENTIAL_ENCRYPTION_PREFIX_V2 = "enc:v2:";
 
 /**
  * Base64 pattern: only allows A-Z, a-z, 0-9, +, / and trailing = padding.
@@ -27,20 +28,36 @@ const SAFE_STORAGE_BASE64_HEADER_PREFIXES = [
   "AQAAAA", // 0x01 0x00 0x00 0x00 (DPAPI blob header)
 ] as const;
 
-export const isEncryptedCredentialPlaceholder = (
-  value: string | undefined | null,
-): value is string => {
-  if (typeof value !== "string" || !value.startsWith(CREDENTIAL_ENCRYPTION_PREFIX)) {
-    return false;
-  }
-  const payload = value.slice(CREDENTIAL_ENCRYPTION_PREFIX.length);
-  if (!payload || !BASE64_RE.test(payload)) return false;
+/**
+ * Local vault (enc:v2) packs AES-256-GCM as iv(12) + tag(16) + ciphertext(≥1).
+ * Minimum 29 raw bytes → base64 payload length ≥ 40.
+ */
+const LOCAL_VAULT_MIN_BASE64_LEN = 40;
 
+const isEncryptedV1 = (value: string): boolean => {
+  if (!value.startsWith(CREDENTIAL_ENCRYPTION_PREFIX_V1)) return false;
+  const payload = value.slice(CREDENTIAL_ENCRYPTION_PREFIX_V1.length);
+  if (!payload || !BASE64_RE.test(payload)) return false;
   return SAFE_STORAGE_BASE64_HEADER_PREFIXES.some((prefix) => payload.startsWith(prefix));
 };
 
+const isEncryptedV2 = (value: string): boolean => {
+  if (!value.startsWith(CREDENTIAL_ENCRYPTION_PREFIX_V2)) return false;
+  const payload = value.slice(CREDENTIAL_ENCRYPTION_PREFIX_V2.length);
+  if (!payload || payload.length < LOCAL_VAULT_MIN_BASE64_LEN) return false;
+  return BASE64_RE.test(payload);
+};
+
+export const isEncryptedCredentialPlaceholder = (
+  value: string | undefined | null,
+): value is string => {
+  if (typeof value !== "string") return false;
+  return isEncryptedV1(value) || isEncryptedV2(value);
+};
+
 /**
- * Strip enc:v1: placeholders from a single credential value.
+ * Strip encrypted placeholders (enc:v1 safeStorage / enc:v2 local vault)
+ * from a single credential value.
  * Used at the terminal connection boundary to avoid sending encrypted
  * placeholders as actual passwords to SSH/Telnet servers.
  */
@@ -53,7 +70,7 @@ export const sanitizeCredentialValue = (
 
 /**
  * Scan a sync payload for any fields that still carry device-bound
- * enc:v1: ciphertext.  Returns the dotted paths of offending fields.
+ * enc:v1 / enc:v2 ciphertext.  Returns the dotted paths of offending fields.
  * Used as a pre-upload guard to prevent pushing un-decryptable data.
  */
 export const findSyncPayloadEncryptedCredentialPaths = (
