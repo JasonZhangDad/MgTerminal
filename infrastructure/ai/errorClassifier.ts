@@ -115,6 +115,25 @@ function looksLikeZodParseError(message: string): boolean {
 }
 
 /**
+ * Vercel AI SDK `NoOutputGeneratedError` — stream ended with zero completed
+ * steps (empty model stream, early disconnect, or only internal stream-state
+ * noise). The raw SDK text is not actionable for end users.
+ */
+export function isNoOutputGeneratedError(error: unknown): boolean {
+  if (error && typeof error === 'object') {
+    const name = (error as { name?: unknown }).name;
+    if (typeof name === 'string' && /NoOutputGeneratedError/i.test(name)) {
+      return true;
+    }
+  }
+  const message = extractMessage(error);
+  return (
+    /\bno output generated\b/i.test(message)
+    || /\bmodel stream ended without a finish chunk\b/i.test(message)
+  );
+}
+
+/**
  * Map an arbitrary error surface to display-safe error info shown in the
  * chat UI. Known hostile scenarios get a concrete, actionable message; the
  * raw SDK text is appended so users can still report it verbatim.
@@ -182,6 +201,19 @@ export function classifyError(error: unknown): ErrorInfo {
         `If you just sent a large request, check for a request-size limit on any intermediate proxy.\n\n` +
         `Raw: ${sanitizedRaw}`,
       retryable: false,
+    };
+  }
+
+  if (isNoOutputGeneratedError(error)) {
+    return {
+      type: 'provider',
+      message:
+        `The model returned an empty stream (no text or tool output). ` +
+        `Common causes: invalid/expired API key, wrong base URL or model id, ` +
+        `provider outage, or a proxy that dropped the SSE body. ` +
+        `Check Settings → AI (provider, model, API key, base URL), then retry.\n\n` +
+        `Raw: ${sanitizedRaw}`,
+      retryable: true,
     };
   }
 

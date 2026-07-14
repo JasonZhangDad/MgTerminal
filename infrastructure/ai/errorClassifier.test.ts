@@ -142,6 +142,28 @@ test("classifyError handles a variety of schema validation wordings", () => {
 });
 
 // -------------------------------------------------------------------
+// classifyError — empty model stream (NoOutputGeneratedError)
+// -------------------------------------------------------------------
+
+test("classifyError maps NoOutputGeneratedError to an actionable provider message", () => {
+  const err = Object.assign(
+    new Error("No output generated. Check the stream for errors."),
+    { name: "AI_NoOutputGeneratedError" },
+  );
+  const info = classifyError(err);
+  assert.equal(info.type, "provider");
+  assert.equal(info.retryable, true);
+  assert.match(info.message, /empty stream/i);
+  assert.match(info.message, /API key|base URL|model/i);
+});
+
+test("classifyError maps string form of no-output errors", () => {
+  const info = classifyError("No output generated.");
+  assert.equal(info.type, "provider");
+  assert.equal(info.retryable, true);
+});
+
+// -------------------------------------------------------------------
 // classifyError — fallthrough
 // -------------------------------------------------------------------
 
