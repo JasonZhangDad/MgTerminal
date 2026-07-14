@@ -9,12 +9,13 @@ export const modernTerminalThemes: TerminalTheme[] = [
     brightBlue: '#79c0ff', brightMagenta: '#d2a8ff', brightCyan: '#56d4dd', brightWhite: '#f0f6fc',
   }},
   { id: 'ui-midnight', name: 'Midnight', type: 'dark', colors: {
-    background: '#141822', foreground: '#c9d1d9', cursor: '#58a6ff', selection: '#264f78',
-    black: '#141822', red: '#ff7b72', green: '#3fb950', yellow: '#d29922',
-    blue: '#58a6ff', magenta: '#bc8cff', cyan: '#39c5cf', white: '#b1bac4',
+    background: '#0c0f18', foreground: '#f1f5f9', cursor: '#0a78c2', selection: '#1a4a6e',
+    black: '#0c0f18', red: '#ff7b72', green: '#3fb950', yellow: '#d29922',
+    blue: '#0a78c2', magenta: '#bc8cff', cyan: '#39c5cf', white: '#b1bac4',
     brightBlack: '#6e7681', brightRed: '#ffa198', brightGreen: '#56d364', brightYellow: '#e3b341',
-    brightBlue: '#79c0ff', brightMagenta: '#d2a8ff', brightCyan: '#56d4dd', brightWhite: '#f0f6fc',
+    brightBlue: '#58a6ff', brightMagenta: '#d2a8ff', brightCyan: '#56d4dd', brightWhite: '#f0f6fc',
   }},
+
   { id: 'ui-deep-blue', name: 'Deep Blue', type: 'dark', colors: {
     background: '#111722', foreground: '#c9d1d9', cursor: '#58a6ff', selection: '#264f78',
     black: '#111722', red: '#ff7b72', green: '#3fb950', yellow: '#d29922',

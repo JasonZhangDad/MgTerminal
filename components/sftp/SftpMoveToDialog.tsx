@@ -80,7 +80,7 @@ export const SftpMoveToDialog: React.FC<SftpMoveToDialogProps> = ({
                     key={suggestion}
                     className={cn(
                       'px-3 py-1.5 text-sm cursor-pointer truncate',
-                      i === moveToSuggestionIndex ? 'bg-accent text-accent-foreground' : 'hover:bg-accent/50',
+                      i === moveToSuggestionIndex ? 'bg-primary/10 text-foreground' : 'hover:bg-muted/60',
                     )}
                     onMouseDown={(e) => {
                       e.preventDefault();

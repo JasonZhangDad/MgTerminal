@@ -10,6 +10,15 @@ test("theme side panel keeps theme selection visible while following app theme",
 });
 
 test("hidden selected theme uses the normal theme item row", () => {
-  assert.match(source, /hiddenSelectedTheme && \(\s*<ThemeItem/);
+  assert.match(source, /showHiddenSelectedTheme && hiddenSelectedTheme && \(\s*<ThemeItem/);
   assert.doesNotMatch(source, /terminal\.hiddenTheme\.title[\s\S]*terminal\.hiddenTheme\.desc/);
+});
+
+test("theme side panel filters themes with sticky search", () => {
+  assert.match(source, /filterThemesForList/);
+  assert.match(source, /settings\.terminal\.themeModal\.search\.placeholder/);
+  assert.match(source, /settings\.terminal\.themeModal\.search\.empty/);
+  assert.match(source, /sticky top-0/);
+  assert.match(source, /filteredBuiltinThemes/);
+  assert.match(source, /filteredCustomThemes/);
 });

@@ -116,9 +116,9 @@ export function useVaultGroupDragHandlers({
   const getDropTargetClasses = (target: DropTarget) =>
       cn(
         isSameDropTarget(dragOverDropTarget, target) &&
-          "!bg-[#e7ebf0] dark:!bg-white/[0.10]",
+          "!bg-primary/10 ring-1 ring-inset ring-primary/25",
         isSameDropTarget(confirmedDropTarget, target) &&
-          "!bg-[#dde3ea] dark:!bg-white/[0.14]",
+          "!bg-primary/15 ring-1 ring-inset ring-primary/40",
       );
   
   const handleUnmanageGroup = useCallback((groupPath: string) => {

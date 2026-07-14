@@ -12,6 +12,7 @@ import {
   markVaultDropIndicator,
   useVaultGridLayoutAnimation,
 } from "./vaultReorderDrag";
+import { getVaultHostRowClassName } from "./vaultHostRowClass";
 
 type VaultHostListSectionContext = Record<string, any>;
 
@@ -275,12 +276,11 @@ export function VaultHostListSection({ ctx }: { ctx: VaultHostListSectionContext
                                 <div
                                   className={cn(
                                     "vault-drop-indicator-row group cursor-pointer relative",
-                                    viewMode === "grid"
-                                      ? cn(
-                                        "soft-card elevate rounded-xl h-[68px] px-3 py-2 will-change-transform transition-[opacity,box-shadow,border-color,background-color] duration-150",
-                                        draggingHostId === host.id && "opacity-45",
-                                      )
-                                      : "h-14 px-3 py-2 hover:bg-secondary/60 rounded-lg transition-colors",
+                                    getVaultHostRowClassName({
+                                      viewMode,
+                                      isDragging: draggingHostId === host.id,
+                                      isSelected: isMultiSelectMode && selectedHostIds.has(host.id),
+                                    }),
                                   )}
                                   data-host-id={host.id}
                                   data-vault-grid-item={`pinned:${host.id}`}
@@ -381,12 +381,11 @@ export function VaultHostListSection({ ctx }: { ctx: VaultHostListSectionContext
                                 <div
                                   className={cn(
                                     "vault-drop-indicator-row group cursor-pointer relative",
-                                    viewMode === "grid"
-                                      ? cn(
-                                        "soft-card elevate rounded-xl h-[68px] px-3 py-2 will-change-transform transition-[opacity,box-shadow,border-color,background-color] duration-150",
-                                        draggingHostId === host.id && "opacity-45",
-                                      )
-                                      : "h-14 px-3 py-2 hover:bg-secondary/60 rounded-lg transition-colors",
+                                    getVaultHostRowClassName({
+                                      viewMode,
+                                      isDragging: draggingHostId === host.id,
+                                      isSelected: isMultiSelectMode && selectedHostIds.has(host.id),
+                                    }),
                                   )}
                                   data-host-id={host.id}
                                   data-vault-grid-item={`recent:${host.id}`}
@@ -498,9 +497,10 @@ export function VaultHostListSection({ ctx }: { ctx: VaultHostListSectionContext
                             <div
                               className={cn(
                                 "vault-drop-indicator-row group cursor-pointer transition-colors duration-150",
-                                viewMode === "grid"
-                                  ? "soft-card elevate rounded-xl h-[68px] px-3 py-2 will-change-transform transition-[box-shadow,border-color,background-color] duration-150"
-                                  : "h-14 px-3 py-2 hover:bg-secondary/60 rounded-lg transition-colors",
+                                getVaultHostRowClassName({
+                                  viewMode,
+                                  isSelected: selectedGroupPath === node.path,
+                                }),
                                 getDropTargetClasses({ kind: "group", path: node.path }),
                               )}
                               data-group-path={node.path}
@@ -695,12 +695,11 @@ export function VaultHostListSection({ ctx }: { ctx: VaultHostListSectionContext
                                       <div
                                         className={cn(
                                           "vault-drop-indicator-row group cursor-pointer relative",
-                                          viewMode === "grid"
-                                            ? cn(
-                                              "soft-card elevate rounded-xl h-[68px] px-3 py-2 will-change-transform transition-[opacity,box-shadow,border-color,background-color] duration-150",
-                                              draggingHostId === host.id && "opacity-45",
-                                            )
-                                            : "h-14 px-3 py-2 hover:bg-secondary/60 rounded-lg transition-colors",
+                                          getVaultHostRowClassName({
+                                            viewMode,
+                                            isDragging: draggingHostId === host.id,
+                                            isSelected: isMultiSelectMode && selectedHostIds.has(host.id),
+                                          }),
                                         )}
                                         data-host-id={host.id}
                                         data-vault-grid-item={`grouped:${group.name || "__ungrouped__"}:${host.id}`}
@@ -835,12 +834,11 @@ export function VaultHostListSection({ ctx }: { ctx: VaultHostListSectionContext
                                 <div
                                   className={cn(
                                     "vault-drop-indicator-row group cursor-pointer relative",
-                                    viewMode === "grid"
-                                      ? cn(
-                                        "soft-card elevate rounded-xl h-[68px] px-3 py-2 will-change-transform transition-[opacity,box-shadow,border-color,background-color] duration-150",
-                                        draggingHostId === host.id && "opacity-45",
-                                      )
-                                      : "h-14 px-3 py-2 hover:bg-secondary/60 rounded-lg transition-colors",
+                                    getVaultHostRowClassName({
+                                      viewMode,
+                                      isDragging: draggingHostId === host.id,
+                                      isSelected: isMultiSelectMode && selectedHostIds.has(host.id),
+                                    }),
                                   )}
                                   data-host-id={host.id}
                                   data-vault-grid-item={`main:${host.id}`}

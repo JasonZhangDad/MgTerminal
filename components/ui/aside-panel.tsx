@@ -111,12 +111,12 @@ export const AsidePanelHeader: React.FC<AsidePanelHeaderProps> = ({
     showBackButton = false,
 }) => {
     return (
-        <div className="px-4 py-3 flex items-center justify-between border-b border-border/60 app-no-drag shrink-0">
+        <div className="px-4 py-3 flex items-center justify-between border-b border-border/50 bg-card/40 app-no-drag shrink-0">
             <div className="flex items-center gap-2 min-w-0">
                 {showBackButton && onBack && (
                     <button
                         onClick={onBack}
-                        className="p-1 hover:bg-muted rounded-md transition-colors cursor-pointer shrink-0"
+                        className="p-1 hover:bg-muted rounded-md transition-colors duration-150 cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                     >
                         <ArrowLeft size={18} />
                     </button>
@@ -132,7 +132,7 @@ export const AsidePanelHeader: React.FC<AsidePanelHeaderProps> = ({
                 {actions}
                 <button
                     onClick={onClose}
-                    className="p-1.5 hover:bg-muted rounded-md transition-colors cursor-pointer"
+                    className="p-1.5 hover:bg-muted rounded-md transition-colors duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 >
                     <X size={18} />
                 </button>
@@ -179,7 +179,7 @@ export const AsideActionMenu: React.FC<AsideActionMenuProps> = ({ children }) =>
     return (
         <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
-                <button className="p-1.5 hover:bg-muted rounded-md transition-colors cursor-pointer">
+                <button className="p-1.5 hover:bg-muted rounded-md transition-colors duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
                     <MoreVertical size={18} />
                 </button>
             </PopoverTrigger>
@@ -213,7 +213,7 @@ export const AsideActionMenuItem: React.FC<{
         <button
             onClick={() => invokeAsideActionMenuItemClick(closeMenu, onClick)}
             className={cn(
-                "w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded-md transition-colors cursor-pointer",
+                "w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded-md transition-colors duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                 variant === 'destructive'
                     ? "text-destructive hover:bg-destructive/10"
                     : "hover:bg-muted"

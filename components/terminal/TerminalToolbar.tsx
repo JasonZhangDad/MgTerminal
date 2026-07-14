@@ -109,7 +109,7 @@ export const TerminalToolbar: React.FC<TerminalToolbarProps> = ({
     const unavailableYmodemSendLabel = `${t("terminal.toolbar.sendYmodem")} - ${t("terminal.toolbar.availableAfterConnect")}`;
     const unavailableYmodemReceiveLabel = `${t("terminal.toolbar.receiveYmodem")} - ${t("terminal.toolbar.availableAfterConnect")}`;
 
-    const menuItemClass = "w-full flex items-center gap-2 px-2 py-1.5 text-xs rounded-sm hover:bg-secondary transition-colors";
+    const menuItemClass = "w-full flex items-center gap-2 px-2 py-1.5 text-xs rounded-sm hover:bg-muted transition-colors duration-150 focus-visible:outline-none focus-visible:bg-muted";
     const activeButtonStyle: React.CSSProperties = {
         backgroundColor: 'var(--terminal-toolbar-btn-active)',
     };

@@ -387,17 +387,12 @@ const SftpTabBarInner: React.FC<SftpTabBarProps> = ({
                     onDrop={(e) => handleTabDrop(e, tab.id)}
                     className={cn(
                       "magiesTerminal-tab relative px-3 min-w-[100px] max-w-[180px] text-xs font-medium cursor-pointer flex items-center justify-between gap-2 flex-shrink-0 border-r border-border/40",
-                      "transition-[color,opacity,transform] duration-100 ease-out focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus-visible:ring-inset",
+                      "transition-[color,opacity,background-color,border-color] duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset",
                       isActive
-                        ? "text-foreground border-b-2"
-                        : "text-muted-foreground hover:text-foreground",
+                        ? "bg-primary/10 text-foreground border-b-2 border-b-primary"
+                        : "text-muted-foreground hover:bg-muted/40 hover:text-foreground",
                       isBeingDragged && "opacity-50",
                     )}
-                    style={
-                      isActive
-                        ? { borderBottomColor: "hsl(var(--accent))" }
-                        : undefined
-                    }
                   >
                     {/* Drop indicator line - before */}
                     {showDropIndicatorBefore && isDragging && (

@@ -48,10 +48,10 @@ class AITabErrorBoundary extends React.Component<
   render() {
     if (this.state.error) {
       return (
-        <div style={{ padding: 32, color: "#f87171", fontFamily: "monospace", whiteSpace: "pre-wrap" }}>
-          <h3 style={{ marginBottom: 8 }}>AI Settings Error</h3>
+        <div className="p-8 font-mono text-sm whitespace-pre-wrap text-destructive">
+          <h3 className="mb-2 font-semibold">AI Settings Error</h3>
           <div>{this.state.error.message}</div>
-          <div style={{ marginTop: 8, fontSize: 12, color: "#888" }}>{this.state.error.stack}</div>
+          <div className="mt-2 text-xs text-muted-foreground">{this.state.error.stack}</div>
         </div>
       );
     }
@@ -62,7 +62,7 @@ class AITabErrorBoundary extends React.Component<
 type SettingsState = ReturnType<typeof useSettingsState>;
 
 const settingsTabTriggerClassName =
-    "w-full justify-start gap-2 px-3 py-2 text-sm data-[state=active]:bg-background hover:bg-background/60 rounded-md transition-colors overflow-hidden";
+    "w-full justify-start gap-2 px-3 py-2 text-sm rounded-md transition-colors duration-150 overflow-hidden text-muted-foreground hover:bg-muted/60 hover:text-foreground data-[state=active]:bg-primary/10 data-[state=active]:text-foreground data-[state=active]:shadow-[inset_2px_0_0_0_hsl(var(--primary))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background";
 const settingsTabIconClassName = "shrink-0";
 const settingsTabLabelClassName = "min-w-0 truncate";
 
@@ -339,18 +339,18 @@ const SettingsPageContent: React.FC<{ settings: SettingsState }> = ({ settings }
     return (
         <>
         <div className="settings-window h-screen flex flex-col bg-background text-foreground font-sans">
-            <div className="shrink-0 border-b border-border app-drag">
+            <div className="shrink-0 border-b border-border/60 bg-card/40 app-drag">
                 <div className="flex items-center justify-between px-4 pt-3">
                     {isMac && <div className="h-6" />}
                 </div>
                 <div className="flex items-center justify-between px-4 py-2">
-                    <h1 className="text-lg font-semibold">{t("settings.title")}</h1>
+                    <h1 className="text-lg font-semibold tracking-tight">{t("settings.title")}</h1>
                     {!isMac && (
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <button
                                     onClick={handleClose}
-                                    className="app-no-drag w-8 h-8 flex items-center justify-center rounded-md hover:bg-destructive/20 hover:text-destructive transition-colors text-muted-foreground"
+                                    className="app-no-drag w-8 h-8 flex items-center justify-center rounded-md text-muted-foreground transition-colors duration-150 hover:bg-destructive/20 hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                                 >
                                     <X size={16} />
                                 </button>
@@ -367,8 +367,8 @@ const SettingsPageContent: React.FC<{ settings: SettingsState }> = ({ settings }
                 orientation="vertical"
                 className="flex-1 flex overflow-hidden"
             >
-                <div className="w-56 border-r border-border flex flex-col shrink-0 px-3 py-3">
-                    <TabsList className="flex flex-col h-auto bg-transparent gap-1 p-0 justify-start">
+                <div className="w-56 border-r border-border/60 bg-muted/15 flex flex-col shrink-0 px-3 py-3">
+                    <TabsList className="flex flex-col h-auto bg-transparent gap-0.5 p-0 justify-start">
                         <TabsTrigger
                             value="application"
                             className={settingsTabTriggerClassName}
@@ -428,7 +428,7 @@ const SettingsPageContent: React.FC<{ settings: SettingsState }> = ({ settings }
                     </TabsList>
                 </div>
 
-                <div className="flex-1 h-full flex flex-col min-h-0 bg-muted/10">
+                <div className="flex-1 h-full flex flex-col min-h-0 bg-background">
                     {mountedTabs.has("application") && (
                         <SettingsLazyTab value="application">
                             <LazySettingsApplicationTab

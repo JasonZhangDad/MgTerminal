@@ -620,7 +620,7 @@ const PortForwarding: React.FC<PortForwardingProps> = ({
                 className="justify-start gap-3 h-10 px-3 whitespace-nowrap"
                 onClick={() => startNewRule("local")}
               >
-                <Globe size={16} className="text-blue-500" />
+                <Globe size={16} className="text-primary" />
                 {getTypeMenuLabel(t, "local")}
               </Button>
               <Button

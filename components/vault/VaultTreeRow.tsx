@@ -129,9 +129,9 @@ export const VaultTreeGroupRow: React.FC<VaultTreeGroupRowProps> = ({
     <div
       ref={rowRef}
       className={cn(
-        "vault-drop-indicator-row group flex h-7 min-w-0 items-center px-2 text-sm font-medium cursor-pointer transition-colors select-none rounded-md",
+        "vault-drop-indicator-row group flex h-7 min-w-0 items-center px-2 text-sm font-medium cursor-pointer transition-colors duration-150 select-none rounded-md",
         selected
-          ? "bg-secondary text-foreground"
+          ? "bg-primary/10 text-foreground shadow-[inset_2px_0_0_0_hsl(var(--primary))]"
           : "hover:bg-secondary/60",
         className,
       )}
@@ -213,9 +213,9 @@ export const VaultTreeItemRow: React.FC<VaultTreeItemRowProps> = ({
 }) => (
   <div
     className={cn(
-      "vault-drop-indicator-row group flex h-7 min-w-0 items-center px-2 text-sm cursor-pointer transition-colors select-none rounded-md",
+      "vault-drop-indicator-row group flex h-7 min-w-0 items-center px-2 text-sm cursor-pointer transition-colors duration-150 select-none rounded-md",
       selected
-        ? "bg-secondary text-foreground"
+        ? "bg-primary/10 text-foreground shadow-[inset_2px_0_0_0_hsl(var(--primary))]"
         : "hover:bg-secondary/40",
       className,
     )}

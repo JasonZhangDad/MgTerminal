@@ -78,6 +78,35 @@ test("localized settings include terminal font weight option labels", () => {
   }
 });
 
+test("localized settings include UI theme picker labels", () => {
+  const keys = [
+    "settings.appearance.themeColor.picker.desc",
+    "settings.appearance.themeColor.scope.core",
+    "settings.appearance.themeColor.scope.all",
+    "settings.appearance.themeColor.search.placeholder",
+    "settings.appearance.themeColor.search.empty",
+  ];
+
+  for (const locale of LOCALIZED_SETTINGS_LOCALES) {
+    const missing = keys.filter((key) => !locale.messages[key]);
+    assert.deepEqual(missing, [], `${locale.name} is missing UI theme picker labels`);
+  }
+});
+
+test("localized settings include terminal theme modal search labels", () => {
+  const keys = [
+    "settings.terminal.themeModal.search.placeholder",
+    "settings.terminal.themeModal.search.empty",
+    "settings.terminal.themeModal.missingTheme.title",
+    "settings.terminal.themeModal.missingTheme.desc",
+  ];
+
+  for (const locale of LOCALIZED_SETTINGS_LOCALES) {
+    const missing = keys.filter((key) => !locale.messages[key]);
+    assert.deepEqual(missing, [], `${locale.name} is missing terminal theme modal search labels`);
+  }
+});
+
 test("localized vault messages include host icon labels", () => {
   const keys = [
     "hostDetails.icon.title",

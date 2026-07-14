@@ -141,8 +141,8 @@ const SftpBreadcrumbInner: React.FC<SftpBreadcrumbProps> = ({
                                                     key={drive}
                                                     onClick={() => { onNavigate(drive + '\\'); setDriveDropdownOpen(false); }}
                                                     className={cn(
-                                                        "w-full text-left px-2 py-1 text-xs rounded hover:bg-secondary/60",
-                                                        drive === part && "bg-secondary font-medium"
+                                                        "w-full text-left px-2 py-1 text-xs rounded transition-colors duration-150 hover:bg-muted",
+                                                        drive === part && "bg-primary/10 font-medium text-primary"
                                                     )}
                                                 >
                                                     {drive}

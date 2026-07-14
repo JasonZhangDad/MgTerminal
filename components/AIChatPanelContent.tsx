@@ -145,7 +145,7 @@ export const AIChatPanelContent: React.FC<AIChatPanelContentProps> = ({
       {/* ── Header ── */}
       {!hideHeader && (
         <React.Profiler {...getAIPanelProfilerProps('AIChatPanel.Header')}>
-          <div className="px-2.5 py-1.5 flex items-center justify-between border-b border-border/50 shrink-0">
+          <div className="flex shrink-0 items-center justify-between border-b border-border/50 bg-card/40 px-2.5 py-1.5">
             <AgentSelector
               currentAgentId={currentAgentId}
               externalAgents={externalAgents}
@@ -166,7 +166,7 @@ export const AIChatPanelContent: React.FC<AIChatPanelContentProps> = ({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-7 w-7 rounded-md text-muted-foreground/62 hover:bg-white/[0.05] hover:text-foreground"
+                    className="h-7 w-7 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
                     onClick={() => setShowHistory(!showHistory)}
                   >
                     <History size={14} />
@@ -179,7 +179,7 @@ export const AIChatPanelContent: React.FC<AIChatPanelContentProps> = ({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-7 w-7 rounded-md text-primary/82 hover:bg-primary/[0.10] hover:text-primary"
+                    className="h-7 w-7 rounded-md text-primary hover:bg-primary/10 hover:text-primary"
                     onClick={handleNewChat}
                   >
                     <Plus size={15} />
@@ -230,7 +230,7 @@ export const AIChatPanelContent: React.FC<AIChatPanelContentProps> = ({
                   <span className="text-[11px] text-muted-foreground/30 tracking-wide">{t('ai.chat.recent')}</span>
                   <button
                     onClick={() => setShowHistory(true)}
-                    className="text-[11px] text-muted-foreground/30 hover:text-muted-foreground/50 transition-colors cursor-pointer"
+                    className="text-[11px] text-muted-foreground/40 transition-colors duration-150 hover:text-muted-foreground cursor-pointer"
                   >
                     {t('ai.chat.viewAll')}
                   </button>
@@ -239,12 +239,12 @@ export const AIChatPanelContent: React.FC<AIChatPanelContentProps> = ({
                   <button
                     key={session.id}
                     onClick={() => handleSelectSession(session.id)}
-                    className="w-full flex items-baseline justify-between py-1.5 text-left hover:text-foreground transition-colors cursor-pointer"
+                    className="flex w-full items-baseline justify-between rounded-md px-1.5 py-1.5 text-left transition-colors duration-150 hover:bg-muted/50 hover:text-foreground cursor-pointer"
                   >
-                    <span className="text-[13px] text-foreground/60 truncate pr-4">
+                    <span className="truncate pr-4 text-[13px] text-foreground/65">
                       {session.title || t('ai.chat.untitled')}
                     </span>
-                    <span className="text-[11px] text-muted-foreground/25 shrink-0">
+                    <span className="shrink-0 text-[11px] text-muted-foreground/35">
                       {formatRelativeTime(new Date(session.updatedAt), t)}
                     </span>
                   </button>

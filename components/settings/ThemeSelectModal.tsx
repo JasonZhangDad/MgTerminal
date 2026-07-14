@@ -64,7 +64,7 @@ export const ThemeSelectModal: React.FC<ThemeSelectModalProps> = ({
             aria-labelledby={modalTitleId}
         >
             <div
-                className="w-[480px] max-h-[600px] bg-background border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+                className="w-[min(520px,calc(100vw-2rem))] max-h-[min(640px,calc(100vh-2rem))] bg-background border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
@@ -76,6 +76,7 @@ export const ThemeSelectModal: React.FC<ThemeSelectModalProps> = ({
                         <h2 id={modalTitleId} className="text-sm font-semibold text-foreground">{t('settings.terminal.themeModal.title')}</h2>
                     </div>
                     <button
+                        type="button"
                         onClick={onClose}
                         className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                         aria-label={t('common.close')}
@@ -85,7 +86,7 @@ export const ThemeSelectModal: React.FC<ThemeSelectModalProps> = ({
                 </div>
 
                 {/* Theme List */}
-                <div className="flex-1 min-h-0 overflow-y-auto p-4">
+                <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3">
                     <ThemeList
                         selectedThemeId={selectedThemeId}
                         onSelect={handleThemeSelect}

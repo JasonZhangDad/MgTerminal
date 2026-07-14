@@ -64,14 +64,14 @@ const TOAST_ICONS: Record<ToastType, React.ReactNode> = {
     success: <CheckCircle className="h-4 w-4 text-emerald-500" />,
     error: <AlertCircle className="h-4 w-4 text-red-500" />,
     warning: <AlertTriangle className="h-4 w-4 text-yellow-500" />,
-    info: <Info className="h-4 w-4 text-blue-500" />,
+    info: <Info className="h-4 w-4 text-primary" />,
 };
 
 const TOAST_STYLES: Record<ToastType, string> = {
     success: 'border-emerald-600 bg-emerald-50 dark:bg-emerald-950',
     error: 'border-red-600 bg-red-50 dark:bg-red-950',
     warning: 'border-yellow-600 bg-yellow-50 dark:bg-yellow-950',
-    info: 'border-blue-600 bg-blue-50 dark:bg-blue-950',
+    info: 'border-primary/50 bg-primary/10 dark:bg-primary/15',
 };
 
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {

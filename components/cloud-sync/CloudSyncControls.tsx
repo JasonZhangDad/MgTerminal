@@ -103,7 +103,7 @@ export const StatusDot: React.FC<StatusDotProps> = ({ status, className }) => {
 
     const colors = {
         connected: 'bg-green-500',
-        syncing: 'bg-blue-500 animate-pulse',
+        syncing: 'bg-primary animate-pulse',
         error: 'bg-red-500',
         disconnected: 'bg-muted-foreground/50',
     };

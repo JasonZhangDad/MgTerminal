@@ -1,17 +1,27 @@
-import React, { memo, useCallback } from "react";
+import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { applyCustomCssToDocument } from "../../../lib/customCss";
 import { DebouncedTextarea } from "../DebouncedTextarea";
-import { Check, Monitor, Moon, Palette, Sun } from "lucide-react";
+import { Check, Monitor, Moon, Palette, Search, Sun } from "lucide-react";
 import { useI18n } from "../../../application/i18n/I18nProvider";
-import { DARK_UI_THEMES, LIGHT_UI_THEMES } from "../../../infrastructure/config/uiThemes";
+import {
+  DARK_UI_THEMES,
+  LIGHT_UI_THEMES,
+  type UiThemePreset,
+} from "../../../infrastructure/config/uiThemes";
 import { useAvailableUIFonts } from "../../../application/state/uiFontStore";
 import { SUPPORTED_UI_LOCALES } from "../../../infrastructure/config/i18n";
 import { APP_ICON_VARIANT_ASSET_PATH, APP_ICON_VARIANT_GROUPS, APP_ICON_VARIANT_I18N_KEY } from "../../../infrastructure/config/appIconVariants";
 import { resolveAppIconVariant, type AppIconVariant } from "../../../domain/appIconVariant";
+import { resolveReadableForegroundForHsl } from "../../../domain/colorContrast";
 import { cn } from "../../../lib/utils";
 import { SectionHeader, SettingsTabContent, SettingRow, Toggle, Select } from "../settings-ui";
 import { FontSelect } from "../FontSelect";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../../ui/tooltip";
+import {
+  filterUiThemesForPicker,
+  resolveUiThemePickerScopeForSelection,
+  type UiThemePickerScope,
+} from "../uiThemePickerUtils";
 
 function SettingsAppearanceTab(props: {
   theme: "dark" | "light" | "system";
@@ -141,37 +151,158 @@ function SettingsAppearanceTab(props: {
     { value: "dark", icon: <Moon size={14} />, label: t("settings.appearance.theme.dark") },
   ];
 
-  const renderThemeSwatches = (
-    options: { id: string; name: string; tokens: { background: string } }[],
-    value: string,
-    onChange: (next: string) => void,
-  ) => (
-    <div className="flex min-w-0 flex-1 flex-wrap justify-end gap-2">
-      {options.map((preset) => (
-        <Tooltip key={preset.id}>
-          <TooltipTrigger asChild>
-            <button
-              onClick={() => onChange(preset.id)}
-              className={cn(
-                "w-6 h-6 rounded-full flex items-center justify-center transition-all shadow-sm border border-border/70",
-                value === preset.id
-                  ? "ring-2 ring-offset-2 ring-foreground scale-110"
-                  : "hover:scale-105",
-              )}
-              style={getHslStyle(preset.tokens.background)}
-            >
-              {value === preset.id && <Check className="text-white drop-shadow-md" size={10} />}
-            </button>
-          </TooltipTrigger>
-          <TooltipContent>{preset.name}</TooltipContent>
-        </Tooltip>
-      ))}
-    </div>
-  );
-
   const visibleUiThemes = resolvedTheme === "dark" ? DARK_UI_THEMES : LIGHT_UI_THEMES;
   const visibleUiThemeId = resolvedTheme === "dark" ? darkUiThemeId : lightUiThemeId;
   const setVisibleUiThemeId = resolvedTheme === "dark" ? setDarkUiThemeId : setLightUiThemeId;
+
+  const [themeScope, setThemeScope] = useState<UiThemePickerScope>(() =>
+    resolveUiThemePickerScopeForSelection(visibleUiThemes, visibleUiThemeId),
+  );
+  const [themeQuery, setThemeQuery] = useState("");
+
+  // Only re-sync scope/search when light/dark flips; keep user filters while browsing.
+  useEffect(() => {
+    const themes = resolvedTheme === "dark" ? DARK_UI_THEMES : LIGHT_UI_THEMES;
+    const selectedId = resolvedTheme === "dark" ? darkUiThemeId : lightUiThemeId;
+    setThemeScope(resolveUiThemePickerScopeForSelection(themes, selectedId));
+    setThemeQuery("");
+    // Intentionally omit theme ids: selection changes should not reset filters.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mode flip only
+  }, [resolvedTheme]);
+
+  const filteredUiThemes = useMemo(
+    () => filterUiThemesForPicker(visibleUiThemes, themeScope, themeQuery),
+    [themeQuery, themeScope, visibleUiThemes],
+  );
+
+  const checkColorForHsl = useCallback((backgroundHsl: string) => {
+    const fg = resolveReadableForegroundForHsl(backgroundHsl);
+    return `hsl(${fg})`;
+  }, []);
+
+  const renderThemeCards = (
+    options: UiThemePreset[],
+    value: string,
+    onChange: (next: string) => void,
+  ) => (
+    <div className="grid w-full grid-cols-[repeat(auto-fill,minmax(6.5rem,1fr))] gap-2">
+      {options.map((preset) => {
+        const selected = value === preset.id;
+        const checkColor = checkColorForHsl(preset.tokens.background);
+        return (
+          <button
+            key={preset.id}
+            type="button"
+            onClick={() => onChange(preset.id)}
+            aria-pressed={selected}
+            aria-label={preset.name}
+            className={cn(
+              "group relative flex flex-col overflow-hidden rounded-lg border text-left transition-all duration-150",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+              selected
+                ? "border-primary/70 ring-2 ring-primary/35 shadow-sm"
+                : "border-border/70 hover:border-border hover:shadow-sm",
+            )}
+          >
+            <div
+              className="relative h-11 w-full border-b border-black/5 dark:border-white/5"
+              style={getHslStyle(preset.tokens.background)}
+            >
+              <div className="absolute inset-x-2 bottom-2 flex items-center gap-1">
+                <span
+                  className="h-2.5 w-2.5 rounded-full shadow-sm ring-1 ring-black/10 dark:ring-white/15"
+                  style={getHslStyle(preset.tokens.primary)}
+                />
+                <span
+                  className="h-2.5 w-2.5 rounded-full shadow-sm ring-1 ring-black/10 dark:ring-white/15"
+                  style={getHslStyle(preset.tokens.secondary)}
+                />
+                <span
+                  className="h-2.5 flex-1 rounded-sm opacity-80 ring-1 ring-black/5 dark:ring-white/10"
+                  style={getHslStyle(preset.tokens.card)}
+                />
+              </div>
+              {selected && (
+                <span
+                  className="absolute right-1.5 top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary shadow-sm"
+                >
+                  <Check size={10} style={{ color: checkColorForHsl(preset.tokens.primary) }} strokeWidth={3} />
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-1.5 bg-card px-2 py-1.5">
+              <span className="min-w-0 flex-1 truncate text-[11px] font-medium text-foreground">
+                {preset.name}
+              </span>
+              {selected && (
+                <span className="sr-only" style={{ color: checkColor }}>
+                  selected
+                </span>
+              )}
+            </div>
+          </button>
+        );
+      })}
+    </div>
+  );
+
+  const renderAccentSwatches = () => (
+    <div className="flex flex-wrap gap-2">
+      {ACCENT_COLORS.map((c) => {
+        const selected = customAccent === c.value;
+        return (
+          <Tooltip key={c.name}>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                onClick={() => setCustomAccent(c.value)}
+                className={cn(
+                  "flex h-7 w-7 items-center justify-center rounded-full shadow-sm transition-all duration-150",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                  selected
+                    ? "scale-110 ring-2 ring-offset-2 ring-foreground"
+                    : "hover:scale-105",
+                )}
+                style={getHslStyle(c.value)}
+                aria-label={c.name}
+              >
+                {selected && (
+                  <Check size={11} strokeWidth={3} style={{ color: checkColorForHsl(c.value) }} />
+                )}
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>{c.name}</TooltipContent>
+          </Tooltip>
+        );
+      })}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <label
+            className={cn(
+              "flex h-7 w-7 cursor-pointer items-center justify-center rounded-full shadow-sm transition-all duration-150",
+              "bg-gradient-to-br from-pink-500 via-purple-500 to-blue-500",
+              "focus-within:outline-none focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-background",
+              !ACCENT_COLORS.some((c) => c.value === customAccent)
+                ? "scale-110 ring-2 ring-offset-2 ring-foreground"
+                : "hover:scale-105",
+            )}
+          >
+            <input
+              type="color"
+              className="sr-only"
+              onChange={(e) => setCustomAccent(hexToHsl(e.target.value))}
+            />
+            {!ACCENT_COLORS.some((c) => c.value === customAccent) ? (
+              <Check size={11} strokeWidth={3} className="text-white drop-shadow-md" />
+            ) : (
+              <Palette size={12} className="text-white drop-shadow-md" />
+            )}
+          </label>
+        </TooltipTrigger>
+        <TooltipContent>{t("settings.appearance.customColor")}</TooltipContent>
+      </Tooltip>
+    </div>
+  );
 
   return (
     <SettingsTabContent value="appearance">
@@ -218,7 +349,7 @@ function SettingsAppearanceTab(props: {
                 onChange={(e) => setWindowOpacity(Number(e.target.value) / 100)}
                 className="w-28 accent-primary"
               />
-              <span className="text-sm text-muted-foreground w-10 text-right tabular-nums">
+              <span className="w-10 text-right text-sm tabular-nums text-muted-foreground">
                 {Math.round(windowOpacity * 100)}%
               </span>
             </div>
@@ -229,10 +360,11 @@ function SettingsAppearanceTab(props: {
                   type="button"
                   onClick={() => setWindowOpacity(preset.value)}
                   className={cn(
-                    "px-2.5 py-1 rounded-md text-xs font-medium transition-colors border",
+                    "rounded-md border px-2.5 py-1 text-xs font-medium transition-colors duration-150",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                     windowOpacity === preset.value
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-muted/50 text-muted-foreground border-border hover:text-foreground",
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border bg-muted/50 text-muted-foreground hover:text-foreground",
                   )}
                 >
                   {preset.label}
@@ -250,12 +382,14 @@ function SettingsAppearanceTab(props: {
             {THEME_OPTIONS.map((opt) => (
               <button
                 key={opt.value}
+                type="button"
                 onClick={() => setTheme(opt.value)}
                 className={cn(
-                  "flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors",
+                  "flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors duration-150",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                   theme === opt.value
                     ? "bg-background text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
+                    : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 {opt.icon}
@@ -264,14 +398,74 @@ function SettingsAppearanceTab(props: {
             ))}
           </div>
         </SettingRow>
-        <div className="flex items-start justify-between gap-4 py-3">
-          <div className="shrink-0 pt-0.5 text-sm font-medium">
-            {resolvedTheme === "dark"
-              ? t("settings.appearance.themeColor.dark")
-              : t("settings.appearance.themeColor.light")}
+
+        <div className="space-y-3 py-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="min-w-0">
+              <div className="text-sm font-medium">
+                {resolvedTheme === "dark"
+                  ? t("settings.appearance.themeColor.dark")
+                  : t("settings.appearance.themeColor.light")}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {t("settings.appearance.themeColor.picker.desc")}
+              </p>
+            </div>
+            <div className="flex items-center rounded-lg border border-border bg-muted/50 p-0.5">
+              {([
+                { value: "core" as const, label: t("settings.appearance.themeColor.scope.core") },
+                { value: "all" as const, label: t("settings.appearance.themeColor.scope.all") },
+              ]).map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setThemeScope(opt.value)}
+                  className={cn(
+                    "rounded-md px-2.5 py-1 text-xs font-medium transition-colors duration-150",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                    themeScope === opt.value
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
           </div>
-          {renderThemeSwatches(visibleUiThemes, visibleUiThemeId, setVisibleUiThemeId)}
+
+          <div className="relative">
+            <Search
+              size={14}
+              className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"
+            />
+            <input
+              type="search"
+              value={themeQuery}
+              onChange={(e) => setThemeQuery(e.target.value)}
+              placeholder={t("settings.appearance.themeColor.search.placeholder")}
+              className={cn(
+                "h-9 w-full rounded-md border border-input bg-background py-1 pl-8 pr-3 text-sm shadow-sm",
+                "placeholder:text-muted-foreground",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              )}
+            />
+          </div>
+
+          {filteredUiThemes.length > 0 ? (
+            <div
+              className="magiesTerminal-scroll-thin max-h-[22rem] overflow-y-auto overscroll-contain pr-0.5"
+              data-magiesTerminal-scroll="thin"
+            >
+              {renderThemeCards(filteredUiThemes as UiThemePreset[], visibleUiThemeId, setVisibleUiThemeId)}
+            </div>
+          ) : (
+            <p className="rounded-md border border-dashed border-border/80 px-3 py-6 text-center text-xs text-muted-foreground">
+              {t("settings.appearance.themeColor.search.empty")}
+            </p>
+          )}
         </div>
+
         <SettingRow
           label={t("settings.appearance.accentColor.mode")}
           description={t("settings.appearance.accentColor.mode.desc")}
@@ -284,60 +478,15 @@ function SettingsAppearanceTab(props: {
           </div>
         </SettingRow>
         {accentMode === "custom" && (
-          <div className="py-3 space-y-2">
+          <div className="space-y-2 py-3">
             <div className="text-sm font-medium">{t("settings.appearance.accentColor.custom")}</div>
-            <div className="flex flex-wrap gap-2">
-              {ACCENT_COLORS.map((c) => (
-                <Tooltip key={c.name}>
-                  <TooltipTrigger asChild>
-                    <button
-                      onClick={() => setCustomAccent(c.value)}
-                      className={cn(
-                        "w-6 h-6 rounded-full flex items-center justify-center transition-all shadow-sm",
-                        customAccent === c.value
-                          ? "ring-2 ring-offset-2 ring-foreground scale-110"
-                          : "hover:scale-105",
-                      )}
-                      style={getHslStyle(c.value)}
-                    >
-                      {customAccent === c.value && <Check className="text-white drop-shadow-md" size={10} />}
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>{c.name}</TooltipContent>
-                </Tooltip>
-              ))}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <label
-                    className={cn(
-                      "w-6 h-6 rounded-full flex items-center justify-center transition-all shadow-sm cursor-pointer",
-                      "bg-gradient-to-br from-pink-500 via-purple-500 to-blue-500",
-                      !ACCENT_COLORS.some((c) => c.value === customAccent)
-                        ? "ring-2 ring-offset-2 ring-foreground scale-110"
-                        : "hover:scale-105",
-                    )}
-                  >
-                    <input
-                      type="color"
-                      className="sr-only"
-                      onChange={(e) => setCustomAccent(hexToHsl(e.target.value))}
-                    />
-                    {!ACCENT_COLORS.some((c) => c.value === customAccent) ? (
-                      <Check className="text-white drop-shadow-md" size={10} />
-                    ) : (
-                      <Palette size={12} className="text-white drop-shadow-md" />
-                    )}
-                  </label>
-                </TooltipTrigger>
-                <TooltipContent>{t("settings.appearance.customColor")}</TooltipContent>
-              </Tooltip>
-            </div>
+            {renderAccentSwatches()}
           </div>
         )}
       </div>
 
       <SectionHeader title={t("settings.appearance.appIcon")} />
-      <div className="rounded-lg border bg-card px-4 py-3 space-y-4">
+      <div className="space-y-4 rounded-lg border bg-card px-4 py-3">
         <p className="text-xs text-muted-foreground">
           {t("settings.appearance.appIcon.desc")}
         </p>
@@ -353,21 +502,22 @@ function SettingsAppearanceTab(props: {
                         type="button"
                         onClick={() => setAppIconVariant(variant)}
                         className={cn(
-                          "relative w-11 h-11 rounded-xl overflow-hidden transition-transform",
+                          "relative h-11 w-11 overflow-hidden rounded-xl transition-all duration-150",
+                          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                           resolvedAppIconVariant === variant
-                            ? "scale-105"
-                            : "hover:scale-105 opacity-90 hover:opacity-100",
+                            ? "scale-105 ring-2 ring-primary/50"
+                            : "opacity-90 hover:scale-105 hover:opacity-100",
                         )}
                         aria-label={t(APP_ICON_VARIANT_I18N_KEY[variant])}
                       >
                         <img
                           src={APP_ICON_VARIANT_ASSET_PATH[variant]}
                           alt=""
-                          className="w-full h-full object-cover"
+                          className="h-full w-full object-cover"
                           draggable={false}
                         />
                         {resolvedAppIconVariant === variant && (
-                          <span className="absolute inset-0 flex items-center justify-center bg-black/20">
+                          <span className="absolute inset-0 flex items-center justify-center bg-black/25">
                             <Check className="text-white drop-shadow-md" size={14} />
                           </span>
                         )}
@@ -423,7 +573,7 @@ function SettingsAppearanceTab(props: {
           onCommit={setCustomCSS}
           onDraftChange={applyCustomCssToDocument}
           placeholder={t("settings.appearance.customCss.placeholder")}
-          className="w-full h-32 px-3 py-2 text-xs font-mono bg-muted/50 border border-border rounded-lg resize-y focus:outline-none focus:ring-2 focus:ring-primary/50"
+          className="h-32 w-full resize-y rounded-lg border border-border bg-muted/50 px-3 py-2 font-mono text-xs focus:outline-none focus:ring-2 focus:ring-primary/50"
           spellCheck={false}
         />
       </div>

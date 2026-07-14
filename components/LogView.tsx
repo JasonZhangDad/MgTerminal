@@ -254,7 +254,7 @@ const LogViewComponent: React.FC<LogViewProps> = ({
                             "h-6 w-6 shrink-0 rounded-md flex items-center justify-center",
                             isLocal
                                 ? "bg-emerald-500/10 text-emerald-500"
-                                : "bg-blue-500/10 text-blue-500"
+                                : "bg-primary/10 text-primary"
                         )}
                     >
                         <FileText size={14} />

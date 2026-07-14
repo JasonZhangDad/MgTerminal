@@ -58,7 +58,7 @@ export function VaultHeaderSearch({
       <Input
         {...props}
         className={cn(
-          "pl-9 h-10 bg-secondary border-border/60 text-sm",
+          "pl-9 h-10 bg-muted/50 border-border/50 text-sm shadow-none focus-visible:bg-background",
           rightAdornment && "pr-9",
           inputClassName,
         )}

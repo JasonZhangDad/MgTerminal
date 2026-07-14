@@ -213,8 +213,8 @@ export const AlgorithmOverridesPanel: React.FC<Props> = ({
         {t("hostDetails.algorithms.advanced.desc")}
       </p>
       {inheritedCategories.length > 0 && (
-        <div className="flex items-start gap-2 p-2 rounded-md bg-blue-500/10 border border-blue-500/20">
-          <p className="text-xs text-blue-700 dark:text-blue-300 break-words">
+        <div className="flex items-start gap-2 p-2 rounded-md bg-primary/10 border border-primary/20">
+          <p className="text-xs text-primary break-words">
             {t("hostDetails.algorithms.inheritedNotice")
               .replace(
                 "{categories}",

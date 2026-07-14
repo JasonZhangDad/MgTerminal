@@ -41,11 +41,11 @@ export const SessionHistoryDrawer: React.FC<SessionHistoryDrawerProps> = ({
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
-      <div className="px-4 py-2.5 flex items-center justify-between shrink-0 border-b border-border/30">
+      <div className="flex shrink-0 items-center justify-between border-b border-border/50 bg-card/30 px-4 py-2.5">
         <span className="text-[13px] font-medium text-foreground/80">{t('ai.chat.allSessions')}</span>
         <button
           onClick={onClose}
-          className="text-[12px] text-muted-foreground/60 hover:text-muted-foreground transition-colors cursor-pointer"
+          className="rounded-md p-1 text-[12px] text-muted-foreground/60 transition-colors duration-150 hover:bg-muted hover:text-muted-foreground cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <X size={14} />
         </button>
@@ -83,8 +83,11 @@ export const SessionHistoryDrawer: React.FC<SessionHistoryDrawerProps> = ({
                   onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onSelect(session.id); }}
                   className={cn(
                     SESSION_HISTORY_ROW_CLASSNAMES.row,
-                    isActive ? 'text-foreground' : 'text-foreground/70 hover:text-foreground',
+                    isActive
+                      ? 'bg-primary/10 text-foreground shadow-[inset_2px_0_0_0_hsl(var(--primary))]'
+                      : 'text-foreground/70 hover:bg-muted/50 hover:text-foreground',
                   )}
+                  data-selected={isActive ? 'true' : 'false'}
                 >
                   <span className={SESSION_HISTORY_ROW_CLASSNAMES.title}>
                     {session.title || t('ai.chat.untitled')}

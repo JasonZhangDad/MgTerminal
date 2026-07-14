@@ -287,6 +287,11 @@ export const zhTWCoreMessages: Messages = {
   'settings.appearance.themeColor.desc': '為淺色與深色主題選擇預設配色',
   'settings.appearance.themeColor.light': '淺色主題',
   'settings.appearance.themeColor.dark': '深色主題',
+  'settings.appearance.themeColor.picker.desc': '先看精選核心配色，或搜尋完整主題庫',
+  'settings.appearance.themeColor.scope.core': '核心',
+  'settings.appearance.themeColor.scope.all': '全部',
+  'settings.appearance.themeColor.search.placeholder': '搜尋主題…',
+  'settings.appearance.themeColor.search.empty': '沒有符合的主題',
   'settings.appearance.customCss': '自訂 CSS',
   'settings.appearance.customCss.desc':
     '使用自訂 CSS 個人化介面，修改會立即生效。主要 UI 區塊都公開了 [data-section="..."] 屬性供你定位，比如：snippets-panel、host-details-panel、group-details-panel、serial-host-details-panel、ai-chat-panel、vault-sidebar、vault-main、vault-hosts-header、vault-host-list、vault-view、terminal-workspace、terminal-workspace-sidebar（Focus 模式終端列表）、terminal-host-tree-sidebar、terminal-host-tree-sidebar-content、terminal-host-tree-sidebar-row、terminal-side-panel（SFTP/指令碼/主題/AI 側欄，開啟時生效）、terminal-side-panel-tabs、terminal-side-panel-content、terminal-sftp-panel、terminal-sftp-host-header、terminal-sftp-pane、terminal-sftp-toolbar、terminal-sftp-path、terminal-sftp-filter-bar、terminal-sftp-list、terminal-sftp-list-header、terminal-sftp-list-row、terminal-sftp-tree、terminal-sftp-tree-row、terminal-sftp-transfer-queue、terminal-sftp-transfer-row、terminal-split-pane、terminal-split-resizer、top-tabs、top-tabs-host-tree-toggle、top-tabs-quick-switcher-toggle。',

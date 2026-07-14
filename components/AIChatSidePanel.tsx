@@ -216,7 +216,7 @@ const AIChatSidePanelPreparing = React.memo(function AIChatSidePanelPreparing() 
   const { t } = useI18n();
   return (
     <div className="flex h-full flex-col bg-background" data-section="ai-chat-panel-preparing">
-      <div className="shrink-0 border-b border-border/50 px-2.5 py-1.5">
+      <div className="shrink-0 border-b border-border/50 bg-card/40 px-2.5 py-1.5">
         <div className="h-8 w-36 rounded-md bg-muted/45" />
       </div>
       <div className="flex flex-1 items-center justify-center text-xs text-muted-foreground">

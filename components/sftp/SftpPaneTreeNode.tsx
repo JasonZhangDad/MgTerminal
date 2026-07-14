@@ -58,10 +58,10 @@ export const TreeNode = React.memo<TreeNodeProps>(({
       data-expanded={isDir ? (isExpanded ? 'true' : 'false') : undefined}
       data-drag-over={isDragOver ? 'true' : 'false'}
       className={cn(
-        'grid items-center gap-x-1 px-2 cursor-pointer select-none text-sm',
+        'grid items-center gap-x-1 px-2 cursor-pointer select-none text-sm transition-colors duration-150',
         isSelected
-          ? 'bg-accent text-accent-foreground hover:bg-accent'
-          : 'hover:bg-accent/50',
+          ? 'bg-primary/10 text-foreground shadow-[inset_2px_0_0_0_hsl(var(--primary))] hover:bg-primary/15'
+          : 'hover:bg-muted/60',
         isDragOver && 'ring-2 ring-primary/50 ring-inset bg-primary/10',
       )}
       style={{ gridTemplateColumns: columnTemplate, height: TREE_ROW_HEIGHT }}

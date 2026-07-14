@@ -6,6 +6,7 @@ import {
 } from './ui/aside-panel';
 import { ScrollArea } from './ui/scroll-area';
 import { ThemeList } from './ThemeList';
+import { useI18n } from '../application/i18n/I18nProvider';
 
 interface ThemeSelectPanelProps {
     open: boolean;
@@ -31,6 +32,7 @@ const ThemeSelectPanel: React.FC<ThemeSelectPanelPropsWithResize> = ({
     persistWidthStorageKey,
     resizeAriaLabel,
 }) => {
+    const { t } = useI18n();
     // Select on pointerdown so macOS/Electron overlay scrollbars cannot swallow the click.
     const handleSelect = useCallback((themeId: string) => {
         onSelect(themeId);
@@ -40,7 +42,7 @@ const ThemeSelectPanel: React.FC<ThemeSelectPanelPropsWithResize> = ({
         <AsidePanel
             open={open}
             onClose={onClose}
-            title="Select Color Theme"
+            title={t('settings.terminal.themeModal.title')}
             showBackButton={showBackButton}
             onBack={onBack}
             layout={layout}
@@ -50,7 +52,7 @@ const ThemeSelectPanel: React.FC<ThemeSelectPanelPropsWithResize> = ({
         >
             {/* Single ScrollArea only — avoid nesting another scroller that ate clicks. */}
             <ScrollArea className="min-h-0 min-w-0 flex-1">
-                <div className="py-2">
+                <div className="py-2 px-1">
                     <ThemeList
                         selectedThemeId={selectedThemeId || ''}
                         onSelect={handleSelect}

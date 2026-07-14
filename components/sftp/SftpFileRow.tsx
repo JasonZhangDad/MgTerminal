@@ -80,11 +80,11 @@ const SftpFileRowInner: React.FC<SftpFileRowProps> = ({
             onClick={handleSelect}
             onDoubleClick={handleOpen}
             className={cn(
-                "px-4 py-2 items-center cursor-pointer text-sm",
+                "px-4 py-2 items-center cursor-pointer text-sm transition-colors duration-150",
                 isSelectionVisible
-                    ? "bg-accent text-accent-foreground hover:bg-accent"
-                    : "hover:bg-accent/50",
-                isDragOver && isNavDir && "bg-primary/25 ring-1 ring-primary/50"
+                    ? "bg-primary/10 text-foreground shadow-[inset_2px_0_0_0_hsl(var(--primary))] hover:bg-primary/15"
+                    : "hover:bg-muted/60",
+                isDragOver && isNavDir && "bg-primary/20 ring-1 ring-primary/40",
             )}
             style={{ display: 'grid', gridTemplateColumns: buildSftpColumnTemplate(columnWidths) }}
         >
@@ -92,7 +92,7 @@ const SftpFileRowInner: React.FC<SftpFileRowProps> = ({
                 <div className={cn(
                     "h-7 w-7 rounded flex items-center justify-center shrink-0 relative",
                     isSelectionVisible
-                        ? "bg-accent-foreground/10 text-accent-foreground"
+                        ? "bg-primary/15 text-primary"
                         : isNavDir
                             ? "bg-primary/10 text-primary"
                             : "bg-secondary/60 text-muted-foreground"
@@ -104,7 +104,7 @@ const SftpFileRowInner: React.FC<SftpFileRowProps> = ({
                             size={8}
                             className={cn(
                                 "absolute -bottom-0.5 -right-0.5",
-                                isSelectionVisible ? "text-accent-foreground/80" : "text-muted-foreground",
+                                isSelectionVisible ? "text-primary/80" : "text-muted-foreground",
                             )}
                             aria-hidden="true"
                         />

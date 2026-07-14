@@ -144,11 +144,10 @@ export default function SettingsApplicationTab({ updateState, checkNow, openRele
                     onClick={() => updateState.autoDownloadStatus === 'ready' ? void installUpdate() : updateState.autoDownloadStatus === 'downloading' || updateState.autoDownloadStatus === 'installing' ? undefined : startDownload()}
                     disabled={updateState.autoDownloadStatus === 'installing'}
                     className={cn(
-                      "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium",
+                      "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium transition-colors duration-150 cursor-pointer",
                       updateState.autoDownloadStatus === 'ready'
-                        ? "bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-800"
-                        : "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-800",
-                      "transition-colors cursor-pointer"
+                        ? "bg-emerald-500/15 text-emerald-700 hover:bg-emerald-500/25 dark:text-emerald-300"
+                        : "bg-primary/15 text-primary hover:bg-primary/25",
                     )}
                   >
                     <ArrowUpCircle size={12} />

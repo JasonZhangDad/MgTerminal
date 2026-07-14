@@ -96,6 +96,79 @@ describe("system preset UI themes", () => {
     assert.ok(!accents.has(originalDefaultBlue));
   });
 
+  it("marks every core light and dark preset with collection core", () => {
+    for (const theme of LIGHT_UI_THEMES.slice(0, 7)) {
+      assert.equal(theme.collection, "core", theme.id);
+    }
+    for (const theme of DARK_UI_THEMES.slice(0, 7)) {
+      assert.equal(theme.collection, "core", theme.id);
+    }
+  });
+
+  it("keeps default snow and midnight with card elevated above background", () => {
+    const snow = getUiThemeById("light", "snow");
+    const midnight = getUiThemeById("dark", "midnight");
+    const snowBgL = Number(snow.tokens.background.split(/\s+/)[2]?.replace("%", ""));
+    const snowCardL = Number(snow.tokens.card.split(/\s+/)[2]?.replace("%", ""));
+    const midnightBgL = Number(midnight.tokens.background.split(/\s+/)[2]?.replace("%", ""));
+    const midnightCardL = Number(midnight.tokens.card.split(/\s+/)[2]?.replace("%", ""));
+
+    assert.ok(snowCardL > snowBgL, "snow card should be lighter than canvas");
+    assert.ok(midnightCardL > midnightBgL, "midnight card should be lighter than canvas");
+  });
+
+  it("keeps default snow and midnight readable for body and primary chrome", async () => {
+    const { getContrastRatio, getHslTokenRelativeLuminance } = await import(
+      "../../domain/colorContrast.ts"
+    );
+    const contrast = (fg: string, bg: string) => {
+      const fgL = getHslTokenRelativeLuminance(fg);
+      const bgL = getHslTokenRelativeLuminance(bg);
+      assert.ok(fgL != null && bgL != null, `invalid HSL tokens: ${fg} / ${bg}`);
+      return getContrastRatio(fgL, bgL);
+    };
+
+    for (const [mode, id] of [
+      ["light", "snow"],
+      ["dark", "midnight"],
+    ] as const) {
+      const tokens = getUiThemeById(mode, id).tokens;
+      assert.ok(contrast(tokens.foreground, tokens.background) >= 7, `${id} body on canvas`);
+      assert.ok(contrast(tokens.cardForeground, tokens.card) >= 7, `${id} body on card`);
+      assert.ok(contrast(tokens.mutedForeground, tokens.background) >= 4.5, `${id} muted on canvas`);
+      assert.ok(contrast(tokens.mutedForeground, tokens.muted) >= 4.5, `${id} muted on muted surface`);
+      assert.ok(contrast(tokens.primaryForeground, tokens.primary) >= 4.0, `${id} primary label`);
+      assert.ok(contrast(tokens.accentForeground, tokens.accent) >= 4.0, `${id} accent label`);
+    }
+  });
+
+  it("aligns default follow-app terminal themes with snow and midnight canvas", () => {
+    const snow = getUiThemeById("light", "snow").tokens;
+    const midnight = getUiThemeById("dark", "midnight").tokens;
+    const snowTerm = TERMINAL_THEMES.find((theme) => theme.id === "ui-snow");
+    const midnightTerm = TERMINAL_THEMES.find((theme) => theme.id === "ui-midnight");
+    assert.ok(snowTerm);
+    assert.ok(midnightTerm);
+
+    // HSL → approx RGB; allow a small channel delta for hand-tuned ANSI palettes.
+    const hslLightness = (token: string) => Number(token.split(/\s+/)[2]?.replace("%", ""));
+    const hexLightness = (hex: string) => {
+      const r = Number.parseInt(hex.slice(1, 3), 16) / 255;
+      const g = Number.parseInt(hex.slice(3, 5), 16) / 255;
+      const b = Number.parseInt(hex.slice(5, 7), 16) / 255;
+      return ((Math.max(r, g, b) + Math.min(r, g, b)) / 2) * 100;
+    };
+
+    assert.ok(
+      Math.abs(hexLightness(snowTerm.colors.background) - hslLightness(snow.background)) <= 3,
+      "ui-snow background should track snow canvas lightness",
+    );
+    assert.ok(
+      Math.abs(hexLightness(midnightTerm.colors.background) - hslLightness(midnight.background)) <= 3,
+      "ui-midnight background should track midnight canvas lightness",
+    );
+  });
+
   it("adds matching terminal themes for every imported light and dark UI preset", () => {
     const terminalThemeIds = new Set(TERMINAL_THEMES.map((theme) => theme.id));
     assert.equal(terminalThemeIds.size, TERMINAL_THEMES.length);

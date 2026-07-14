@@ -340,7 +340,7 @@ export const SftpPaneToolbar: React.FC<SftpPaneToolbarProps> = React.memo(({
             <Button
               variant="ghost"
               size="icon"
-              className={cn("h-6 w-6", followTerminalCwd && "bg-secondary text-primary")}
+              className={cn("h-6 w-6", followTerminalCwd && "bg-primary/10 text-primary ring-1 ring-primary/30")}
               aria-pressed={!!followTerminalCwd}
               aria-label={t("sftp.followTerminalCwd")}
               onClick={onToggleFollowTerminalCwd}
@@ -422,8 +422,8 @@ export const SftpPaneToolbar: React.FC<SftpPaneToolbarProps> = React.memo(({
               <PopoverClose asChild key={encoding}>
                 <button
                   className={cn(
-                    "w-full flex items-center gap-2 px-2 py-1.5 text-xs rounded-sm hover:bg-secondary transition-colors",
-                    pane.filenameEncoding === encoding && "bg-secondary"
+                    "w-full flex items-center gap-2 px-2 py-1.5 text-xs rounded-sm transition-colors duration-150 hover:bg-muted",
+                    pane.filenameEncoding === encoding && "bg-primary/10 text-primary"
                   )}
                   onClick={() => onSetFilenameEncoding(encoding)}
                 >
@@ -507,7 +507,7 @@ export const SftpPaneToolbar: React.FC<SftpPaneToolbarProps> = React.memo(({
       {isRemote && (
         <Popover>
           <PopoverTrigger asChild>
-            <button className="flex items-center gap-2 px-2 py-1.5 text-xs rounded-sm hover:bg-secondary transition-colors w-full text-left">
+            <button className="flex items-center gap-2 px-2 py-1.5 text-xs rounded-sm hover:bg-muted transition-colors duration-150 w-full text-left">
               <Languages size={14} className="shrink-0" />
               {t("sftp.encoding.label")}
             </button>
@@ -517,8 +517,8 @@ export const SftpPaneToolbar: React.FC<SftpPaneToolbarProps> = React.memo(({
               <PopoverClose asChild key={encoding}>
                 <button
                   className={cn(
-                    "w-full flex items-center gap-2 px-2 py-1.5 text-xs rounded-sm hover:bg-secondary transition-colors",
-                    pane.filenameEncoding === encoding && "bg-secondary"
+                    "w-full flex items-center gap-2 px-2 py-1.5 text-xs rounded-sm transition-colors duration-150 hover:bg-muted",
+                    pane.filenameEncoding === encoding && "bg-primary/10 text-primary"
                   )}
                   onClick={() => onSetFilenameEncoding(encoding)}
                 >
@@ -537,14 +537,14 @@ export const SftpPaneToolbar: React.FC<SftpPaneToolbarProps> = React.memo(({
         </Popover>
       )}
       <button
-        className="flex items-center gap-2 px-2 py-1.5 text-xs rounded-sm hover:bg-secondary transition-colors w-full text-left"
+        className="flex items-center gap-2 px-2 py-1.5 text-xs rounded-sm hover:bg-muted transition-colors duration-150 w-full text-left"
         onClick={handleNewFolder}
       >
         <FolderPlus size={14} className="shrink-0" />
         {t("sftp.newFolder")}
       </button>
       <button
-        className="flex items-center gap-2 px-2 py-1.5 text-xs rounded-sm hover:bg-secondary transition-colors w-full text-left"
+        className="flex items-center gap-2 px-2 py-1.5 text-xs rounded-sm hover:bg-muted transition-colors duration-150 w-full text-left"
         onClick={handleNewFile}
       >
         <FilePlus size={14} className="shrink-0" />
@@ -552,7 +552,7 @@ export const SftpPaneToolbar: React.FC<SftpPaneToolbarProps> = React.memo(({
       </button>
       <button
         className={cn(
-          "flex items-center gap-2 px-2 py-1.5 text-xs rounded-sm hover:bg-secondary transition-colors w-full text-left",
+          "flex items-center gap-2 px-2 py-1.5 text-xs rounded-sm hover:bg-muted transition-colors duration-150 w-full text-left",
           showHiddenFiles && "text-primary",
         )}
         onClick={onToggleShowHiddenFiles}
@@ -561,7 +561,7 @@ export const SftpPaneToolbar: React.FC<SftpPaneToolbarProps> = React.memo(({
         {t("settings.sftp.showHiddenFiles")}
       </button>
       <button
-        className="flex items-center gap-2 px-2 py-1.5 text-xs rounded-sm hover:bg-secondary transition-colors w-full text-left"
+        className="flex items-center gap-2 px-2 py-1.5 text-xs rounded-sm hover:bg-muted transition-colors duration-150 w-full text-left"
         onClick={onRefresh}
       >
         <RefreshCw
@@ -578,7 +578,7 @@ export const SftpPaneToolbar: React.FC<SftpPaneToolbarProps> = React.memo(({
       {/* Toolbar - always visible when connected */}
       <div
         ref={outerRef}
-        className="h-7 px-2 flex items-center gap-1 border-b border-border/40 bg-secondary/20"
+        className="h-7 px-2 flex items-center gap-1 border-b border-border/50 bg-card/40"
         data-section="terminal-sftp-toolbar"
       >
         {/* Editable Breadcrumb with autocomplete */}
@@ -608,8 +608,8 @@ export const SftpPaneToolbar: React.FC<SftpPaneToolbarProps> = React.memo(({
                     key={suggestion.path}
                     type="button"
                     className={cn(
-                      "w-full px-3 py-2 text-left text-xs flex items-center gap-2 hover:bg-secondary/60 transition-colors",
-                      idx === pathSuggestionIndex && "bg-secondary/80",
+                      "w-full px-3 py-2 text-left text-xs flex items-center gap-2 transition-colors duration-150 hover:bg-muted",
+                      idx === pathSuggestionIndex && "bg-primary/10 text-primary",
                     )}
                     onMouseDown={(e) => {
                       e.preventDefault();

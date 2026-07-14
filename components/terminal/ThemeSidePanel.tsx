@@ -7,7 +7,7 @@
  */
 
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Check, Download, Minus, Palette, Pencil, Plus, Sparkles, Type } from 'lucide-react';
+import { Check, Download, Minus, Palette, Pencil, Plus, Search, Sparkles, Type } from 'lucide-react';
 import { useI18n } from '../../application/i18n/I18nProvider';
 import { useAvailableFonts } from '../../application/state/fontStore';
 import { TERMINAL_THEMES, TerminalThemeConfig, USER_VISIBLE_TERMINAL_THEMES, getBuiltinTerminalThemeById, isUiMatchTerminalThemeId } from '../../infrastructure/config/terminalThemes';
@@ -21,6 +21,7 @@ import { cn } from '../../lib/utils';
 import { TerminalTheme } from '../../domain/models';
 import { ScrollArea } from '../ui/scroll-area';
 import { isFollowAppTerminalThemeId } from '../../domain/terminalAppearance';
+import { filterThemesForList } from '../themeListUtils';
 
 type TabType = 'theme' | 'font' | 'custom';
 
@@ -39,6 +40,7 @@ const ThemeItem = memo(({
   <div
     role="button"
     tabIndex={0}
+    aria-pressed={isSelected}
     onPointerDown={(e) => {
       if (e.button !== 0) return;
       e.preventDefault();
@@ -46,7 +48,7 @@ const ThemeItem = memo(({
     }}
     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(theme.id); } }}
     className={cn(
-      'w-full flex items-center gap-2.5 px-3 py-2 text-left group cursor-pointer'
+      'w-full flex items-center gap-2.5 px-3 py-2 text-left group cursor-pointer rounded-md transition-colors',
     )}
     style={{ backgroundColor: isSelected ? 'var(--terminal-panel-active)' : 'transparent' }}
     onMouseEnter={(e) => {
@@ -58,12 +60,17 @@ const ThemeItem = memo(({
   >
     {/* Color swatch */}
     <div
-      className="h-6 w-8 rounded-[4px] flex-shrink-0 flex flex-col justify-center items-start pl-1 gap-0.5 border-[0.5px]"
+      className="h-6 w-8 rounded-md flex-shrink-0 flex flex-col justify-center items-start pl-1 gap-0.5 border-[0.5px]"
       style={{ backgroundColor: theme.colors.background, borderColor: 'var(--terminal-panel-border)' }}
+      aria-hidden
     >
       <div className="h-0.5 w-2.5 rounded-full" style={{ backgroundColor: theme.colors.green }} />
       <div className="h-0.5 w-4 rounded-full" style={{ backgroundColor: theme.colors.blue }} />
-      <div className="h-0.5 w-1.5 rounded-full" style={{ backgroundColor: theme.colors.yellow }} />
+      <div className="flex items-center gap-0.5">
+        <div className="h-0.5 w-1.5 rounded-full" style={{ backgroundColor: theme.colors.yellow }} />
+        <div className="h-0.5 w-1 rounded-full" style={{ backgroundColor: theme.colors.red }} />
+        <div className="h-0.5 w-1 rounded-full" style={{ backgroundColor: theme.colors.cyan }} />
+      </div>
     </div>
     <div className="flex-1 min-w-0">
       <div className="text-xs font-medium truncate">
@@ -185,6 +192,7 @@ const ThemeSidePanelInner: React.FC<ThemeSidePanelProps> = ({
   const [activeTab, setActiveTab] = useState<TabType>('theme');
   const [editingTheme, setEditingTheme] = useState<TerminalTheme | null>(null);
   const [isNewTheme, setIsNewTheme] = useState(false);
+  const [themeQuery, setThemeQuery] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -193,6 +201,13 @@ const ThemeSidePanelInner: React.FC<ThemeSidePanelProps> = ({
       setEditingTheme(null);
     }
   }, [activeTab, followAppTerminalTheme]);
+
+  // Clear search when leaving the theme tab so stale filters do not surprise the user.
+  useEffect(() => {
+    if (activeTab !== 'theme') {
+      setThemeQuery('');
+    }
+  }, [activeTab]);
 
   const customThemeById = useMemo(
     () => new Map(customThemes.map((theme) => [theme.id, theme])),
@@ -225,6 +240,18 @@ const ThemeSidePanelInner: React.FC<ThemeSidePanelProps> = ({
       : USER_VISIBLE_TERMINAL_THEMES),
     [followAppTerminalTheme],
   );
+  const filteredBuiltinThemes = useMemo(
+    () => filterThemesForList(builtinThemes, themeQuery),
+    [builtinThemes, themeQuery],
+  );
+  const filteredCustomThemes = useMemo(
+    () => (followAppTerminalTheme ? [] : filterThemesForList(customThemes, themeQuery)),
+    [customThemes, followAppTerminalTheme, themeQuery],
+  );
+  const normalizedThemeQuery = themeQuery.trim();
+  const hasFilteredThemes = filteredBuiltinThemes.length > 0 || filteredCustomThemes.length > 0;
+  const showHiddenSelectedTheme = !followAppTerminalTheme && !!hiddenSelectedTheme
+    && (!normalizedThemeQuery || filterThemesForList([hiddenSelectedTheme], themeQuery).length > 0);
 
   const handleThemeSelect = useCallback((themeId: string) => {
     setEditingTheme(null);
@@ -356,38 +383,79 @@ const ThemeSidePanelInner: React.FC<ThemeSidePanelProps> = ({
           <div className="py-1">
             {activeTab === 'theme' && (
               <div>
-                {!followAppTerminalTheme && hiddenSelectedTheme && (
+                <div
+                  className="sticky top-0 z-10 px-2 pb-1.5 pt-1"
+                  style={{ backgroundColor: 'var(--terminal-panel-bg)' }}
+                >
+                  <div className="relative">
+                    <Search
+                      size={12}
+                      className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2"
+                      style={{ color: 'var(--terminal-panel-muted)' }}
+                    />
+                    <input
+                      type="search"
+                      value={themeQuery}
+                      onChange={(e) => setThemeQuery(e.target.value)}
+                      placeholder={t('settings.terminal.themeModal.search.placeholder')}
+                      aria-label={t('settings.terminal.themeModal.search.placeholder')}
+                      className="h-8 w-full rounded-md border py-1 pl-7 pr-2 text-xs outline-none"
+                      style={{
+                        backgroundColor: 'var(--terminal-panel-hover)',
+                        borderColor: 'var(--terminal-panel-border)',
+                        color: 'var(--terminal-panel-fg)',
+                      }}
+                    />
+                  </div>
+                </div>
+                {showHiddenSelectedTheme && hiddenSelectedTheme && (
                   <ThemeItem
                     theme={hiddenSelectedTheme}
                     isSelected={currentThemeId === hiddenSelectedTheme.id && !editingTheme}
                     onSelect={handleThemeSelect}
                   />
                 )}
-                {builtinThemes.map(theme => (
-                  <ThemeItem
-                    key={theme.id}
-                    theme={theme}
-                    isSelected={currentThemeId === theme.id && !editingTheme}
-                    onSelect={handleThemeSelect}
-                  />
-                ))}
-                {!followAppTerminalTheme && customThemes.length > 0 && (
+                {!hasFilteredThemes && normalizedThemeQuery ? (
+                  <p
+                    className="mx-2 mt-2 rounded-md border border-dashed px-3 py-6 text-center text-[11px]"
+                    style={{
+                      borderColor: 'var(--terminal-panel-border)',
+                      color: 'var(--terminal-panel-muted)',
+                    }}
+                  >
+                    {t('settings.terminal.themeModal.search.empty')}
+                  </p>
+                ) : (
                   <>
-                    <div className="text-[9px] uppercase tracking-wider mt-2 mb-1 px-1 font-semibold" style={{ color: 'var(--terminal-panel-muted)' }}>
-                      {t('terminal.customTheme.section')}
-                    </div>
-                    {customThemes.map(theme => (
+                    {filteredBuiltinThemes.map(theme => (
                       <ThemeItem
                         key={theme.id}
                         theme={theme}
                         isSelected={currentThemeId === theme.id && !editingTheme}
                         onSelect={handleThemeSelect}
-                        onEdit={handleEditTheme}
                       />
                     ))}
+                    {filteredCustomThemes.length > 0 && (
+                      <>
+                        <div className="text-[9px] uppercase tracking-wider mt-2 mb-1 px-1 font-semibold" style={{ color: 'var(--terminal-panel-muted)' }}>
+                          {normalizedThemeQuery
+                            ? `${t('terminal.customTheme.section')} (${filteredCustomThemes.length})`
+                            : t('terminal.customTheme.section')}
+                        </div>
+                        {filteredCustomThemes.map(theme => (
+                          <ThemeItem
+                            key={theme.id}
+                            theme={theme}
+                            isSelected={currentThemeId === theme.id && !editingTheme}
+                            onSelect={handleThemeSelect}
+                            onEdit={handleEditTheme}
+                          />
+                        ))}
+                      </>
+                    )}
                   </>
                 )}
-                {canResetTheme && (
+                {canResetTheme && !normalizedThemeQuery && (
                   <>
                     <div className="text-[9px] uppercase tracking-wider mt-2 mb-1 px-1 font-semibold" style={{ color: 'var(--terminal-panel-muted)' }}>
                       {t('terminal.themeModal.globalTheme')}

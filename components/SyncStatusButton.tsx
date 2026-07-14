@@ -91,7 +91,7 @@ const StatusIndicator: React.FC<StatusIndicatorProps> = ({ status, size = 'sm', 
 
     const colors = {
         synced: 'bg-green-500',
-        syncing: 'bg-blue-500',
+        syncing: 'bg-primary',
         error: 'bg-red-500',
         none: 'bg-muted-foreground/30',
     };
@@ -218,7 +218,7 @@ export const SyncStatusButton: React.FC<SyncStatusButtonProps> = ({
                                 <Cloud size={16} className="text-green-500" />
                             )}
                             {overallStatus === 'syncing' && (
-                                <Loader2 size={16} className="text-blue-500 animate-spin" />
+                                <Loader2 size={16} className="text-primary animate-spin" />
                             )}
                             {overallStatus === 'error' && (
                                 <Cloud size={16} className="text-red-500" />

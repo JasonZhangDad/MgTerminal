@@ -288,6 +288,11 @@ export const zhCNCoreMessages: Messages = {
   'settings.appearance.themeColor.desc': '为浅色与深色主题选择预设配色',
   'settings.appearance.themeColor.light': '浅色主题',
   'settings.appearance.themeColor.dark': '深色主题',
+  'settings.appearance.themeColor.picker.desc': '先看精选核心配色，或搜索完整主题库',
+  'settings.appearance.themeColor.scope.core': '核心',
+  'settings.appearance.themeColor.scope.all': '全部',
+  'settings.appearance.themeColor.search.placeholder': '搜索主题…',
+  'settings.appearance.themeColor.search.empty': '没有匹配的主题',
   'settings.appearance.customCss': '自定义 CSS',
   'settings.appearance.customCss.desc':
     '使用自定义 CSS 个性化界面，修改会立即生效。主要 UI 区块都暴露了 [data-section="..."] 属性供你定位，比如：snippets-panel、host-details-panel、group-details-panel、serial-host-details-panel、ai-chat-panel、vault-sidebar、vault-main、vault-hosts-header、vault-host-list、vault-view、terminal-workspace、terminal-workspace-sidebar（Focus 模式终端列表）、terminal-host-tree-sidebar、terminal-host-tree-sidebar-content、terminal-host-tree-sidebar-row、terminal-side-panel（SFTP/脚本/主题/AI 侧栏，打开时生效）、terminal-side-panel-tabs、terminal-side-panel-content、terminal-sftp-panel、terminal-sftp-host-header、terminal-sftp-pane、terminal-sftp-toolbar、terminal-sftp-path、terminal-sftp-filter-bar、terminal-sftp-list、terminal-sftp-list-header、terminal-sftp-list-row、terminal-sftp-tree、terminal-sftp-tree-row、terminal-sftp-transfer-queue、terminal-sftp-transfer-row、terminal-split-pane、terminal-split-resizer、top-tabs、top-tabs-host-tree-toggle、top-tabs-quick-switcher-toggle。',
