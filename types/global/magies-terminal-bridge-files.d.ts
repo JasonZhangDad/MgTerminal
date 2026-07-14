@@ -102,12 +102,19 @@ declare global {
     readClipboardFiles?(): Promise<Array<{ path: string; name: string; isDirectory: boolean; size?: number }>>;
     readClipboardImage?(): Promise<{ path: string; name: string; mediaType: string; size?: number } | null>;
 
-    // Credential encryption (field-level safeStorage for sensitive data at rest)
+    // Credential encryption (safeStorage + local vault fallback)
     credentialsAvailable?(): Promise<boolean>;
+    credentialsStatus?(): Promise<{ available: boolean; safeStorage: boolean; localVault: boolean }>;
     credentialsEncrypt?(plaintext: string): Promise<string>;
     credentialsDecrypt?(value: string): Promise<string>;
     /** Reset stale macOS Keychain Safe Storage items; no-op elsewhere. */
-    credentialsRepair?(): Promise<{ attempted: boolean; deleted: string[]; available: boolean }>;
+    credentialsRepair?(): Promise<{
+      attempted: boolean;
+      deleted: string[];
+      available: boolean;
+      safeStorage?: boolean;
+      localVault?: boolean;
+    }>;
   }
 }
 

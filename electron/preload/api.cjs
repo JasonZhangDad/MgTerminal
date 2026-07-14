@@ -1026,8 +1026,9 @@ function createPreloadApi(ctx) {
     return ipcRenderer.invoke("magiesTerminal:clipboard:readImage");
   },
 
-  // Credential encryption (field-level safeStorage)
+  // Credential encryption (safeStorage + local vault fallback)
   credentialsAvailable: () => ipcRenderer.invoke("magiesTerminal:credentials:available"),
+  credentialsStatus: () => ipcRenderer.invoke("magiesTerminal:credentials:status"),
   credentialsEncrypt: (plaintext) => ipcRenderer.invoke("magiesTerminal:credentials:encrypt", plaintext),
   credentialsDecrypt: (value) => ipcRenderer.invoke("magiesTerminal:credentials:decrypt", value),
   /** macOS: reset stale Safe Storage keychain items after app re-sign / denied ACL. */

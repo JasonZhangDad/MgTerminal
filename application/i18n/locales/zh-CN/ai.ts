@@ -36,7 +36,7 @@ export const zhCNAiMessages: Messages = {
   'ai.providers.apiKey': 'API Key',
   'ai.providers.apiKey.placeholder': '输入 API Key',
   'ai.providers.apiKey.decrypting': '解密中...',
-  'ai.providers.apiKey.encryptError': '无法加密 API Key——安全存储不可用。macOS：请到 设置 → 系统 →「修复钥匙串」，若弹出授权请点允许，然后重新保存。或完全退出应用（⌘Q）后重开再试。',
+  'ai.providers.apiKey.encryptError': '无法加密 API Key。请完全退出应用（⌘Q）后重开再试；若仍失败，到 设置 → 系统 →「修复钥匙串」。',
   'ai.providers.baseUrl': 'Base URL',
   'ai.providers.skipTLSVerify': '跳过 TLS 证书验证（用于自签名证书）',
   'ai.providers.defaultModel': '默认模型',

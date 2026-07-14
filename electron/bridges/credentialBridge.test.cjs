@@ -1,7 +1,14 @@
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
 const test = require('node:test');
 
-const { registerHandlers } = require('./credentialBridge.cjs');
+const {
+  registerHandlers,
+  ENC_PREFIX_V1,
+  ENC_PREFIX_V2,
+} = require('./credentialBridge.cjs');
 
 function registerCredentialHandlers(safeStorage, options = {}) {
   const handlers = new Map();
@@ -13,10 +20,14 @@ function registerCredentialHandlers(safeStorage, options = {}) {
   return handlers;
 }
 
-test('credential encryption fails closed when safeStorage is unavailable', () => {
+function tempUserData() {
+  return fs.mkdtempSync(path.join(os.tmpdir(), 'magies-cred-'));
+}
+
+test('credential encryption fails closed when no backend is available', () => {
   const handlers = registerCredentialHandlers(
     { isEncryptionAvailable: () => false, encryptString: () => { throw new Error('no'); } },
-    { platform: 'linux' },
+    { platform: 'linux', userDataPath: undefined },
   );
 
   assert.throws(
@@ -25,22 +36,49 @@ test('credential encryption fails closed when safeStorage is unavailable', () =>
   );
 });
 
-test('credential encryption never returns plaintext after an encryption failure', () => {
+test('falls back to local vault when safeStorage is unavailable', () => {
+  const dir = tempUserData();
+  const handlers = registerCredentialHandlers(
+    {
+      isEncryptionAvailable: () => false,
+      encryptString: () => { throw new Error('keychain down'); },
+    },
+    { platform: 'darwin', userDataPath: dir },
+  );
+
+  const encrypted = handlers.get('magiesTerminal:credentials:encrypt')(null, 'secret');
+  assert.match(encrypted, new RegExp(`^${ENC_PREFIX_V2}`));
+  assert.equal(
+    handlers.get('magiesTerminal:credentials:decrypt')(null, encrypted),
+    'secret',
+  );
+  assert.equal(handlers.get('magiesTerminal:credentials:available')(), true);
+  const status = handlers.get('magiesTerminal:credentials:status')();
+  assert.equal(status.safeStorage, false);
+  assert.equal(status.localVault, true);
+});
+
+test('credential encryption never returns plaintext after both backends fail', () => {
   const handlers = registerCredentialHandlers({
     isEncryptionAvailable: () => true,
     encryptString: () => {
       throw new Error('keychain failure');
     },
-  }, { platform: 'linux' });
+  }, { platform: 'linux', userDataPath: undefined });
 
   assert.throws(
     () => handlers.get('magiesTerminal:credentials:encrypt')(null, 'secret'),
-    (error) => error?.code === 'ERR_CREDENTIAL_ENCRYPTION_FAILED',
+    (error) =>
+      error?.code === 'ERR_CREDENTIAL_ENCRYPTION_FAILED'
+      || error?.code === 'ERR_CREDENTIAL_ENCRYPTION_UNAVAILABLE',
   );
 });
 
-test('encrypted credentials fail closed when safeStorage cannot decrypt them', () => {
-  const handlers = registerCredentialHandlers({ isEncryptionAvailable: () => false }, { platform: 'linux' });
+test('encrypted v1 credentials fail closed when safeStorage cannot decrypt them', () => {
+  const handlers = registerCredentialHandlers(
+    { isEncryptionAvailable: () => false },
+    { platform: 'linux', userDataPath: undefined },
+  );
 
   assert.throws(
     () => handlers.get('magiesTerminal:credentials:decrypt')(null, 'enc:v1:c2VjcmV0'),
@@ -49,7 +87,7 @@ test('encrypted credentials fail closed when safeStorage cannot decrypt them', (
 });
 
 test('plaintext credential migration remains readable', () => {
-  const handlers = registerCredentialHandlers(null);
+  const handlers = registerCredentialHandlers(null, { userDataPath: undefined });
 
   assert.equal(
     handlers.get('magiesTerminal:credentials:decrypt')(null, 'legacy-secret'),
@@ -62,10 +100,10 @@ test('credential bridge encrypts and decrypts values with safeStorage', () => {
     isEncryptionAvailable: () => true,
     encryptString: (value) => Buffer.from(`cipher:${value}`),
     decryptString: (value) => value.toString().replace(/^cipher:/, ''),
-  });
+  }, { userDataPath: tempUserData() });
 
   const encrypted = handlers.get('magiesTerminal:credentials:encrypt')(null, 'secret');
-  assert.match(encrypted, /^enc:v1:/);
+  assert.match(encrypted, new RegExp(`^${ENC_PREFIX_V1}`));
   assert.equal(
     handlers.get('magiesTerminal:credentials:decrypt')(null, encrypted),
     'secret',
@@ -91,7 +129,7 @@ test('credential decryption reports corrupt ciphertext without returning it', ()
   );
 });
 
-test('macOS encrypt auto-repairs stale keychain then succeeds', () => {
+test('macOS encrypt auto-repairs stale keychain then uses safeStorage', () => {
   let available = false;
   let repairCalls = 0;
   const handlers = registerCredentialHandlers(
@@ -104,6 +142,7 @@ test('macOS encrypt auto-repairs stale keychain then succeeds', () => {
     },
     {
       platform: 'darwin',
+      userDataPath: tempUserData(),
       resetMacSafeStorageKeychain: () => {
         repairCalls += 1;
         available = true;
@@ -113,12 +152,35 @@ test('macOS encrypt auto-repairs stale keychain then succeeds', () => {
   );
 
   const encrypted = handlers.get('magiesTerminal:credentials:encrypt')(null, 'secret');
-  assert.match(encrypted, /^enc:v1:/);
+  assert.match(encrypted, new RegExp(`^${ENC_PREFIX_V1}`));
   assert.equal(repairCalls, 1);
-  assert.equal(handlers.get('magiesTerminal:credentials:available')(), true);
 });
 
-test('macOS credentials:repair resets keychain and reports availability', () => {
+test('macOS encrypt falls back to local vault when repair cannot restore safeStorage', () => {
+  const dir = tempUserData();
+  const handlers = registerCredentialHandlers(
+    {
+      isEncryptionAvailable: () => false,
+      encryptString: () => {
+        throw new Error('still denied');
+      },
+    },
+    {
+      platform: 'darwin',
+      userDataPath: dir,
+      resetMacSafeStorageKeychain: () => ({ attempted: true, deleted: [] }),
+    },
+  );
+
+  const encrypted = handlers.get('magiesTerminal:credentials:encrypt')(null, 'api-key-xyz');
+  assert.match(encrypted, new RegExp(`^${ENC_PREFIX_V2}`));
+  assert.equal(
+    handlers.get('magiesTerminal:credentials:decrypt')(null, encrypted),
+    'api-key-xyz',
+  );
+});
+
+test('macOS credentials:repair resets keychain and reports dual backends', () => {
   let available = false;
   const handlers = registerCredentialHandlers(
     {
@@ -130,6 +192,7 @@ test('macOS credentials:repair resets keychain and reports availability', () => 
     },
     {
       platform: 'darwin',
+      userDataPath: tempUserData(),
       resetMacSafeStorageKeychain: () => ({
         attempted: true,
         deleted: ['Magies Terminal Safe Storage', 'Electron Safe Storage'],
@@ -141,15 +204,38 @@ test('macOS credentials:repair resets keychain and reports availability', () => 
   assert.equal(result.attempted, true);
   assert.deepEqual(result.deleted, ['Magies Terminal Safe Storage', 'Electron Safe Storage']);
   assert.equal(result.available, true);
+  assert.equal(result.localVault, true);
 });
 
 test('non-macOS repair does not claim a keychain reset', () => {
   const handlers = registerCredentialHandlers(
     { isEncryptionAvailable: () => true },
-    { platform: 'win32' },
+    { platform: 'win32', userDataPath: tempUserData() },
   );
   const result = handlers.get('magiesTerminal:credentials:repair')();
   assert.equal(result.attempted, false);
   assert.deepEqual(result.deleted, []);
   assert.equal(result.available, true);
+});
+
+test('local vault round-trip is stable across re-registration (survives app restart)', () => {
+  const dir = tempUserData();
+  const options = {
+    platform: 'darwin',
+    userDataPath: dir,
+    resetMacSafeStorageKeychain: () => ({ attempted: true, deleted: [] }),
+  };
+  const deadSafeStorage = {
+    isEncryptionAvailable: () => false,
+    encryptString: () => { throw new Error('no'); },
+  };
+
+  const first = registerCredentialHandlers(deadSafeStorage, options);
+  const encrypted = first.get('magiesTerminal:credentials:encrypt')(null, 'persist-me');
+
+  const second = registerCredentialHandlers(deadSafeStorage, options);
+  assert.equal(
+    second.get('magiesTerminal:credentials:decrypt')(null, encrypted),
+    'persist-me',
+  );
 });

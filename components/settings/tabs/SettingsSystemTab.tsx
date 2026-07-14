@@ -160,6 +160,7 @@ const SettingsSystemTab: React.FC<SettingsSystemTabProps> = ({
   const [isRecordingHotkey, setIsRecordingHotkey] = useState(false);
   const [hotkeyError, setHotkeyError] = useState<string | null>(null);
   const [credentialsAvailable, setCredentialsAvailable] = useState<boolean | null>(null);
+  const [credentialsBackend, setCredentialsBackend] = useState<"safeStorage" | "localVault" | null>(null);
   const [isCheckingCredentials, setIsCheckingCredentials] = useState(false);
   const [isRepairingCredentials, setIsRepairingCredentials] = useState(false);
   const [credentialRepairMessage, setCredentialRepairMessage] = useState<string | null>(null);
@@ -203,15 +204,40 @@ const SettingsSystemTab: React.FC<SettingsSystemTabProps> = ({
     loadTempDirInfo();
   }, [loadTempDirInfo]);
 
+  const applyCredentialStatus = useCallback((status: {
+    available: boolean;
+    safeStorage?: boolean;
+    localVault?: boolean;
+  } | boolean | null) => {
+    if (status == null) {
+      setCredentialsAvailable(null);
+      setCredentialsBackend(null);
+      return;
+    }
+    if (typeof status === "boolean") {
+      setCredentialsAvailable(status);
+      setCredentialsBackend(status ? "safeStorage" : null);
+      return;
+    }
+    setCredentialsAvailable(status.available);
+    if (status.safeStorage) setCredentialsBackend("safeStorage");
+    else if (status.localVault) setCredentialsBackend("localVault");
+    else setCredentialsBackend(null);
+  }, []);
+
   const loadCredentialProtectionStatus = useCallback(async () => {
     setIsCheckingCredentials(true);
     try {
-      const available = await getCredentialProtectionAvailability();
-      setCredentialsAvailable(available);
+      const bridge = magiesTerminalBridge.get();
+      if (bridge?.credentialsStatus) {
+        applyCredentialStatus(await bridge.credentialsStatus());
+      } else {
+        applyCredentialStatus(await getCredentialProtectionAvailability());
+      }
     } finally {
       setIsCheckingCredentials(false);
     }
-  }, []);
+  }, [applyCredentialStatus]);
 
   const repairCredentialProtection = useCallback(async () => {
     const bridge = magiesTerminalBridge.get();
@@ -223,7 +249,11 @@ const SettingsSystemTab: React.FC<SettingsSystemTabProps> = ({
     setCredentialRepairMessage(null);
     try {
       const result = await bridge.credentialsRepair();
-      setCredentialsAvailable(result.available);
+      applyCredentialStatus({
+        available: result.available,
+        safeStorage: result.safeStorage,
+        localVault: result.localVault,
+      });
       if (result.available) {
         setCredentialRepairMessage(t("settings.system.credentials.repair.success"));
       } else if (result.attempted) {
@@ -236,7 +266,7 @@ const SettingsSystemTab: React.FC<SettingsSystemTabProps> = ({
     } finally {
       setIsRepairingCredentials(false);
     }
-  }, [t]);
+  }, [applyCredentialStatus, t]);
 
   useEffect(() => {
     void loadCredentialProtectionStatus();
@@ -665,7 +695,11 @@ const SettingsSystemTab: React.FC<SettingsSystemTabProps> = ({
                     {isCheckingCredentials
                       ? t("settings.system.credentials.checking")
                       : credentialsAvailable === true
-                        ? t("settings.system.credentials.available")
+                        ? credentialsBackend === "localVault"
+                          ? t("settings.system.credentials.available.localVault")
+                          : credentialsBackend === "safeStorage"
+                            ? t("settings.system.credentials.available.safeStorage")
+                            : t("settings.system.credentials.available")
                         : credentialsAvailable === false
                           ? t("settings.system.credentials.unavailable")
                           : t("settings.system.credentials.unknown")}
