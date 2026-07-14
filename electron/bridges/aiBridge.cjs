@@ -282,29 +282,26 @@ const API_KEY_PLACEHOLDER = "__IPC_SECURED__";
 /** Placeholder for web search API key — replaced in main process before HTTP request. */
 const WEB_SEARCH_KEY_PLACEHOLDER = "__WEB_SEARCH_KEY__";
 
+const {
+  injectApiKeyIntoRequest: injectApiKeyIntoRequestImpl,
+} = require("./aiBridge/injectApiKey.cjs");
+
 /**
  * Replace the API key placeholder in HTTP headers and URL with the real decrypted key.
+ * Fail closed: never leave the placeholder in place when a real key was expected.
  * Handles OpenAI (Authorization: Bearer), Anthropic (x-api-key), Google (?key=), etc.
+ *
+ * @returns {{ url: string, headers: Record<string, unknown>, error?: string }}
  */
 function injectApiKeyIntoRequest(url, headers, providerId) {
-  if (!providerId) return { url, headers };
-  const resolved = resolveProviderApiKey(providerId);
-  if (!resolved || !resolved.apiKey) return { url, headers };
-  const realKey = resolved.apiKey;
-
-  // Replace placeholder in all header values
-  const patchedHeaders = {};
-  for (const [k, v] of Object.entries(headers || {})) {
-    patchedHeaders[k] = typeof v === "string" ? v.replace(API_KEY_PLACEHOLDER, realKey) : v;
-  }
-
-  // Replace placeholder in URL query parameters (e.g. Google AI ?key=)
-  let patchedUrl = url;
-  if (typeof url === "string" && url.includes(API_KEY_PLACEHOLDER)) {
-    patchedUrl = url.replace(API_KEY_PLACEHOLDER, encodeURIComponent(realKey));
-  }
-
-  return { url: patchedUrl, headers: patchedHeaders };
+  return injectApiKeyIntoRequestImpl({
+    url,
+    headers,
+    providerId,
+    placeholder: API_KEY_PLACEHOLDER,
+    resolveProvider: (id) => providerConfigs.find((p) => p.id === id) || null,
+    decryptApiKey: decryptApiKeyValue,
+  });
 }
 
 function getChildProcessTreePids(rootPid) {

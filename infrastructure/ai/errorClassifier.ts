@@ -217,6 +217,22 @@ export function classifyError(error: unknown): ErrorInfo {
     };
   }
 
+  // Local injection / decrypt failures (fail-closed before HTTP).
+  if (
+    /\bcould not be decrypted\b/i.test(rawMessage)
+    || /\bapi key is missing\b/i.test(rawMessage)
+    || /\bplaceholder remained\b/i.test(rawMessage)
+    || /\bnot available in the main process\b/i.test(rawMessage)
+  ) {
+    return {
+      type: 'auth',
+      message:
+        `API key is not usable locally. ${sanitizedRaw}\n\n` +
+        `Open Settings → AI, clear and re-enter the API key, save again, then retry.`,
+      retryable: false,
+    };
+  }
+
   // Provider 401 — often a real bad key, or ciphertext sent as the key after
   // a failed decrypt (encrypted values commonly end with base64 "=" padding).
   if (

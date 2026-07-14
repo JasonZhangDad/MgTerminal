@@ -552,6 +552,24 @@ const AIChatSidePanelActive: React.FC<AIChatSidePanelProps> = ({
     }
   }, [isVisible, webSearchConfig?.apiHost, webSearchConfig?.apiKey, webSearchConfig?.enabled]);
 
+  /** Ensure main process has the latest encrypted provider keys before chat HTTP. */
+  const syncProvidersToMain = useCallback(async () => {
+    const bridge = getMagiesTerminalBridge();
+    if (!bridge?.aiSyncProviders || providers.length === 0) return;
+    try {
+      await bridge.aiSyncProviders(providers);
+    } catch (err) {
+      console.warn("[AIChatSidePanel] aiSyncProviders failed:", err);
+    }
+    if (bridge?.aiSyncWebSearch) {
+      try {
+        await bridge.aiSyncWebSearch(webSearchConfig?.apiHost || null, webSearchConfig?.apiKey || null);
+      } catch (err) {
+        console.warn("[AIChatSidePanel] aiSyncWebSearch failed:", err);
+      }
+    }
+  }, [providers, webSearchConfig?.apiHost, webSearchConfig?.apiKey]);
+
   const {
     discoveredAgents,
     isDiscovering,
@@ -1064,6 +1082,11 @@ const AIChatSidePanelActive: React.FC<AIChatSidePanelProps> = ({
       abortControllersRef.current.set(sessionId, abortController);
       currentSession = currentSession ?? sessionsRef.current.find((session) => session.id === sessionId) ?? null;
 
+      // Wait for main-process provider key sync so stream inject never races.
+      if (!isExternalAgent) {
+        await syncProvidersToMain();
+      }
+
       if (isExternalAgent) {
         if (!agentConfig) {
           updateMessageById(sessionId, assistantMsgId, msg => ({ ...msg, content: 'External agent not found. Please check settings.', executionStatus: 'failed' }));
@@ -1124,6 +1147,7 @@ const AIChatSidePanelActive: React.FC<AIChatSidePanelProps> = ({
     createSession, addMessageToSession, updateMessageById, updateLastMessage,
     setStreamingForScope,
     sendToExternalAgent, sendToMagiesTerminalAgent, reportStreamError, autoTitleSession, t,
+    syncProvidersToMain,
     abortControllersRef, terminalSessions, defaultTargetSession, providers, selectedAgentModel, updateSessionExternalSessionId,
     scopeType, scopeTargetId, scopeHostIds, scopeLabel, globalPermissionMode, commandBlocklist, commandTimeout, webSearchConfig, buildExecutorContextForScope,
     toolIntegrationMode,

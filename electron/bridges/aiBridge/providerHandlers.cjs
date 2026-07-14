@@ -327,6 +327,9 @@ function registerProviderHandlers(ctx) {
     try {
       // Inject real API key if providerId is given (replaces placeholder in headers/URL)
       const patched = injectApiKeyIntoRequest(url, headers, providerId);
+      if (patched.error) {
+        return { ok: false, error: patched.error };
+      }
       const resolvedUrl = patched.url;
       const resolvedHeaders = patched.headers;
 
@@ -377,6 +380,9 @@ function registerProviderHandlers(ctx) {
 
     // Inject real API key if providerId is given (replaces placeholder in headers/URL)
     const patched = injectApiKeyIntoRequest(url, headers, providerId);
+    if (patched.error) {
+      return { ok: false, status: 0, data: "", error: patched.error };
+    }
     const resolvedUrl = patched.url;
     // Also inject web search API key if placeholder is present
     const resolvedHeaders = injectWebSearchKeyIntoHeaders(patched.headers);
