@@ -163,6 +163,12 @@ test("classifyError maps string form of no-output errors", () => {
   assert.equal(info.retryable, true);
 });
 
+test("classifyError maps provider 401 invalid API key messages", () => {
+  const info = classifyError("401 Authentication Fails, Your api key: ****5Q== is invalid");
+  assert.equal(info.type, "auth");
+  assert.match(info.message, /re-enter the API key/i);
+});
+
 // -------------------------------------------------------------------
 // classifyError — fallthrough
 // -------------------------------------------------------------------

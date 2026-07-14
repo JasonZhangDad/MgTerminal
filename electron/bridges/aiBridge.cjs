@@ -233,29 +233,27 @@ let registeredVaultAgentBridge = null;
 const activeStreams = new Map();
 
 // ── Provider registry (synced from renderer, keys stay encrypted) ──
-const ENC_PREFIX = "enc:v1:";
+const { decryptApiKeyValue: decryptApiKeyValueImpl } = require("./aiBridge/decryptApiKey.cjs");
 let providerConfigs = [];
 // Web search config (synced from renderer — apiKey stays encrypted, decrypted on use)
 let webSearchApiHost = null;
 let webSearchApiKeyEncrypted = null;
 
 /**
- * Decrypt an API key using Electron's safeStorage.
- * Handles both encrypted (enc:v1: prefix) and plaintext keys.
+ * Decrypt an API key (enc:v1 safeStorage, enc:v2 local vault, or plaintext).
+ * Never returns ciphertext — that produces provider 401s with base64 tails.
  */
 function decryptApiKeyValue(encryptedKey) {
-  if (!encryptedKey || typeof encryptedKey !== "string") return encryptedKey || "";
-  if (!encryptedKey.startsWith(ENC_PREFIX)) return encryptedKey; // plaintext
-  const safeStorage = electronModule?.safeStorage;
-  if (!safeStorage?.isEncryptionAvailable?.()) return encryptedKey; // cannot decrypt
+  let userDataPath = userDataDir;
   try {
-    const base64 = encryptedKey.slice(ENC_PREFIX.length);
-    const buf = Buffer.from(base64, "base64");
-    return safeStorage.decryptString(buf);
-  } catch (err) {
-    console.warn("[AI Bridge] API key decryption failed:", err?.message || err);
-    return "";
+    userDataPath = userDataPath || electronModule?.app?.getPath?.("userData") || null;
+  } catch {
+    userDataPath = userDataPath || null;
   }
+  return decryptApiKeyValueImpl(encryptedKey, {
+    safeStorage: electronModule?.safeStorage ?? null,
+    userDataPath,
+  });
 }
 
 /**

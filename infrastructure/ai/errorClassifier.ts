@@ -217,6 +217,26 @@ export function classifyError(error: unknown): ErrorInfo {
     };
   }
 
+  // Provider 401 — often a real bad key, or ciphertext sent as the key after
+  // a failed decrypt (encrypted values commonly end with base64 "=" padding).
+  if (
+    statusCode === 401
+    || /\b401\b/.test(rawMessage)
+    || /\bauthentication fails?\b/i.test(rawMessage)
+    || /\bapi key[:\s].*invalid\b/i.test(rawMessage)
+    || /\binvalid.*api key\b/i.test(rawMessage)
+  ) {
+    return {
+      type: 'auth',
+      message:
+        `Authentication failed (HTTP 401). The provider rejected the API key. ` +
+        `Open Settings → AI, clear and re-enter the API key, save again, then retry. ` +
+        `If the key was saved while Keychain was broken, re-saving regenerates a valid encrypted copy.\n\n` +
+        `Raw: ${sanitizedRaw}`,
+      retryable: false,
+    };
+  }
+
   return { type: 'unknown', message: sanitizedRaw, retryable: false };
 }
 
