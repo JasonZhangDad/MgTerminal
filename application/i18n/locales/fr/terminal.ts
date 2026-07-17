@@ -821,4 +821,25 @@ export const frTerminalMessages: Messages = {
   'diagnostics.runFromError': 'Lancer le diagnostic',
 
   'keychain.import.fido2AgentHint': 'Astuce : dans les réglages de l\'hôte, définissez l\'authentification sur « SSH Agent » et choisissez cette clé comme identité préférée.',
+
+  // Multi-host health snapshot
+  'health.open': 'Santé des hôtes',
+  'health.title': 'Instantané de santé multi-hôtes',
+  'health.subtitle': 'Vérification de {count} hôte(s) SSH',
+  'health.filter.unhealthyOnly': 'Problèmes uniquement',
+  'health.recheck': 'Revérifier',
+  'health.status.pending': 'En attente',
+  'health.status.running': 'Vérification…',
+  'health.status.healthy': 'Sain',
+  'health.status.degraded': 'Dégradé',
+  'health.status.auth-failed': 'Auth échouée',
+  'health.status.unreachable': 'Injoignable',
+  'health.status.error': 'Erreur',
+  'health.empty.allHealthy': 'Tous les hôtes vérifiés semblent sains.',
+  'health.empty.noHosts': 'Aucun hôte SSH à vérifier.',
+  'health.selectedCount': '{count} sélectionné(s)',
+  'health.runScript': 'Exécuter un script',
+
+
+
 };

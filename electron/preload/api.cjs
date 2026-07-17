@@ -795,6 +795,19 @@ function createPreloadApi(ctx) {
       sftpConnectionProgressListeners.delete(cb);
     };
   },
+  // Host health snapshot (batch check across saved hosts)
+  runHostHealthCheck: async (payload) => {
+    return ipcRenderer.invoke("magiesTerminal:health:check", payload);
+  },
+  cancelHostHealthCheck: async (runId) => {
+    return ipcRenderer.invoke("magiesTerminal:health:cancel", { runId });
+  },
+  onHostHealthProgress: (cb) => {
+    hostHealthProgressListeners.add(cb);
+    return () => {
+      hostHealthProgressListeners.delete(cb);
+    };
+  },
   // Connection diagnostics ("Test Connection")
   runConnectionDiagnostics: async (options) => {
     return ipcRenderer.invoke("magiesTerminal:diagnostics:run", options);

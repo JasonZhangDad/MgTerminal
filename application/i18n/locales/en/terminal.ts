@@ -805,4 +805,25 @@ export const enTerminalMessages: Messages = {
   'diagnostics.runFromError': 'Run diagnostics',
 
   'keychain.import.fido2AgentHint': 'Tip: in host settings, set Authentication to \'SSH Agent\' and pick this key as the preferred identity.',
+
+  // Multi-host health snapshot
+  'health.open': 'Host health',
+  'health.title': 'Host Health Snapshot',
+  'health.subtitle': 'Checking {count} SSH host(s)',
+  'health.filter.unhealthyOnly': 'Unhealthy only',
+  'health.recheck': 'Recheck',
+  'health.status.pending': 'Pending',
+  'health.status.running': 'Checking...',
+  'health.status.healthy': 'Healthy',
+  'health.status.degraded': 'Degraded',
+  'health.status.auth-failed': 'Auth failed',
+  'health.status.unreachable': 'Unreachable',
+  'health.status.error': 'Error',
+  'health.empty.allHealthy': 'All checked hosts look healthy.',
+  'health.empty.noHosts': 'No SSH hosts to check.',
+  'health.selectedCount': '{count} selected',
+  'health.runScript': 'Run script',
+
+
+
 };

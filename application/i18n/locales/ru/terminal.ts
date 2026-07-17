@@ -826,4 +826,25 @@ export const ruTerminalMessages: Messages = {
   'diagnostics.runFromError': 'Запустить диагностику',
 
   'keychain.import.fido2AgentHint': 'Совет: в настройках хоста выберите аутентификацию \'SSH Agent\' и укажите этот ключ как предпочитаемую личность.',
+
+  // Multi-host health snapshot
+  'health.open': 'Здоровье хостов',
+  'health.title': 'Снимок здоровья хостов',
+  'health.subtitle': 'Проверка {count} SSH-хост(ов)',
+  'health.filter.unhealthyOnly': 'Только с проблемами',
+  'health.recheck': 'Проверить снова',
+  'health.status.pending': 'Ожидание',
+  'health.status.running': 'Проверка…',
+  'health.status.healthy': 'Норма',
+  'health.status.degraded': 'Нагрузка',
+  'health.status.auth-failed': 'Ошибка auth',
+  'health.status.unreachable': 'Недоступен',
+  'health.status.error': 'Ошибка',
+  'health.empty.allHealthy': 'Все проверенные хосты в норме.',
+  'health.empty.noHosts': 'Нет SSH-хостов для проверки.',
+  'health.selectedCount': 'Выбрано: {count}',
+  'health.runScript': 'Запустить скрипт',
+
+
+
 };

@@ -10,6 +10,7 @@ import {
   vaultHeaderSecondaryButtonClass,
 } from "./VaultPageHeader";
 import { LazyLoadBoundary } from "../ui/lazy-load-boundary";
+import HostHealthPanel from "../health/HostHealthPanel";
 
 type VaultViewLayoutContext = Record<string, any>;
 
@@ -26,6 +27,7 @@ export function VaultViewLayout({ ctx }: { ctx: VaultViewLayoutContext }) {
     resizeAriaLabel: t("vault.panel.resizeWidth"),
   };
   const [isSidebarResizing, setIsSidebarResizing] = React.useState(false);
+  const [isHealthPanelOpen, setIsHealthPanelOpen] = React.useState(false);
   const newHostActionsRef = React.useRef<HTMLDivElement>(null);
   const sessionActionsRef = React.useRef<HTMLDivElement>(null);
   const sidebarMinWidth = 56;
@@ -421,6 +423,19 @@ export function VaultViewLayout({ ctx }: { ctx: VaultViewLayoutContext }) {
                 </TooltipTrigger>
                 <TooltipContent>{t("vault.hosts.multiSelect")}</TooltipContent>
               </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={vaultHeaderIconButtonClass}
+                    onClick={() => setIsHealthPanelOpen(true)}
+                  >
+                    <Activity size={16} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{t("health.open")}</TooltipContent>
+              </Tooltip>
             </div>
             {/* New Host split button — collapses with an animation when the
                 host details / new-host aside panel is open, since the button
@@ -580,7 +595,7 @@ export function VaultViewLayout({ ctx }: { ctx: VaultViewLayoutContext }) {
 
         {/* Keep hosts mounted so switching sections does not reset scroll or remount the list. */}
         
-        <VaultHostListSection ctx={{ Badge, Boolean, Button, cancelInlineGroupEdit, CheckSquare, ClipboardCopy, Clock, cn, commitInlineGroupRename, ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger, Copy, displayedGroups, displayedHosts, DistroAvatar, Edit2, FileSymlink, FolderPlus, FolderTree, getDropTargetClasses, getEffectiveHostDistro, groupConfigs, groupedDisplayHosts, handleCopyCredentials, handleDuplicateHost, handleEditGroupConfig, handleEditHost, handleHostConnect, handleUnmanageGroup, hasHostsSidePanel, hostListScrollRef, HostTreeView, isHostsSectionActive, isMultiSelectMode, lastPinnedId, LayoutGrid, managedGroupPaths, moveGroup, moveHostToGroup, onDeleteHost, Pin, pinnedHosts, pinnedRecentIds, Plug, recentHosts, reorderGroup, reorderHost, sanitizeHost, selectedGroupPath, selectedHostIds, sessionCount, setDeleteTargetPath, setDragOverDropTarget, setGroupDragOverDropTarget, setIsDeleteGroupOpen, setIsNewFolderOpen, setLastPinnedId, setNewFolderName, setSelectedGroupPath, setTargetParentPath, shouldHideEmptyRootHostsSection, showRecentHosts, sortMode, splitViewGridStyle, Square, Star, startInlineDeleteGroup, startInlineNewGroup, startInlineRenameGroup, t, toggleHostPinned, toggleHostSelection, Trash2, treeExpandedState, treeViewGroupTree, treeViewHosts, viewMode, visibleDisplayedHosts }} />
+        <VaultHostListSection ctx={{ Badge, Boolean, Button, cancelInlineGroupEdit, CheckSquare, ClipboardCopy, Clock, cn, commitInlineGroupRename, ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger, Copy, displayedGroups, displayedHosts, DistroAvatar, Edit2, FileSymlink, FolderPlus, FolderTree, getDropTargetClasses, getEffectiveHostDistro, groupConfigs, groupedDisplayHosts, handleCopyCredentials, handleDuplicateHost, handleEditGroupConfig, handleEditHost, handleHostConnect, handleNewHost, handleUnmanageGroup, hasHostsSidePanel, hostListScrollRef, HostTreeView, isHostsSectionActive, isMultiSelectMode, lastPinnedId, LayoutGrid, managedGroupPaths, moveGroup, moveHostToGroup, onDeleteHost, Pin, pinnedHosts, pinnedRecentIds, Plug, recentHosts, reorderGroup, reorderHost, sanitizeHost, selectedGroupPath, selectedHostIds, sessionCount, setDeleteTargetPath, setDragOverDropTarget, setGroupDragOverDropTarget, setIsDeleteGroupOpen, setIsImportOpen, setIsNewFolderOpen, setLastPinnedId, setNewFolderName, setSelectedGroupPath, setTargetParentPath, shouldHideEmptyRootHostsSection, showRecentHosts, sortMode, splitViewGridStyle, Square, Star, startInlineDeleteGroup, startInlineNewGroup, startInlineRenameGroup, t, toggleHostPinned, toggleHostSelection, Trash2, treeExpandedState, treeViewGroupTree, treeViewHosts, viewMode, visibleDisplayedHosts }} />
 
         {currentSection === "snippets" && (
           <LazyLoadBoundary name="Snippets" resetKey="snippets">
@@ -757,6 +772,20 @@ export function VaultViewLayout({ ctx }: { ctx: VaultViewLayoutContext }) {
           </LazyLoadBoundary>
         )}
       </div>
+
+      {isHealthPanelOpen && (
+        <HostHealthPanel
+          open={isHealthPanelOpen}
+          onClose={() => setIsHealthPanelOpen(false)}
+          hosts={hosts}
+          allHosts={hosts}
+          keys={keys}
+          identities={identities}
+          knownHosts={knownHosts}
+          snippets={snippets}
+          onRunSnippet={onRunSnippet}
+        />
+      )}
 
       {/* Group Details Panel */}
       {currentSection === "hosts" && isGroupPanelOpen && editingGroupPath && (

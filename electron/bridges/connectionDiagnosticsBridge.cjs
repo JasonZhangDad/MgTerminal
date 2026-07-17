@@ -388,7 +388,11 @@ function registerHandlers(ipcMain) {
 
 module.exports = {
   registerHandlers,
-  _connectTargetProbe: connectTargetProbe,
+  // Shared with hostHealthBridge (same probing primitives, no shell opened).
+  connectTargetProbe,
+  probeTcpForRun: probeTcp,
+  trackCleanup,
+  cancelRun,
   _loadProbeKey: loadProbeKey,
   _cancelRun: cancelRun,
 };

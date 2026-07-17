@@ -805,4 +805,25 @@ export const koTerminalMessages: Messages = {
   'diagnostics.runFromError': '진단 실행',
 
   'keychain.import.fido2AgentHint': '팁: 호스트 설정에서 인증 방식을 \'SSH Agent\'로 설정하면 이 키를 기본 자격 증명으로 선택할 수 있습니다.',
+
+  // Multi-host health snapshot
+  'health.open': '호스트 상태',
+  'health.title': '다중 호스트 상태 스냅샷',
+  'health.subtitle': 'SSH 호스트 {count}대 확인 중',
+  'health.filter.unhealthyOnly': '이상만',
+  'health.recheck': '다시 확인',
+  'health.status.pending': '대기',
+  'health.status.running': '확인 중…',
+  'health.status.healthy': '정상',
+  'health.status.degraded': '부하 높음',
+  'health.status.auth-failed': '인증 실패',
+  'health.status.unreachable': '연결 불가',
+  'health.status.error': '오류',
+  'health.empty.allHealthy': '확인한 호스트가 모두 정상입니다.',
+  'health.empty.noHosts': '확인할 SSH 호스트가 없습니다.',
+  'health.selectedCount': '{count}대 선택',
+  'health.runScript': '스크립트 실행',
+
+
+
 };

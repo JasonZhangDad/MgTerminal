@@ -34,6 +34,7 @@ const zmodemOverwriteListeners = new Map(); // sessionId -> Set<cb>
 const sftpConnectionProgressListeners = new Set();
 const connectionDiagnosticsProgressListeners = new Set();
 const sshAuthMethodUsedListeners = new Set();
+const hostHealthProgressListeners = new Set();
 const authFailedListeners = new Map();
 const telnetAutoLoginCompleteListeners = new Map();
 const telnetAutoLoginCancelledListeners = new Map();
@@ -333,6 +334,17 @@ ipcRenderer.on("magiesTerminal:connection-reuse:fallback", (_event, payload) => 
       cb(payload.sessionId, payload.sourceSessionId);
     } catch (err) {
       console.error("Connection reuse fallback callback failed", err);
+    }
+  });
+});
+
+// Host health check progress events
+ipcRenderer.on("magiesTerminal:health:progress", (_event, payload) => {
+  hostHealthProgressListeners.forEach((cb) => {
+    try {
+      cb(payload);
+    } catch (err) {
+      console.error("Host health progress callback failed", err);
     }
   });
 });
@@ -811,6 +823,7 @@ const api = createPreloadApi({
   sftpConnectionProgressListeners,
   connectionDiagnosticsProgressListeners,
   sshAuthMethodUsedListeners,
+  hostHealthProgressListeners,
   authFailedListeners,
   telnetAutoLoginCompleteListeners,
   telnetAutoLoginCancelledListeners,

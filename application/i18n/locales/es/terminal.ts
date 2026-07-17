@@ -774,4 +774,25 @@ export const esTerminalMessages: Messages = {
   'diagnostics.runFromError': 'Ejecutar diagnóstico',
 
   'keychain.import.fido2AgentHint': 'Consejo: en la configuración del host, establece la autenticación en \'SSH Agent\' y elige esta clave como identidad preferida.',
+
+  // Multi-host health snapshot
+  'health.open': 'Salud de hosts',
+  'health.title': 'Instantánea de salud multi-host',
+  'health.subtitle': 'Comprobando {count} host(s) SSH',
+  'health.filter.unhealthyOnly': 'Solo con problemas',
+  'health.recheck': 'Volver a comprobar',
+  'health.status.pending': 'Pendiente',
+  'health.status.running': 'Comprobando…',
+  'health.status.healthy': 'Correcto',
+  'health.status.degraded': 'Degradado',
+  'health.status.auth-failed': 'Auth fallida',
+  'health.status.unreachable': 'Inalcanzable',
+  'health.status.error': 'Error',
+  'health.empty.allHealthy': 'Todos los hosts comprobados están bien.',
+  'health.empty.noHosts': 'No hay hosts SSH que comprobar.',
+  'health.selectedCount': '{count} seleccionados',
+  'health.runScript': 'Ejecutar script',
+
+
+
 };

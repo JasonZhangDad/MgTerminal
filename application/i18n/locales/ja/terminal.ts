@@ -805,4 +805,25 @@ export const jaTerminalMessages: Messages = {
   'diagnostics.runFromError': '診断を実行',
 
   'keychain.import.fido2AgentHint': 'ヒント: ホスト設定で認証方式を「SSH Agent」にすると、このキーを優先アイデンティティとして選択できます。',
+
+  // Multi-host health snapshot
+  'health.open': 'ホストヘルス',
+  'health.title': 'マルチホストヘルススナップショット',
+  'health.subtitle': '{count} 台の SSH ホストを確認中',
+  'health.filter.unhealthyOnly': '異常のみ',
+  'health.recheck': '再チェック',
+  'health.status.pending': '待機',
+  'health.status.running': '確認中…',
+  'health.status.healthy': '正常',
+  'health.status.degraded': '負荷高',
+  'health.status.auth-failed': '認証失敗',
+  'health.status.unreachable': '到達不能',
+  'health.status.error': 'エラー',
+  'health.empty.allHealthy': '確認済みホストはすべて正常です。',
+  'health.empty.noHosts': '確認できる SSH ホストがありません。',
+  'health.selectedCount': '{count} 台選択',
+  'health.runScript': 'スクリプト実行',
+
+
+
 };

@@ -200,6 +200,9 @@ function createBridgeRegistrar(context) {
     const connectionDiagnosticsBridge = require("../bridges/connectionDiagnosticsBridge.cjs");
     connectionDiagnosticsBridge.registerHandlers(ipcMain);
 
+    const hostHealthBridge = require("../bridges/hostHealthBridge.cjs");
+    hostHealthBridge.registerHandlers(ipcMain);
+
     const scriptBridge = require("../bridges/scriptBridge.cjs");
     scriptBridge.init({
       sessions,

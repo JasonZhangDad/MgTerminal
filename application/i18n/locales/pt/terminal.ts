@@ -799,4 +799,25 @@ export const ptTerminalMessages: Messages = {
   'diagnostics.runFromError': 'Executar diagnóstico',
 
   'keychain.import.fido2AgentHint': 'Dica: nas configurações do host, defina a autenticação como \'SSH Agent\' e escolha esta chave como identidade preferida.',
+
+  // Multi-host health snapshot
+  'health.open': 'Saúde dos hosts',
+  'health.title': 'Instantâneo de saúde multi-host',
+  'health.subtitle': 'Verificando {count} host(s) SSH',
+  'health.filter.unhealthyOnly': 'Somente com problemas',
+  'health.recheck': 'Verificar de novo',
+  'health.status.pending': 'Pendente',
+  'health.status.running': 'Verificando…',
+  'health.status.healthy': 'Saudável',
+  'health.status.degraded': 'Degradado',
+  'health.status.auth-failed': 'Auth falhou',
+  'health.status.unreachable': 'Inalcançável',
+  'health.status.error': 'Erro',
+  'health.empty.allHealthy': 'Todos os hosts verificados parecem saudáveis.',
+  'health.empty.noHosts': 'Nenhum host SSH para verificar.',
+  'health.selectedCount': '{count} selecionado(s)',
+  'health.runScript': 'Executar script',
+
+
+
 };

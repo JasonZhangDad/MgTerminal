@@ -805,4 +805,25 @@ export const deTerminalMessages: Messages = {
   'diagnostics.runFromError': 'Diagnose ausführen',
 
   'keychain.import.fido2AgentHint': 'Tipp: Stelle in den Host-Einstellungen die Authentifizierung auf \'SSH Agent\' und wähle diesen Schlüssel als bevorzugte Identität.',
+
+  // Multi-host health snapshot
+  'health.open': 'Host-Gesundheit',
+  'health.title': 'Multi-Host-Gesundheits-Snapshot',
+  'health.subtitle': 'Prüfe {count} SSH-Host(s)',
+  'health.filter.unhealthyOnly': 'Nur auffällig',
+  'health.recheck': 'Erneut prüfen',
+  'health.status.pending': 'Ausstehend',
+  'health.status.running': 'Prüfe…',
+  'health.status.healthy': 'Gesund',
+  'health.status.degraded': 'Belastet',
+  'health.status.auth-failed': 'Auth fehlgeschlagen',
+  'health.status.unreachable': 'Nicht erreichbar',
+  'health.status.error': 'Fehler',
+  'health.empty.allHealthy': 'Alle geprüften Hosts wirken gesund.',
+  'health.empty.noHosts': 'Keine SSH-Hosts zum Prüfen.',
+  'health.selectedCount': '{count} ausgewählt',
+  'health.runScript': 'Skript ausführen',
+
+
+
 };

@@ -847,4 +847,25 @@ export const zhTWTerminalMessages: Messages = {
   'diagnostics.runFromError': '執行診斷',
 
   'keychain.import.fido2AgentHint': '提示:在主機設定中將驗證方式設為「SSH Agent」,並可將此金鑰選為首選身份。',
+
+  // Multi-host health snapshot
+  'health.open': '主機健康',
+  'health.title': '多主機健康快照',
+  'health.subtitle': '正在檢查 {count} 台 SSH 主機',
+  'health.filter.unhealthyOnly': '僅異常',
+  'health.recheck': '重新檢查',
+  'health.status.pending': '等待',
+  'health.status.running': '檢查中…',
+  'health.status.healthy': '正常',
+  'health.status.degraded': '資源緊張',
+  'health.status.auth-failed': '認證失敗',
+  'health.status.unreachable': '不可達',
+  'health.status.error': '錯誤',
+  'health.empty.allHealthy': '已檢查的主機均正常。',
+  'health.empty.noHosts': '沒有可檢查的 SSH 主機。',
+  'health.selectedCount': '已選 {count} 台',
+  'health.runScript': '執行腳本',
+
+
+
 };

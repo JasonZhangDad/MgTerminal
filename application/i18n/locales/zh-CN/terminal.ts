@@ -847,4 +847,25 @@ export const zhCNTerminalMessages: Messages = {
   'diagnostics.runFromError': '运行诊断',
 
   'keychain.import.fido2AgentHint': '提示:在主机设置中将认证方式设为“SSH Agent”,并可将此密钥选为首选身份。',
+
+  // Multi-host health snapshot
+  'health.open': '主机健康',
+  'health.title': '多主机健康快照',
+  'health.subtitle': '正在检查 {count} 台 SSH 主机',
+  'health.filter.unhealthyOnly': '仅异常',
+  'health.recheck': '重新检查',
+  'health.status.pending': '等待',
+  'health.status.running': '检查中…',
+  'health.status.healthy': '正常',
+  'health.status.degraded': '资源紧张',
+  'health.status.auth-failed': '认证失败',
+  'health.status.unreachable': '不可达',
+  'health.status.error': '错误',
+  'health.empty.allHealthy': '已检查的主机均正常。',
+  'health.empty.noHosts': '没有可检查的 SSH 主机。',
+  'health.selectedCount': '已选 {count} 台',
+  'health.runScript': '运行脚本',
+
+
+
 };
