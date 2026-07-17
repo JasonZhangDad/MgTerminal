@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /* eslint-disable no-console */
 //
-// Download platform-specific mosh-client binaries from binaricat/MoshCatty
+// Download platform-specific mosh-client binaries from Zhangwei930/MoshMagies
 // releases into resources/mosh/, so electron-builder can bundle them via
 // extraResources.
 //
-// Layout (MoshCatty only — pure single binary per platform, no Cygwin DLLs,
+// Layout (MoshMagies only — pure single binary per platform, no Cygwin DLLs,
 // no terminfo bag):
 //   mosh-client-linux-x64.tar.gz      -> resources/mosh/linux-x64/mosh-client
 //   mosh-client-linux-arm64.tar.gz    -> resources/mosh/linux-arm64/mosh-client
@@ -19,7 +19,7 @@
 //
 // Env:
 //   MOSH_BIN_RELEASE          — required for fetch unless --resolve-release
-//   MOSH_BIN_OWNER / MOSH_BIN_REPO — default binaricat / MoshCatty
+//   MOSH_BIN_OWNER / MOSH_BIN_REPO — default Zhangwei930 / MoshMagies
 //   MOSH_BIN_BASE_URL         — full release download base override
 //   MOSH_BIN_RES_DIR          — output dir override (tests)
 //   MOSH_BIN_ALLOW_UNVERIFIED — accept missing SHA256SUMS (local mirrors only)
@@ -153,11 +153,11 @@ function chmodExecutable(filePath) {
 }
 
 function parseMoshBinRepository(env) {
-  // Canonical default binaricat/MoshCatty — never inherit fork owner from
+  // Canonical default Zhangwei930/MoshMagies — never inherit fork owner from
   // GITHUB_REPOSITORY (same policy as resolve-mosh-bin-release).
   return {
-    owner: env.MOSH_BIN_OWNER || "binaricat",
-    repo: env.MOSH_BIN_REPO || "MoshCatty",
+    owner: env.MOSH_BIN_OWNER || "Zhangwei930",
+    repo: env.MOSH_BIN_REPO || "MoshMagies",
   };
 }
 
@@ -191,8 +191,8 @@ function assertExtractedTreeSafe(root) {
   }
 }
 
-/** Keep only the pure MoshCatty client binary under extractDir. */
-function normalizeMoshCattyBundle(extractDir, target) {
+/** Keep only the pure MoshMagies client binary under extractDir. */
+function normalizeMoshMagiesBundle(extractDir, target) {
   const wanted = target.binary;
   const candidates = [
     path.join(extractDir, wanted),
@@ -217,14 +217,14 @@ function normalizeMoshCattyBundle(extractDir, target) {
   }
 
   // Stage a clean tree with only the client binary (drop any accidental extras).
-  const cleanDir = path.join(extractDir, ".moshcatty-clean");
+  const cleanDir = path.join(extractDir, ".moshmagies-clean");
   fs.mkdirSync(cleanDir, { recursive: true });
   const destBinary = path.join(cleanDir, wanted);
   fs.copyFileSync(found, destBinary);
   chmodExecutable(destBinary);
 
   for (const name of fs.readdirSync(extractDir)) {
-    if (name === ".moshcatty-clean") continue;
+    if (name === ".moshmagies-clean") continue;
     fs.rmSync(path.join(extractDir, name), { recursive: true, force: true });
   }
   for (const name of fs.readdirSync(cleanDir)) {
@@ -260,7 +260,7 @@ function unpackTarGz(buf, target, { resDir }) {
       stdio: "inherit",
     });
     assertExtractedTreeSafe(extractDir);
-    normalizeMoshCattyBundle(extractDir, target);
+    normalizeMoshMagiesBundle(extractDir, target);
     replaceDir(extractDir, destDir);
   } finally {
     fs.rmSync(tmpRoot, { recursive: true, force: true });
@@ -313,7 +313,7 @@ async function main(argv = process.argv.slice(2), env = process.env) {
     release = await resolveMoshBinRelease(env);
   }
   if (!release) {
-    log("MOSH_BIN_RELEASE is unset - skipping. Set it (e.g. moshcatty-0.1.4) to bundle mosh-client into the package.");
+    log("MOSH_BIN_RELEASE is unset - skipping. Set it (e.g. moshmagies-0.1.4) to bundle mosh-client into the package.");
     return 0;
   }
   // Reject pre-0.1.4 pins (missing the Windows ConPTY shortcut-input fix) even when MOSH_BIN_RELEASE is set
@@ -359,7 +359,7 @@ module.exports = {
   parseSums,
   validateTarEntries,
   assertExtractedTreeSafe,
-  normalizeMoshCattyBundle,
+  normalizeMoshMagiesBundle,
   unpackTarGz,
   main,
 };

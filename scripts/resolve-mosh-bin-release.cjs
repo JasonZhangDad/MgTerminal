@@ -1,44 +1,44 @@
 #!/usr/bin/env node
 /* eslint-disable no-console */
 //
-// Resolve the MoshCatty mosh-client binary release used by packaging / dev.
+// Resolve the MoshMagies mosh-client binary release used by packaging / dev.
 //
 // Priority:
 //   1. MOSH_BIN_RELEASE from workflow input / repository variable.
 //   2. Latest non-draft, non-prerelease GitHub Release whose tag is
-//      moshcatty-* in MOSH_BIN_OWNER/MOSH_BIN_REPO (default binaricat/MoshCatty).
+//      moshmagies-* in MOSH_BIN_OWNER/MOSH_BIN_REPO (default Zhangwei930/MoshMagies).
 //
 // In GitHub Actions, the resolved tag is written to $GITHUB_ENV.
 
 const fs = require("node:fs");
 const https = require("node:https");
 
-// MoshCatty pure-Rust releases only.
+// MoshMagies pure-Rust releases only.
 // Minimum 0.1.4: includes the Windows ConPTY shortcut-input fix. Linux builds
 // have matched MagiesTerminal's GLIBC floors since 0.1.2.
 // Allow semver prerelease (-rc1) and build metadata (+meta); no path separators.
-const TAG_RE = /^moshcatty-[A-Za-z0-9._+-]+$/;
+const TAG_RE = /^moshmagies-[A-Za-z0-9._+-]+$/;
 const MIN_VERSION = { major: 0, minor: 1, patch: 4 };
-const MIN_TAG = `moshcatty-${MIN_VERSION.major}.${MIN_VERSION.minor}.${MIN_VERSION.patch}`;
+const MIN_TAG = `moshmagies-${MIN_VERSION.major}.${MIN_VERSION.minor}.${MIN_VERSION.patch}`;
 
 function log(msg) {
   console.log(`[resolve-mosh-bin-release] ${msg}`);
 }
 
 /**
- * Parse moshcatty-X.Y.Z with optional prerelease (-rc1) and build (+meta).
+ * Parse moshmagies-X.Y.Z with optional prerelease (-rc1) and build (+meta).
  * Returns null if not semver-ish.
  */
-function parseMoshCattyVersion(tag) {
+function parseMoshMagiesVersion(tag) {
   const match = String(tag || "").trim().match(
-    /^moshcatty-(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?(?:\+[0-9A-Za-z.-]+)?$/,
+    /^moshmagies-(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?(?:\+[0-9A-Za-z.-]+)?$/,
   );
   if (!match) return null;
   return {
     major: Number(match[1]),
     minor: Number(match[2]),
     patch: Number(match[3]),
-    // Present when tag is e.g. moshcatty-0.1.4-rc1 (semver: prerelease < final).
+    // Present when tag is e.g. moshmagies-0.1.4-rc1 (semver: prerelease < final).
     prerelease: match[4] || null,
   };
 }
@@ -54,7 +54,7 @@ function compareCoreVersion(a, b) {
  * prerelease rules: X.Y.Z-rcN is below final X.Y.Z).
  */
 function isAtLeastMinRelease(tag) {
-  const version = parseMoshCattyVersion(tag);
+  const version = parseMoshMagiesVersion(tag);
   if (!version) return false;
   const core = compareCoreVersion(version, MIN_VERSION);
   if (core > 0) return true;
@@ -65,8 +65,8 @@ function isAtLeastMinRelease(tag) {
 
 function validateReleaseTag(tag) {
   const value = String(tag || "").trim();
-  if (!TAG_RE.test(value) || !parseMoshCattyVersion(value)) {
-    throw new Error(`invalid mosh binary release tag: ${tag} (expected moshcatty-X.Y.Z[(-pre)|(+build)])`);
+  if (!TAG_RE.test(value) || !parseMoshMagiesVersion(value)) {
+    throw new Error(`invalid mosh binary release tag: ${tag} (expected moshmagies-X.Y.Z[(-pre)|(+build)])`);
   }
   if (!isAtLeastMinRelease(value)) {
     throw new Error(
@@ -79,11 +79,11 @@ function validateReleaseTag(tag) {
 }
 
 function parseRepository(env) {
-  // Canonical default is always binaricat/MoshCatty. Do not derive owner from
+  // Canonical default is always Zhangwei930/MoshMagies. Do not derive owner from
   // GITHUB_REPOSITORY — fork packaging would otherwise look for
-  // <fork-owner>/MoshCatty and fail. Override only via MOSH_BIN_OWNER/REPO.
-  const owner = env.MOSH_BIN_OWNER || "binaricat";
-  const repo = env.MOSH_BIN_REPO || "MoshCatty";
+  // <fork-owner>/MoshMagies and fail. Override only via MOSH_BIN_OWNER/REPO.
+  const owner = env.MOSH_BIN_OWNER || "Zhangwei930";
+  const repo = env.MOSH_BIN_REPO || "MoshMagies";
   return { owner, repo };
 }
 
@@ -175,7 +175,7 @@ async function loadReleases(env, request = requestJsonWithHeaders) {
   const { owner, repo } = parseRepository(env);
   const apiBase = (env.GITHUB_API_URL || "https://api.github.com").replace(/\/+$/, "");
   let url = `${apiBase}/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/releases?per_page=100`;
-  log(`looking up latest moshcatty-* release in ${owner}/${repo}`);
+  log(`looking up latest moshmagies-* release in ${owner}/${repo}`);
   const releases = [];
   const seen = new Set();
   while (url) {
@@ -212,8 +212,8 @@ async function main(env = process.env) {
   const release = pickLatestMoshBinRelease(releases);
   if (!release) {
     throw new Error(
-      `could not find a non-draft ${MIN_TAG}+ release in binaricat/MoshCatty. `
-        + `Publish a MoshCatty GitHub Release (e.g. ${MIN_TAG}) before packaging.`,
+      `could not find a non-draft ${MIN_TAG}+ release in Zhangwei930/MoshMagies. `
+        + `Publish a MoshMagies GitHub Release (e.g. ${MIN_TAG}) before packaging.`,
     );
   }
 
@@ -234,7 +234,7 @@ module.exports = {
   loadReleases,
   parseNextLink,
   validateReleaseTag,
-  parseMoshCattyVersion,
+  parseMoshMagiesVersion,
   isAtLeastMinRelease,
   parseRepository,
   pickLatestMoshBinRelease,

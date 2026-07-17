@@ -93,7 +93,7 @@ test("mosh runtime does not fall back to system mosh or mosh-client", () => {
   assert.equal(source.includes("brew install mosh"), false);
 });
 
-test("MoshCatty runtime env is a no-op (no DLL bag / terminfo)", () => {
+test("MoshMagies runtime env is a no-op (no DLL bag / terminfo)", () => {
   const env = { Path: "C:\\Windows\\System32", TERM: "xterm-256color" };
   const out = addBundledMoshRuntimeEnv(env, "C:\\app\\mosh-client.exe", { platform: "win32" });
   assert.equal(out, env);

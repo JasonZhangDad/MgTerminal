@@ -7,8 +7,8 @@ const repositoryRoot = path.resolve(__dirname, '..');
 const legacyAgentBrand = ['cat', 'ty'].join('');
 const legacyBrand = `net${legacyAgentBrand}`;
 const legacyUserBrand = ['da', 'mao'].join('');
-// 匹配独立的旧 Agent 品牌词，但放行外部依赖 MoshCatty（binaricat/MoshCatty 及其 moshcatty-* 发布件）
-const legacyAgentBrandPattern = new RegExp(`(?<!mosh)${legacyAgentBrand}`, 'i');
+// 匹配独立的旧 Agent 品牌词；mosh 客户端已改名 MoshMagies，无需再放行 mosh 前缀
+const legacyAgentBrandPattern = new RegExp(legacyAgentBrand, 'i');
 const ignoredDirectories = new Set(['.git', 'dist', 'node_modules', 'release']);
 
 function listFiles(directory, relativeDirectory = '') {

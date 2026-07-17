@@ -1441,7 +1441,7 @@ const { getDefaultShell, validatePath } = pathValidationApi;
 /**
  * Locate the mosh-client binary bundled by electron-builder via
  * `extraResources` (see electron-builder.config.cjs and
- * binaricat/MoshCatty releases).
+ * Zhangwei930/MoshMagies releases).
  *
  * Returns an absolute path when the binary is on disk, otherwise null.
  * In dev / non-packaged runs the path is computed against the project

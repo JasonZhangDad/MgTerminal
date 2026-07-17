@@ -6,7 +6,7 @@ with the MagiesTerminal installer. MagiesTerminal launches this bundled `et` dir
 own SSH bootstrap and EternalTerminal protocol handshake against the remote
 `etserver` / `etterminal`.
 
-Like MoshCatty `mosh-client`, `et` is a pure network-transport client and does not
+Like MoshMagies `mosh-client`, `et` is a pure network-transport client and does not
 render a terminal locally, so there is **no terminfo bundle** here — only the
 single `et` (`et.exe` on Windows) binary.
 
