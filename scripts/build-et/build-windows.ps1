@@ -48,6 +48,22 @@ try {
   git -C $etDir checkout --detach FETCH_HEAD
   git -C $etDir submodule update --init --recursive --depth 1
 
+  if ($arch -eq "arm64") {
+    # Upstream Findsodium.cmake probes the MSVC target arch and only knows
+    # _M_IX86 / _M_X64; _M_ARM64 hits its FATAL_ERROR branch. Teach it arm64
+    # (sodium itself resolves from the vcpkg tree either way).
+    $findSodium = Join-Path $etDir "cmake\Findsodium.cmake"
+    $fs = Get-Content -Raw $findSodium
+    $probeAnchor = "#if defined _M_IX86"
+    $libAnchor = 'elseif(_TARGET_ARCH STREQUAL "x86_64")'
+    if (-not $fs.Contains($probeAnchor) -or -not $fs.Contains($libAnchor)) {
+      throw "Findsodium.cmake changed upstream; arm64 patch anchors not found"
+    }
+    $fs = $fs.Replace($probeAnchor, "#if defined _M_ARM64`n      #error ARCH_VALUE arm64`n      #elif defined _M_IX86")
+    $fs = $fs.Replace($libAnchor, "elseif(_TARGET_ARCH STREQUAL `"arm64`")`n      string(APPEND _PLATFORM_PATH `"ARM64`")`n    $libAnchor")
+    Set-Content -Path $findSodium -Value $fs
+  }
+
   # Drop sentry-native from the vcpkg manifest. We configure with
   # -DDISABLE_TELEMETRY=ON so ET never references Sentry, but vcpkg's manifest
   # mode would still force-build it (and crashpad). Removing it avoids an
