@@ -119,6 +119,8 @@ export const ruTerminalMessages: Messages = {
   'terminal.follow.audit.loading': 'Загрузка…',
   'terminal.follow.audit.empty': 'Событий пока нет',
   'terminal.follow.audit.loadFailed': 'Не удалось загрузить журнал',
+  'terminal.follow.audit.persistedHint':
+    'История хранится на этом устройстве и сохраняется после перезапуска для данного session id.',
   'terminal.follow.audit.copyText': 'Копировать текст',
   'terminal.follow.audit.copyNdjson': 'Копировать NDJSON',
   'terminal.follow.audit.copied': 'Журнал скопирован',

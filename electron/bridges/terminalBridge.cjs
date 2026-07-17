@@ -1467,6 +1467,15 @@ function registerHandlers(ipcMain, options = {}) {
   // Local follow mode (watch / single control lock) + LAN invite relay
   const sessionFollowManager = require("./sessionFollowManager.cjs");
   const sessionFollowLan = require("./sessionFollowLan.cjs");
+  // Persist collaboration audit under userData so history survives restarts.
+  try {
+    const { app } = require("electron");
+    sessionFollowManager.configureAuditPersistence({
+      userDataPath: app?.getPath?.("userData"),
+    });
+  } catch {
+    // non-Electron / tests
+  }
   sessionFollowLan.configure({ writeToSessionNow });
   const resolveDisplayName = () => {
     try {

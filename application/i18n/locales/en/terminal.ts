@@ -89,6 +89,8 @@ export const enTerminalMessages: Messages = {
   'terminal.follow.audit.loading': 'Loading…',
   'terminal.follow.audit.empty': 'No audit events yet',
   'terminal.follow.audit.loadFailed': 'Could not load audit log',
+  'terminal.follow.audit.persistedHint':
+    'History is saved on this device and survives app restarts for this session id.',
   'terminal.follow.audit.copyText': 'Copy text',
   'terminal.follow.audit.copyNdjson': 'Copy NDJSON',
   'terminal.follow.audit.copied': 'Audit log copied',

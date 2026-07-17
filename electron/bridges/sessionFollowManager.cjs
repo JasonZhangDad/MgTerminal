@@ -5,11 +5,89 @@
  * so renderer and main share the same rules without bundling TS into CJS.
  */
 
+const auditStore = require("./sessionFollowAuditStore.cjs");
+
 const rooms = new Map(); // sessionId -> room
 const peerToSession = new Map(); // peerId -> sessionId
 const auditBySession = new Map(); // sessionId -> events[]
 const stateListeners = new Set();
 const MAX_AUDIT = 200;
+
+/** @type {string | null} */
+let auditFilePath = null;
+/** @type {ReturnType<typeof auditStore.emptyStore> | null} */
+let diskAuditCache = null;
+let auditPersistTimer = null;
+const AUDIT_PERSIST_DEBOUNCE_MS = 400;
+
+function configureAuditPersistence(options = {}) {
+  if (typeof options.filePath === "string" && options.filePath.trim()) {
+    auditFilePath = options.filePath.trim();
+  } else if (typeof options.userDataPath === "string" && options.userDataPath.trim()) {
+    auditFilePath = auditStore.resolveDefaultFilePath(options.userDataPath.trim());
+  } else {
+    try {
+      // Lazy resolve Electron userData when available (not required for unit tests).
+      // eslint-disable-next-line global-require
+      const { app } = require("electron");
+      if (app?.getPath) {
+        auditFilePath = auditStore.resolveDefaultFilePath(app.getPath("userData"));
+      }
+    } catch {
+      // running outside Electron
+    }
+  }
+  diskAuditCache = null;
+  return auditFilePath;
+}
+
+function ensureDiskAuditLoaded() {
+  if (diskAuditCache) return diskAuditCache;
+  if (!auditFilePath) {
+    // Attempt auto-config once.
+    configureAuditPersistence();
+  }
+  diskAuditCache = auditFilePath
+    ? auditStore.loadStore(auditFilePath)
+    : auditStore.emptyStore();
+  return diskAuditCache;
+}
+
+function scheduleAuditPersist() {
+  if (!auditFilePath) return;
+  if (auditPersistTimer) clearTimeout(auditPersistTimer);
+  auditPersistTimer = setTimeout(() => {
+    auditPersistTimer = null;
+    flushAuditPersist();
+  }, AUDIT_PERSIST_DEBOUNCE_MS);
+  if (typeof auditPersistTimer.unref === "function") {
+    auditPersistTimer.unref();
+  }
+}
+
+function flushAuditPersist() {
+  if (!auditFilePath) return false;
+  const disk = ensureDiskAuditLoaded();
+  // Merge in-memory sessions into disk cache before write.
+  for (const [sessionId, events] of auditBySession.entries()) {
+    diskAuditCache = auditStore.setSessionEvents(disk, sessionId, events, {
+      maxEvents: MAX_AUDIT,
+    });
+  }
+  return auditStore.saveStore(auditFilePath, diskAuditCache || disk, {
+    maxEvents: MAX_AUDIT,
+  });
+}
+
+function hydrateAuditFromDisk(sessionId) {
+  if (!sessionId) return;
+  if (auditBySession.has(sessionId)) return;
+  const disk = ensureDiskAuditLoaded();
+  const events = auditStore.getSessionEvents(disk, sessionId);
+  if (events.length > 0) {
+    auditBySession.set(sessionId, events.slice());
+  }
+}
 
 function makePeerId(webContentsId) {
   return `wc-${webContentsId}`;
@@ -59,6 +137,7 @@ function toPublicState(room) {
 }
 
 function pushAudit(sessionId, type, actorPeerId, targetPeerId, detail) {
+  hydrateAuditFromDisk(sessionId);
   const event = {
     ts: Date.now(),
     sessionId,
@@ -71,6 +150,12 @@ function pushAudit(sessionId, type, actorPeerId, targetPeerId, detail) {
   list.push(event);
   if (list.length > MAX_AUDIT) list.splice(0, list.length - MAX_AUDIT);
   auditBySession.set(sessionId, list);
+  // Keep disk cache in sync for this session.
+  const disk = ensureDiskAuditLoaded();
+  diskAuditCache = auditStore.setSessionEvents(disk, sessionId, list, {
+    maxEvents: MAX_AUDIT,
+  });
+  scheduleAuditPersist();
   return event;
 }
 
@@ -93,6 +178,8 @@ function startFollow(sessionId, webContentsId, displayName) {
   if (rooms.has(sessionId)) {
     return { success: false, error: "Follow already active for this session." };
   }
+  // Load prior collaboration history for this session (if any).
+  hydrateAuditFromDisk(sessionId);
   const owner = createPeer(webContentsId, displayName || "Host", "controller");
   const room = {
     sessionId,
@@ -235,6 +322,7 @@ function getState(sessionId) {
 }
 
 function getAudit(sessionId) {
+  hydrateAuditFromDisk(sessionId);
   return auditBySession.get(sessionId) || [];
 }
 
@@ -351,6 +439,12 @@ function __resetForTests() {
   peerToSession.clear();
   auditBySession.clear();
   stateListeners.clear();
+  if (auditPersistTimer) {
+    clearTimeout(auditPersistTimer);
+    auditPersistTimer = null;
+  }
+  auditFilePath = null;
+  diskAuditCache = null;
 }
 
 module.exports = {
@@ -372,5 +466,7 @@ module.exports = {
   leaveAllForWebContents,
   onStateChange,
   makePeerId,
+  configureAuditPersistence,
+  flushAuditPersist,
   __resetForTests,
 };
