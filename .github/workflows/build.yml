@@ -59,6 +59,10 @@ env:
   MOSH_BIN_RELEASE: ${{ github.event.inputs.mosh_bin_release || vars.MOSH_BIN_RELEASE || '' }}
   BUNDLE_MOSH: ${{ (startsWith(github.ref, 'refs/tags/v') && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.publish_release))) || (github.event_name == 'workflow_dispatch' && inputs.mosh_bin_release != '') }}
   ET_BIN_RELEASE: ${{ github.event.inputs.et_bin_release || vars.ET_BIN_RELEASE || '' }}
+  # The et-bin binary repository stayed under JasonZhangDad when this source
+  # repo moved to Zhangwei930; without this the resolver defaults to the
+  # current repo owner and fails to find <owner>/MagiesTerminal-et-bin.
+  ET_BIN_OWNER: ${{ vars.ET_BIN_OWNER || '' }}
   # Bundle et only when an et-bin release is explicitly configured (repo
   # variable or dispatch input). This fork has no <owner>/MagiesTerminal-et-bin
   # binary repository, so unconditional tag bundling would fail resolve-et.
