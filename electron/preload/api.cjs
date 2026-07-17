@@ -786,6 +786,19 @@ function createPreloadApi(ctx) {
       sftpConnectionProgressListeners.delete(cb);
     };
   },
+  // Connection diagnostics ("Test Connection")
+  runConnectionDiagnostics: async (options) => {
+    return ipcRenderer.invoke("magiesTerminal:diagnostics:run", options);
+  },
+  cancelConnectionDiagnostics: async (runId) => {
+    return ipcRenderer.invoke("magiesTerminal:diagnostics:cancel", { runId });
+  },
+  onConnectionDiagnosticsProgress: (cb) => {
+    connectionDiagnosticsProgressListeners.add(cb);
+    return () => {
+      connectionDiagnosticsProgressListeners.delete(cb);
+    };
+  },
 
   // OAuth callback server — two-step so the renderer can learn the bound
   // port (which may differ from the preferred 45678 if it was in use) and

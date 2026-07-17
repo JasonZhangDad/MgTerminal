@@ -821,4 +821,28 @@ export const zhCNTerminalMessages: Messages = {
   'sftp.editor.saveAndClose': '保存并关闭',
   'sftp.editor.quitBlockedByDirty': '存在未保存的编辑器，请先处理后再退出',
 
+
+  // Connection diagnostics ("Test Connection")
+  'diagnostics.title': '连接诊断',
+  'diagnostics.step.dns': 'DNS',
+  'diagnostics.step.tcp': 'TCP',
+  'diagnostics.step.jumpChain': '跳板机',
+  'diagnostics.step.hostKey': '主机密钥',
+  'diagnostics.step.auth': '身份认证',
+  'diagnostics.step.sftp': 'SFTP',
+  'diagnostics.status.pending': '等待',
+  'diagnostics.status.running': '检测中…',
+  'diagnostics.status.success': '成功',
+  'diagnostics.status.warning': '需注意',
+  'diagnostics.status.failed': '失败',
+  'diagnostics.status.skipped': '未检测',
+  'diagnostics.hostKey.trusted': '已信任',
+  'diagnostics.hostKey.trustedSystem': '已信任(系统 known_hosts)',
+  'diagnostics.hostKey.unknown': '首次连接,尚未记录密钥',
+  'diagnostics.hostKey.changed': '密钥已变更,需要确认',
+  'diagnostics.detail.proxyCommand': '使用代理命令,跳过',
+  'diagnostics.detail.needsInteractive': '服务器要求交互式认证(如 MFA)',
+  'diagnostics.rerun': '重新检测',
+  'diagnostics.unavailable': '诊断功能仅在桌面应用中可用。',
+  'diagnostics.runFromError': '运行诊断',
 };

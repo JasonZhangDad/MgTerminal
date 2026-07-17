@@ -779,4 +779,28 @@ export const deTerminalMessages: Messages = {
   'sftp.editor.saveAndClose': 'Speichern und schließen',
   'sftp.editor.quitBlockedByDirty': 'Ungespeicherte Editoren — bitte speichern oder verwerfen Sie vor dem Beenden',
 
+
+  // Connection diagnostics ("Test Connection")
+  'diagnostics.title': 'Verbindungsdiagnose',
+  'diagnostics.step.dns': 'DNS',
+  'diagnostics.step.tcp': 'TCP',
+  'diagnostics.step.jumpChain': 'Jump-Hosts',
+  'diagnostics.step.hostKey': 'Host-Schlüssel',
+  'diagnostics.step.auth': 'Authentifizierung',
+  'diagnostics.step.sftp': 'SFTP',
+  'diagnostics.status.pending': 'Ausstehend',
+  'diagnostics.status.running': 'Prüfe…',
+  'diagnostics.status.success': 'OK',
+  'diagnostics.status.warning': 'Achtung',
+  'diagnostics.status.failed': 'Fehlgeschlagen',
+  'diagnostics.status.skipped': 'Nicht geprüft',
+  'diagnostics.hostKey.trusted': 'Vertrauenswürdig',
+  'diagnostics.hostKey.trustedSystem': 'Vertrauenswürdig (System-known_hosts)',
+  'diagnostics.hostKey.unknown': 'Erste Verbindung — Schlüssel noch nicht gespeichert',
+  'diagnostics.hostKey.changed': 'Schlüssel geändert — Bestätigung erforderlich',
+  'diagnostics.detail.proxyCommand': 'Übersprungen (Proxy-Befehl)',
+  'diagnostics.detail.needsInteractive': 'Server erfordert interaktive Authentifizierung (z. B. MFA)',
+  'diagnostics.rerun': 'Erneut ausführen',
+  'diagnostics.unavailable': 'Die Diagnose ist nur in der Desktop-App verfügbar.',
+  'diagnostics.runFromError': 'Diagnose ausführen',
 };

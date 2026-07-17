@@ -826,4 +826,6 @@ export const zhCNVaultMessages: Messages = {
   'sftp.upload.phase.extracting': '正在解压',
   'sftp.upload.phase.compressed': '压缩传输',
 
+
+  'hostDetails.testConnection': '测试连接',
 };

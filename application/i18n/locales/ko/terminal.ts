@@ -779,4 +779,28 @@ export const koTerminalMessages: Messages = {
   'sftp.editor.saveAndClose': '저장하고 닫기',
   'sftp.editor.quitBlockedByDirty': '저장하지 않은 편집기가 있습니다 — 종료하기 전에 저장하거나 버리세요',
 
+
+  // Connection diagnostics ("Test Connection")
+  'diagnostics.title': '연결 진단',
+  'diagnostics.step.dns': 'DNS',
+  'diagnostics.step.tcp': 'TCP',
+  'diagnostics.step.jumpChain': '점프 호스트',
+  'diagnostics.step.hostKey': '호스트 키',
+  'diagnostics.step.auth': '인증',
+  'diagnostics.step.sftp': 'SFTP',
+  'diagnostics.status.pending': '대기',
+  'diagnostics.status.running': '확인 중…',
+  'diagnostics.status.success': '성공',
+  'diagnostics.status.warning': '주의',
+  'diagnostics.status.failed': '실패',
+  'diagnostics.status.skipped': '확인 안 함',
+  'diagnostics.hostKey.trusted': '신뢰됨',
+  'diagnostics.hostKey.trustedSystem': '신뢰됨(시스템 known_hosts)',
+  'diagnostics.hostKey.unknown': '첫 연결 — 키가 아직 기록되지 않음',
+  'diagnostics.hostKey.changed': '키가 변경됨 — 확인 필요',
+  'diagnostics.detail.proxyCommand': '프록시 명령 사용, 건너뜀',
+  'diagnostics.detail.needsInteractive': '서버가 대화형 인증(MFA 등)을 요구합니다',
+  'diagnostics.rerun': '다시 실행',
+  'diagnostics.unavailable': '진단은 데스크톱 앱에서만 사용할 수 있습니다.',
+  'diagnostics.runFromError': '진단 실행',
 };

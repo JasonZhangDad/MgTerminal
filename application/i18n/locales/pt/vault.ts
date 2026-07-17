@@ -782,4 +782,6 @@ export const ptVaultMessages: Messages = {
   'logView.readOnly': 'Somente leitura',
   'logView.export': 'Exportar',
 
+
+  'hostDetails.testConnection': 'Testar conexão',
 };

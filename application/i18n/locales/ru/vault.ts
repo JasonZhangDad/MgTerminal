@@ -804,4 +804,6 @@ export const ruVaultMessages: Messages = {
   'hostDetails.et.port': 'Порт сервера ET',
   'hostDetails.et.port.desc': 'Порт, который слушает etserver (по умолчанию 2022)',
 
+
+  'hostDetails.testConnection': 'Проверить подключение',
 };

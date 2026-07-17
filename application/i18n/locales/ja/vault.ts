@@ -789,4 +789,6 @@ export const jaVaultMessages: Messages = {
   'logView.readOnly': '読み取り専用',
   'logView.export': 'エクスポート',
 
+
+  'hostDetails.testConnection': '接続テスト',
 };

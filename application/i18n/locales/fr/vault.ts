@@ -806,4 +806,6 @@ export const frVaultMessages: Messages = {
   'logView.readOnly': 'Lecture seule',
   'logView.export': 'Exporter',
 
+
+  'hostDetails.testConnection': 'Tester la connexion',
 };

@@ -789,4 +789,6 @@ export const koVaultMessages: Messages = {
   'logView.readOnly': '읽기 전용',
   'logView.export': '내보내기',
 
+
+  'hostDetails.testConnection': '연결 테스트',
 };

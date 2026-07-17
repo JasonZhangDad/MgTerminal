@@ -821,4 +821,28 @@ export const zhTWTerminalMessages: Messages = {
   'sftp.editor.saveAndClose': '儲存並關閉',
   'sftp.editor.quitBlockedByDirty': '存在未儲存的編輯器，請先處理後再離開',
 
+
+  // Connection diagnostics ("Test Connection")
+  'diagnostics.title': '連線診斷',
+  'diagnostics.step.dns': 'DNS',
+  'diagnostics.step.tcp': 'TCP',
+  'diagnostics.step.jumpChain': '跳板機',
+  'diagnostics.step.hostKey': '主機金鑰',
+  'diagnostics.step.auth': '身份驗證',
+  'diagnostics.step.sftp': 'SFTP',
+  'diagnostics.status.pending': '等待',
+  'diagnostics.status.running': '檢測中…',
+  'diagnostics.status.success': '成功',
+  'diagnostics.status.warning': '需注意',
+  'diagnostics.status.failed': '失敗',
+  'diagnostics.status.skipped': '未檢測',
+  'diagnostics.hostKey.trusted': '已信任',
+  'diagnostics.hostKey.trustedSystem': '已信任(系統 known_hosts)',
+  'diagnostics.hostKey.unknown': '首次連線,尚未記錄金鑰',
+  'diagnostics.hostKey.changed': '金鑰已變更,需要確認',
+  'diagnostics.detail.proxyCommand': '使用代理指令,跳過',
+  'diagnostics.detail.needsInteractive': '伺服器要求互動式驗證(如 MFA)',
+  'diagnostics.rerun': '重新檢測',
+  'diagnostics.unavailable': '診斷功能僅在桌面應用程式中可用。',
+  'diagnostics.runFromError': '執行診斷',
 };

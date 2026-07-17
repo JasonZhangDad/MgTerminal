@@ -730,4 +730,6 @@ export const esVaultMessages: Messages = {
   'logView.appearance': 'Apariencia',
   'logView.readOnly': 'Sólo lectura',
   'logView.export': 'Exportar',
+
+  'hostDetails.testConnection': 'Probar conexión',
 };

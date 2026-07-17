@@ -800,4 +800,28 @@ export const ruTerminalMessages: Messages = {
   'snippets.kind.codeSnippet': 'Фрагмент кода',
   'snippets.kind.automationScript': 'Скрипт автоматизации',
 
+
+  // Connection diagnostics ("Test Connection")
+  'diagnostics.title': 'Диагностика подключения',
+  'diagnostics.step.dns': 'DNS',
+  'diagnostics.step.tcp': 'TCP',
+  'diagnostics.step.jumpChain': 'Джамп-хосты',
+  'diagnostics.step.hostKey': 'Ключ хоста',
+  'diagnostics.step.auth': 'Аутентификация',
+  'diagnostics.step.sftp': 'SFTP',
+  'diagnostics.status.pending': 'Ожидание',
+  'diagnostics.status.running': 'Проверка…',
+  'diagnostics.status.success': 'Успешно',
+  'diagnostics.status.warning': 'Внимание',
+  'diagnostics.status.failed': 'Ошибка',
+  'diagnostics.status.skipped': 'Не проверено',
+  'diagnostics.hostKey.trusted': 'Доверенный',
+  'diagnostics.hostKey.trustedSystem': 'Доверенный (системный known_hosts)',
+  'diagnostics.hostKey.unknown': 'Первое подключение — ключ ещё не записан',
+  'diagnostics.hostKey.changed': 'Ключ изменился — требуется подтверждение',
+  'diagnostics.detail.proxyCommand': 'Пропущено (прокси-команда)',
+  'diagnostics.detail.needsInteractive': 'Сервер требует интерактивную аутентификацию (например, MFA)',
+  'diagnostics.rerun': 'Повторить',
+  'diagnostics.unavailable': 'Диагностика доступна только в настольном приложении.',
+  'diagnostics.runFromError': 'Запустить диагностику',
 };

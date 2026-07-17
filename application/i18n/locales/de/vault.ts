@@ -789,4 +789,6 @@ export const deVaultMessages: Messages = {
   'logView.readOnly': 'Schreibgeschützt',
   'logView.export': 'Exportieren',
 
+
+  'hostDetails.testConnection': 'Verbindung testen',
 };

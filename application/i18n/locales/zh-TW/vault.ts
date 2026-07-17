@@ -826,4 +826,6 @@ export const zhTWVaultMessages: Messages = {
   'sftp.upload.phase.extracting': '正在解壓',
   'sftp.upload.phase.compressed': '壓縮傳輸',
 
+
+  'hostDetails.testConnection': '測試連線',
 };

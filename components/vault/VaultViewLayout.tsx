@@ -801,6 +801,7 @@ export function VaultViewLayout({ ctx }: { ctx: VaultViewLayoutContext }) {
           snippets={snippets}
           onSnippetsChange={onUpdateSnippets}
           onImportKey={onImportOrReuseKey}
+          knownHosts={knownHosts}
           onSave={(host) => {
             const latestHost = hosts.find((entry: { id: string }) => entry.id === host.id);
             const nextHost = preserveConcurrentHostLineTimestampUpdate({

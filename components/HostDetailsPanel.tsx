@@ -29,7 +29,9 @@ import {
   resolveHostTerminalFontSize,
   resolveHostTerminalThemeId,
 } from "../domain/terminalAppearance";
-import { EnvVar, GroupConfig, Host, Identity, ManagedSource, ProxyConfig, ProxyProfile, Snippet, SSHKey } from "../types";
+import { EnvVar, GroupConfig, Host, Identity, KnownHost, ManagedSource, ProxyConfig, ProxyProfile, Snippet, SSHKey } from "../types";
+import { buildConnectionDiagnosticsRequest } from "../domain/connectionDiagnostics";
+import ConnectionTestPanel from "./host/ConnectionTestPanel";
 import { DISTRO_COLORS, DISTRO_LOGOS } from "./DistroAvatar";
 import ThemeSelectPanel from "./ThemeSelectPanel";
 import {
@@ -104,6 +106,7 @@ interface HostDetailsPanelProps {
   onImportKey?: (draft: Partial<SSHKey>) => SSHKey;
   snippets?: Snippet[];
   onSnippetsChange?: (snippets: Snippet[]) => void;
+  knownHosts?: KnownHost[]; // For host key classification in "Test Connection"
 }
 
 type HostDetailsPanelPropsWithResize = HostDetailsPanelProps & AsidePanelResizeProps;
@@ -130,6 +133,7 @@ const HostDetailsPanel: React.FC<HostDetailsPanelPropsWithResize> = ({
   onImportKey,
   snippets = [],
   onSnippetsChange,
+  knownHosts = [],
   resizable,
   persistWidthStorageKey,
   resizeAriaLabel,
@@ -399,6 +403,29 @@ const HostDetailsPanel: React.FC<HostDetailsPanelPropsWithResize> = ({
     });
   };
   const hasHostname = form.hostname.trim().length > 0;
+
+  const [isConnectionTestOpen, setIsConnectionTestOpen] = useState(false);
+  const isSshLikeProtocol = !form.protocol || form.protocol === "ssh";
+
+  const buildDiagnosticsRequest = useCallback(() => {
+    const hostname = form.hostname.trim();
+    if (!hostname) return null;
+    const chainHosts = (form.hostChain?.hostIds || [])
+      .map((hostId) => allHosts.find((candidate) => candidate.id === hostId))
+      .filter((candidate): candidate is Host => Boolean(candidate));
+    const probeHost: Host = {
+      ...form,
+      hostname,
+      proxyConfig: selectedProxyProfile?.config || form.proxyConfig,
+    };
+    return buildConnectionDiagnosticsRequest({
+      host: probeHost,
+      keys: availableKeys,
+      identities,
+      knownHosts,
+      chainHosts,
+    });
+  }, [form, allHosts, selectedProxyProfile, availableKeys, identities, knownHosts]);
 
   const handleSubmit = () => {
     const hostname = form.hostname.trim();
@@ -1144,14 +1171,34 @@ const HostDetailsPanel: React.FC<HostDetailsPanelPropsWithResize> = ({
         )}
       </AsidePanelContent>
       <AsidePanelFooter>
-        <Button
-          className="w-full h-10"
-          onClick={handleSubmit}
-          disabled={!hasHostname}
-        >
-          {t("common.save")}
-        </Button>
+        <div className="flex w-full gap-2">
+          {isSshLikeProtocol && (
+            <Button
+              variant="secondary"
+              className="h-10 flex-1"
+              onClick={() => setIsConnectionTestOpen(true)}
+              disabled={!hasHostname}
+            >
+              {t("hostDetails.testConnection")}
+            </Button>
+          )}
+          <Button
+            className="h-10 flex-1"
+            onClick={handleSubmit}
+            disabled={!hasHostname}
+          >
+            {t("common.save")}
+          </Button>
+        </div>
       </AsidePanelFooter>
+      {isConnectionTestOpen && (
+        <ConnectionTestPanel
+          open={isConnectionTestOpen}
+          onClose={() => setIsConnectionTestOpen(false)}
+          hostLabel={form.label?.trim() || form.hostname.trim()}
+          buildRequest={buildDiagnosticsRequest}
+        />
+      )}
     </AsidePanel>
   );
 };

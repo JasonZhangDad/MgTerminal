@@ -789,4 +789,6 @@ export const enVaultMessages: Messages = {
   'logView.readOnly': 'Read-only',
   'logView.export': 'Export',
 
+
+  'hostDetails.testConnection': 'Test Connection',
 };

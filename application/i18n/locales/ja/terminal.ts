@@ -779,4 +779,28 @@ export const jaTerminalMessages: Messages = {
   'sftp.editor.saveAndClose': '保存して閉じる',
   'sftp.editor.quitBlockedByDirty': '未保存のエディタがあります — 終了する前に保存または破棄してください',
 
+
+  // Connection diagnostics ("Test Connection")
+  'diagnostics.title': '接続診断',
+  'diagnostics.step.dns': 'DNS',
+  'diagnostics.step.tcp': 'TCP',
+  'diagnostics.step.jumpChain': '踏み台ホスト',
+  'diagnostics.step.hostKey': 'ホストキー',
+  'diagnostics.step.auth': '認証',
+  'diagnostics.step.sftp': 'SFTP',
+  'diagnostics.status.pending': '待機',
+  'diagnostics.status.running': '確認中…',
+  'diagnostics.status.success': '成功',
+  'diagnostics.status.warning': '要注意',
+  'diagnostics.status.failed': '失敗',
+  'diagnostics.status.skipped': '未確認',
+  'diagnostics.hostKey.trusted': '信頼済み',
+  'diagnostics.hostKey.trustedSystem': '信頼済み(システム known_hosts)',
+  'diagnostics.hostKey.unknown': '初回接続 — キー未記録',
+  'diagnostics.hostKey.changed': 'キーが変更されています — 確認が必要',
+  'diagnostics.detail.proxyCommand': 'プロキシコマンドのためスキップ',
+  'diagnostics.detail.needsInteractive': 'サーバーは対話型認証(MFA など)を要求しています',
+  'diagnostics.rerun': '再実行',
+  'diagnostics.unavailable': '診断はデスクトップアプリでのみ利用できます。',
+  'diagnostics.runFromError': '診断を実行',
 };

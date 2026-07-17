@@ -795,4 +795,28 @@ export const frTerminalMessages: Messages = {
   'sftp.editor.saveAndClose': 'Enregistrer et fermer',
   'sftp.editor.quitBlockedByDirty': 'Éditeurs non enregistrés — veuillez enregistrer ou abandonner avant de quitter',
 
+
+  // Connection diagnostics ("Test Connection")
+  'diagnostics.title': 'Diagnostic de connexion',
+  'diagnostics.step.dns': 'DNS',
+  'diagnostics.step.tcp': 'TCP',
+  'diagnostics.step.jumpChain': 'Hôtes de rebond',
+  'diagnostics.step.hostKey': 'Clé de l\'hôte',
+  'diagnostics.step.auth': 'Authentification',
+  'diagnostics.step.sftp': 'SFTP',
+  'diagnostics.status.pending': 'En attente',
+  'diagnostics.status.running': 'Vérification…',
+  'diagnostics.status.success': 'OK',
+  'diagnostics.status.warning': 'Attention',
+  'diagnostics.status.failed': 'Échec',
+  'diagnostics.status.skipped': 'Non vérifié',
+  'diagnostics.hostKey.trusted': 'Approuvée',
+  'diagnostics.hostKey.trustedSystem': 'Approuvée (known_hosts système)',
+  'diagnostics.hostKey.unknown': 'Première connexion — clé pas encore enregistrée',
+  'diagnostics.hostKey.changed': 'Clé modifiée — confirmation requise',
+  'diagnostics.detail.proxyCommand': 'Ignoré (commande proxy)',
+  'diagnostics.detail.needsInteractive': 'Le serveur exige une authentification interactive (ex. MFA)',
+  'diagnostics.rerun': 'Relancer',
+  'diagnostics.unavailable': 'Le diagnostic n\'est disponible que dans l\'application de bureau.',
+  'diagnostics.runFromError': 'Lancer le diagnostic',
 };

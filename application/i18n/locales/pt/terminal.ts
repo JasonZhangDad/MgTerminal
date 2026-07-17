@@ -773,4 +773,28 @@ export const ptTerminalMessages: Messages = {
   'sftp.editor.saveAndClose': 'Salvar e fechar',
   'sftp.editor.quitBlockedByDirty': 'Editores com alterações não salvas — salve ou descarte antes de sair',
 
+
+  // Connection diagnostics ("Test Connection")
+  'diagnostics.title': 'Diagnóstico de conexão',
+  'diagnostics.step.dns': 'DNS',
+  'diagnostics.step.tcp': 'TCP',
+  'diagnostics.step.jumpChain': 'Hosts de salto',
+  'diagnostics.step.hostKey': 'Chave do host',
+  'diagnostics.step.auth': 'Autenticação',
+  'diagnostics.step.sftp': 'SFTP',
+  'diagnostics.status.pending': 'Pendente',
+  'diagnostics.status.running': 'Verificando…',
+  'diagnostics.status.success': 'OK',
+  'diagnostics.status.warning': 'Atenção',
+  'diagnostics.status.failed': 'Falhou',
+  'diagnostics.status.skipped': 'Não verificado',
+  'diagnostics.hostKey.trusted': 'Confiável',
+  'diagnostics.hostKey.trustedSystem': 'Confiável (known_hosts do sistema)',
+  'diagnostics.hostKey.unknown': 'Primeira conexão — chave ainda não registrada',
+  'diagnostics.hostKey.changed': 'Chave alterada — confirmação necessária',
+  'diagnostics.detail.proxyCommand': 'Ignorado (comando de proxy)',
+  'diagnostics.detail.needsInteractive': 'O servidor exige autenticação interativa (ex.: MFA)',
+  'diagnostics.rerun': 'Executar novamente',
+  'diagnostics.unavailable': 'O diagnóstico só está disponível no aplicativo desktop.',
+  'diagnostics.runFromError': 'Executar diagnóstico',
 };

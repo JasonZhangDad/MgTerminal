@@ -779,4 +779,28 @@ export const enTerminalMessages: Messages = {
   'sftp.editor.saveAndClose': 'Save and close',
   'sftp.editor.quitBlockedByDirty': 'Unsaved editors — please save or discard before quitting',
 
+
+  // Connection diagnostics ("Test Connection")
+  'diagnostics.title': 'Connection Diagnostics',
+  'diagnostics.step.dns': 'DNS',
+  'diagnostics.step.tcp': 'TCP',
+  'diagnostics.step.jumpChain': 'Jump hosts',
+  'diagnostics.step.hostKey': 'Host key',
+  'diagnostics.step.auth': 'Authentication',
+  'diagnostics.step.sftp': 'SFTP',
+  'diagnostics.status.pending': 'Pending',
+  'diagnostics.status.running': 'Checking...',
+  'diagnostics.status.success': 'OK',
+  'diagnostics.status.warning': 'Attention',
+  'diagnostics.status.failed': 'Failed',
+  'diagnostics.status.skipped': 'Not checked',
+  'diagnostics.hostKey.trusted': 'Trusted',
+  'diagnostics.hostKey.trustedSystem': 'Trusted (system known_hosts)',
+  'diagnostics.hostKey.unknown': 'First connection — key not recorded yet',
+  'diagnostics.hostKey.changed': 'Key changed — confirmation required',
+  'diagnostics.detail.proxyCommand': 'Skipped (proxy command)',
+  'diagnostics.detail.needsInteractive': 'Server requires interactive authentication (e.g. MFA)',
+  'diagnostics.rerun': 'Run again',
+  'diagnostics.unavailable': 'Diagnostics is only available in the desktop app.',
+  'diagnostics.runFromError': 'Run diagnostics',
 };

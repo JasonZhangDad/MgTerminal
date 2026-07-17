@@ -2,7 +2,7 @@
  * Terminal Connection Progress
  * Displays connection progress with logs and timeout
  */
-import { Loader2, Play } from 'lucide-react';
+import { Loader2, Play, Stethoscope } from 'lucide-react';
 import React from 'react';
 import { useI18n } from '../../application/i18n/I18nProvider';
 import { Button } from '../ui/button';
@@ -21,6 +21,8 @@ export interface TerminalConnectionProgressProps {
     onCloseSession: () => void;
     onRetry: () => void;
     reconnectLabel?: string;
+    // When provided, a failed connection offers step-by-step diagnostics.
+    onRunDiagnostics?: () => void;
 }
 
 export interface TerminalConnectionLogListProps {
@@ -65,6 +67,7 @@ export const TerminalConnectionProgress: React.FC<TerminalConnectionProgressProp
     onCloseSession,
     onRetry,
     reconnectLabel,
+    onRunDiagnostics,
 }) => {
     const { t } = useI18n();
 
@@ -104,6 +107,11 @@ export const TerminalConnectionProgress: React.FC<TerminalConnectionProgressProp
                         </div>
                     )}
                     <div className="ml-auto flex shrink-0 justify-end gap-2">
+                        {error && onRunDiagnostics && (
+                            <Button variant="ghost" size="sm" className="h-7 px-3 text-[11px]" onClick={onRunDiagnostics}>
+                                <Stethoscope className="h-3 w-3 mr-1.5" /> {t('diagnostics.runFromError')}
+                            </Button>
+                        )}
                         <Button variant="ghost" size="sm" className="h-7 px-3 text-[11px]" onClick={onCloseSession}>
                             {t('terminal.toolbar.closeSession')}
                         </Button>
