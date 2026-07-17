@@ -47,6 +47,11 @@ export type HostDataSourcesDialogProps = {
   onRemoveSource: (sourceId: string, options?: { deleteHosts?: boolean }) => boolean;
   onSetAutoSyncInterval: (sourceId: string, autoSyncIntervalMs: number | undefined) => void;
   onSetSourceEnabled: (sourceId: string, enabled: boolean) => void;
+  onSetHttpAuthHeader?: (
+    sourceId: string,
+    httpAuthHeaderName: string | undefined,
+    httpAuthHeaderValue: string | undefined,
+  ) => void;
 };
 
 function formatAutoSyncLabel(
@@ -103,6 +108,7 @@ export const HostDataSourcesDialog: React.FC<HostDataSourcesDialogProps> = ({
   onRemoveSource,
   onSetAutoSyncInterval,
   onSetSourceEnabled,
+  onSetHttpAuthHeader,
 }) => {
   const { t } = useI18n();
   const [showAddForm, setShowAddForm] = useState(false);
@@ -473,6 +479,49 @@ export const HostDataSourcesDialog: React.FC<HostDataSourcesDialogProps> = ({
                                       : ""}
                                   </>
                                 )}
+                              </div>
+                            )}
+                            {source.type === "json_http" && onSetHttpAuthHeader && (
+                              <div className="mt-2 space-y-1 rounded-lg border border-border/40 p-2">
+                                <div className="text-[10px] font-medium text-muted-foreground">
+                                  {t("vault.dataSources.field.httpAuth")}
+                                  {source.httpAuthHeaderValue
+                                    ? ` · ${source.httpAuthHeaderName || "Authorization"}`
+                                    : ` · ${t("vault.dataSources.httpAuth.none")}`}
+                                </div>
+                                <div className="grid grid-cols-2 gap-1.5">
+                                  <select
+                                    className="flex h-8 w-full rounded-md border border-input bg-background px-1.5 text-[11px]"
+                                    value={source.httpAuthHeaderName || "Authorization"}
+                                    onChange={(e) =>
+                                      onSetHttpAuthHeader(
+                                        source.id,
+                                        e.target.value,
+                                        source.httpAuthHeaderValue,
+                                      )
+                                    }
+                                  >
+                                    <option value="Authorization">Authorization</option>
+                                    <option value="X-Api-Key">X-Api-Key</option>
+                                    <option value="X-Auth-Token">X-Auth-Token</option>
+                                    <option value="X-Access-Token">X-Access-Token</option>
+                                  </select>
+                                  <Input
+                                    className="h-8 text-[11px]"
+                                    type="password"
+                                    autoComplete="off"
+                                    placeholder="Bearer …"
+                                    defaultValue={source.httpAuthHeaderValue || ""}
+                                    key={`${source.id}-${source.httpAuthHeaderValue || ""}`}
+                                    onBlur={(e) =>
+                                      onSetHttpAuthHeader(
+                                        source.id,
+                                        source.httpAuthHeaderName || "Authorization",
+                                        e.target.value,
+                                      )
+                                    }
+                                  />
+                                </div>
                               </div>
                             )}
                             <div className="mt-1.5 flex flex-wrap gap-1">

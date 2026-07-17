@@ -42,30 +42,74 @@ function fileExists(p) {
 }
 
 /**
+ * Hybrid post-quantum KEX algorithms supported by modern OpenSSH (9.0+ / 9.9+).
+ * Older clients ignore unknown algs when the list also includes classical KEXes.
+ */
+const PQ_KEX_ALGORITHMS = [
+  "mlkem768x25519-sha256",
+  "sntrup761x25519-sha512@openssh.com",
+  "sntrup761x25519-sha512",
+  "curve25519-sha256",
+  "curve25519-sha256@libssh.org",
+  "ecdh-sha2-nistp256",
+  "diffie-hellman-group-exchange-sha256",
+  "diffie-hellman-group14-sha256",
+].join(",");
+
+/**
  * Build argv for system ssh GSSAPI login (no password prompts).
  */
 function buildGssapiSshArgs(options = {}) {
+  return buildSystemOpenSshArgs({ ...options, authMethod: "gssapi" });
+}
+
+/**
+ * Build argv for system OpenSSH (GSSAPI and/or post-quantum KEX preference).
+ */
+function buildSystemOpenSshArgs(options = {}) {
   const hostname = String(options.hostname || "").trim();
   if (!hostname) {
-    throw new Error("GSSAPI SSH requires a hostname.");
+    throw new Error("System OpenSSH requires a hostname.");
   }
   const username = String(options.username || "").trim();
   const port = Number(options.port) > 0 ? Math.trunc(Number(options.port)) : 22;
+  const gssapi = options.authMethod === "gssapi";
+  const preferPq = Boolean(options.preferPostQuantumKex);
 
-  const args = [
-    "-tt",
-    "-o", "GSSAPIAuthentication=yes",
-    "-o", "PreferredAuthentications=gssapi-with-mic,gssapi-keyex",
-    "-o", "PubkeyAuthentication=no",
-    "-o", "PasswordAuthentication=no",
-    "-o", "KbdInteractiveAuthentication=no",
-    "-o", "NumberOfPasswordPrompts=0",
-    "-o", "BatchMode=yes",
-  ];
+  const args = ["-tt"];
 
-  if (options.agentForwarding) {
-    args.push("-A");
+  if (preferPq) {
+    args.push("-o", `KexAlgorithms=${PQ_KEX_ALGORITHMS}`);
+  }
+
+  if (gssapi) {
+    args.push(
+      "-o", "GSSAPIAuthentication=yes",
+      "-o", "PreferredAuthentications=gssapi-with-mic,gssapi-keyex",
+      "-o", "PubkeyAuthentication=no",
+      "-o", "PasswordAuthentication=no",
+      "-o", "KbdInteractiveAuthentication=no",
+      "-o", "NumberOfPasswordPrompts=0",
+      "-o", "BatchMode=yes",
+    );
   } else {
+    // General system OpenSSH: allow agent/publickey; avoid hanging password prompts in batch when only keys/agent.
+    const paths = Array.isArray(options.identityFilePaths)
+      ? options.identityFilePaths.filter((p) => typeof p === "string" && p.trim())
+      : [];
+    for (const identityPath of paths) {
+      args.push("-i", identityPath);
+    }
+    if (options.agentForwarding) {
+      args.push("-A");
+    }
+    // Prefer publickey/agent; password still available interactively when not BatchMode.
+    args.push("-o", "PreferredAuthentications=publickey,keyboard-interactive,password");
+  }
+
+  if (options.agentForwarding && gssapi) {
+    args.push("-A");
+  } else if (gssapi) {
     args.push("-a");
   }
 
@@ -88,20 +132,23 @@ function createStartGssapiSessionApi(ctx) {
   } = ctx;
 
   /**
-   * Start an interactive SSH session authenticated via Kerberos/GSSAPI
-   * using the system OpenSSH client.
+   * Start an interactive SSH session via system OpenSSH (GSSAPI and/or PQ KEX).
    * @returns {Promise<string>} sessionId
    */
-  async function startGssapiSshSession(event, options = {}) {
+  async function startSystemOpenSshSession(event, options = {}) {
+    const gssapi = options.authMethod === "gssapi";
     if (Array.isArray(options.jumpHosts) && options.jumpHosts.length > 0) {
       throw new Error(
-        "GSSAPI/Kerberos auth does not support jump hosts in MagiesTerminal yet. "
-        + "Authenticate to the bastion with GSSAPI, or use another auth method for the chain.",
+        gssapi
+          ? "GSSAPI/Kerberos auth does not support jump hosts in MagiesTerminal yet. "
+            + "Authenticate to the bastion with GSSAPI, or use another auth method for the chain."
+          : "System OpenSSH transport does not support MagiesTerminal jump hosts yet. "
+            + "Use built-in ssh2 transport or configure ProxyJump in system OpenSSH.",
       );
     }
     if (options.proxy) {
       throw new Error(
-        "GSSAPI/Kerberos auth does not support MagiesTerminal HTTP/SOCKS proxies. "
+        "System OpenSSH transport does not support MagiesTerminal HTTP/SOCKS proxies. "
         + "Configure system OpenSSH ProxyCommand if needed.",
       );
     }
@@ -113,14 +160,14 @@ function createStartGssapiSessionApi(ctx) {
     });
     if (!sshExe) {
       throw new Error(
-        "System OpenSSH (ssh) was not found. Install OpenSSH client to use GSSAPI/Kerberos auth.",
+        "System OpenSSH (ssh) was not found. Install OpenSSH client to use GSSAPI or post-quantum KEX.",
       );
     }
 
     const sessionId = options.sessionId || randomUUID();
     const cols = options.cols || 80;
     const rows = options.rows || 24;
-    const sshArgs = buildGssapiSshArgs(options);
+    const sshArgs = buildSystemOpenSshArgs(options);
 
     const { buildTerminalProcessEnv } = require("../httpNetworkProxyBridge.cjs");
     const env = {
@@ -152,19 +199,21 @@ function createStartGssapiSessionApi(ctx) {
       });
     } catch (err) {
       const message = err?.message || String(err);
-      throw new Error(`Failed to start system OpenSSH for GSSAPI: ${message}`);
+      throw new Error(`Failed to start system OpenSSH: ${message}`);
     }
 
     const session = {
       proc,
       pty: proc,
-      type: "gssapi-ssh",
+      type: gssapi ? "gssapi-ssh" : "system-openssh",
       protocol: "ssh",
-      authMethod: "gssapi",
+      authMethod: gssapi ? "gssapi" : (options.authMethod || "publickey"),
+      preferPostQuantumKex: Boolean(options.preferPostQuantumKex),
       webContentsId: event.sender.id,
       hostname: options.hostname || "",
       username: options.username || "",
-      label: options.hostLabel || options.label || options.hostname || "SSH (GSSAPI)",
+      label: options.hostLabel || options.label || options.hostname
+        || (gssapi ? "SSH (GSSAPI)" : "SSH (system OpenSSH)"),
       shellExecutable: sshExe,
       shellKind: undefined,
       flushPendingData: null,
@@ -268,9 +317,14 @@ function createStartGssapiSessionApi(ctx) {
     return sessionId;
   }
 
+  // Back-compat alias
+  const startGssapiSshSession = startSystemOpenSshSession;
+
   return {
     startGssapiSshSession,
+    startSystemOpenSshSession,
     buildGssapiSshArgs,
+    buildSystemOpenSshArgs,
     resolveSshExecutableForGssapi: () => resolveSshExecutable({
       findExecutable,
       fileExists,
@@ -282,4 +336,6 @@ function createStartGssapiSessionApi(ctx) {
 module.exports = {
   createStartGssapiSessionApi,
   buildGssapiSshArgs,
+  buildSystemOpenSshArgs,
+  PQ_KEX_ALGORITHMS,
 };

@@ -9,6 +9,8 @@ import {
   isJsonManagedSourceType,
   listDueHostDataSources,
   normalizeAutoSyncIntervalMs,
+  normalizeHttpAuthHeaderName,
+  normalizeHttpAuthHeaderValue,
   parseInventoryDocument,
   syncHostsFromInventory,
   withHostDataSourceSyncOutcome,
@@ -330,6 +332,26 @@ export function useHostDataSourceSync({
     [onUpdateManagedSources],
   );
 
+  const setHttpAuthHeader = useCallback(
+    (
+      sourceId: string,
+      httpAuthHeaderName: string | undefined,
+      httpAuthHeaderValue: string | undefined,
+    ) => {
+      const nextSources = managedSourcesRef.current.map((entry) => {
+        if (entry.id !== sourceId || entry.type !== "json_http") return entry;
+        return {
+          ...entry,
+          httpAuthHeaderName: normalizeHttpAuthHeaderName(httpAuthHeaderName),
+          httpAuthHeaderValue: normalizeHttpAuthHeaderValue(httpAuthHeaderValue),
+        };
+      });
+      managedSourcesRef.current = nextSources;
+      onUpdateManagedSources(nextSources);
+    },
+    [onUpdateManagedSources],
+  );
+
   // Background auto-sync for inventory sources that opted into an interval.
   // Uses content-hash short-circuit (force: false) to avoid vault churn.
   // Timer is long-lived (does not restart on each lastSyncedAt write).
@@ -369,5 +391,6 @@ export function useHostDataSourceSync({
     removeJsonSource,
     setSourceEnabled,
     setAutoSyncInterval,
+    setHttpAuthHeader,
   };
 }

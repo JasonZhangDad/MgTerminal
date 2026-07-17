@@ -95,6 +95,10 @@ declare global {
     keySource?: 'generated' | 'imported' | 'reference';
     /** Preferred auth strategy; 'gssapi' uses system OpenSSH + Kerberos. */
     authMethod?: 'password' | 'key' | 'certificate' | 'agent' | 'gssapi';
+    /** Force system OpenSSH transport (node-pty). */
+    useSystemOpenSsh?: boolean;
+    /** Prefer hybrid PQ KEX via system OpenSSH (implies useSystemOpenSsh). */
+    preferPostQuantumKex?: boolean;
     agentForwarding?: boolean;
     // Preferred SSH agent identity (SHA256 fingerprint); restricts agent auth
     // to the matching key when set.

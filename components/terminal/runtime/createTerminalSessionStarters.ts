@@ -507,6 +507,8 @@ export const createTerminalSessionStarters = (ctx: TerminalSessionStartersContex
             ? (effectivePassphrase || sanitizeCredentialValue(attempt.key.passphrase))
             : undefined,
           authMethod,
+          useSystemOpenSsh: Boolean(ctx.host.useSystemOpenSsh || ctx.host.preferPostQuantumKex),
+          preferPostQuantumKex: Boolean(ctx.host.preferPostQuantumKex),
           agentForwarding: ctx.host.agentForwarding,
           agentIdentityFingerprint: ctx.host.agentIdentityFingerprint,
           x11Forwarding: ctx.host.x11Forwarding,

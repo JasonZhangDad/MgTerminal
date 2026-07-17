@@ -14,6 +14,7 @@ import {
   parseAnsibleInventoryIni,
 } from "./ansibleInventory";
 import {
+  inventoryItemsToAnsibleYaml,
   looksLikeAnsibleInventoryYaml,
   parseAnsibleInventoryYaml,
 } from "./ansibleInventoryYaml";
@@ -760,6 +761,12 @@ export type HostAnsibleInventoryExportResult = {
   skippedCount: number;
 };
 
+export type HostAnsibleYamlInventoryExportResult = {
+  yaml: string;
+  exportedCount: number;
+  skippedCount: number;
+};
+
 /**
  * Team-safe Ansible INI share package (same host selection as JSON inventory).
  * Metadata only — credentials stay local.
@@ -785,6 +792,33 @@ export function exportHostsToAnsibleInventoryIni(
   parseAnsibleInventoryIni(ini);
   return {
     ini,
+    exportedCount: sshItems.length,
+    skippedCount: base.skippedCount + skippedTelnet,
+  };
+}
+
+/**
+ * Team-safe Ansible YAML share package (metadata only).
+ */
+export function exportHostsToAnsibleInventoryYaml(
+  hosts: Host[],
+  options?: {
+    hostIds?: Iterable<string>;
+    headerComment?: string;
+  },
+): HostAnsibleYamlInventoryExportResult {
+  const base = exportHostsToInventoryDocument(hosts, {
+    hostIds: options?.hostIds,
+    pretty: false,
+  });
+  const sshItems = base.document.hosts.filter((item) => item.protocol !== "telnet");
+  const skippedTelnet = base.document.hosts.length - sshItems.length;
+  const yamlText = inventoryItemsToAnsibleYaml(sshItems, {
+    headerComment: options?.headerComment,
+  });
+  parseAnsibleInventoryYaml(yamlText);
+  return {
+    yaml: yamlText,
     exportedCount: sshItems.length,
     skippedCount: base.skippedCount + skippedTelnet,
   };

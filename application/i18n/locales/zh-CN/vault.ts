@@ -212,6 +212,12 @@ export const zhCNVaultMessages: Messages = {
   'hostDetails.section.terminalBehavior': '终端行为',
   'hostDetails.lineTimestamps': '显示输出时间',
   'hostDetails.lineTimestamps.desc': '在终端输出行旁边显示本地时间，不改变终端文本内容。',
+  'hostDetails.preferPostQuantumKex': '优先后量子 KEX（系统 OpenSSH）',
+  'hostDetails.preferPostQuantumKex.desc':
+    '使用系统 OpenSSH 客户端，并优先协商混合后量子密钥交换（支持时选用 mlkem768x25519 / sntrup761x25519）。若服务端拒绝 PQ，则回退经典 KEX。内置 ssh2 不含混合 PQ KEX。',
+  'hostDetails.useSystemOpenSsh': '使用系统 OpenSSH 传输',
+  'hostDetails.useSystemOpenSsh.desc':
+    '通过平台 ssh 可执行文件建立连接，而非 MagiesTerminal 内置 ssh2。GSSAPI 与后量子 KEX 偏好需要此路径。暂不支持跳板主机与 MagiesTerminal 代理。',
   'hostDetails.legacyAlgorithms': '允许旧版算法',
   'hostDetails.legacyAlgorithms.desc': '启用已弃用的 SSH 算法（diffie-hellman-group1、ssh-dss、3des-cbc 等）以连接老旧网络设备。',
   'hostDetails.legacyAlgorithms.warning': '这些算法存在已知安全漏洞，仅建议在老旧设备不支持现代加密时启用。',

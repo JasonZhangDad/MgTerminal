@@ -5,6 +5,7 @@ import type { Host } from "./models.ts";
 import {
   createJsonManagedSource,
   exportHostsToAnsibleInventoryIni,
+  exportHostsToAnsibleInventoryYaml,
   exportHostsToInventoryDocument,
   hashInventoryContent,
   hostToInventoryItem,
@@ -284,6 +285,37 @@ test("exportHostsToAnsibleInventoryIni is secret-free and re-importable", () => 
   const roundTrip = parseInventoryDocument(result.ini);
   assert.equal(roundTrip.hosts.length, 1);
   assert.equal(roundTrip.hosts[0]?.hostname, "10.0.0.5");
+});
+
+test("exportHostsToAnsibleInventoryYaml is secret-free and re-importable", () => {
+  const hosts: Host[] = [
+    {
+      id: "h1",
+      label: "prod-web",
+      hostname: "10.0.0.5",
+      port: 2222,
+      username: "deploy",
+      password: "super-secret",
+      privateKey: "-----BEGIN PRIVATE KEY-----\nfake\n-----END PRIVATE KEY-----",
+      tags: ["prod"],
+      group: "app/web",
+      os: "linux",
+      protocol: "ssh",
+    } as Host,
+  ];
+  const result = exportHostsToAnsibleInventoryYaml(hosts);
+  assert.equal(result.exportedCount, 1);
+  assert.doesNotMatch(result.yaml, /super-secret/);
+  assert.doesNotMatch(result.yaml, /BEGIN PRIVATE KEY/);
+  assert.match(result.yaml, /ansible_host:\s*10\.0\.0\.5/);
+  assert.match(result.yaml, /ansible_user:\s*deploy/);
+  assert.match(result.yaml, /ansible_port:\s*2222/);
+  assert.match(result.yaml, /app_web|prod-web/);
+  const roundTrip = parseInventoryDocument(result.yaml);
+  assert.equal(roundTrip.hosts.length, 1);
+  assert.equal(roundTrip.hosts[0]?.hostname, "10.0.0.5");
+  assert.equal(roundTrip.hosts[0]?.username, "deploy");
+  assert.equal(roundTrip.hosts[0]?.port, 2222);
 });
 
 test("withHostDataSourceSyncOutcome records ok / unchanged / error", () => {

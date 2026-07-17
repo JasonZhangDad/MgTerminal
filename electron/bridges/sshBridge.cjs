@@ -1000,9 +1000,18 @@ const gssapiSessionApi = createStartGssapiSessionApi({
 const { startGssapiSshSession } = gssapiSessionApi;
 
 async function startSSHSessionWrapper(event, options) {
-  // Enterprise domain auth: system OpenSSH GSSAPI (Kerberos). Not supported by ssh2.
-  if (options?.authMethod === "gssapi") {
-    return await startGssapiSshSession(event, options);
+  // System OpenSSH path: GSSAPI/Kerberos and/or post-quantum KEX preference.
+  // Built-in ssh2 has neither GSSAPI nor hybrid ML-KEM/sntrup KEX.
+  if (
+    options?.authMethod === "gssapi"
+    || options?.useSystemOpenSsh
+    || options?.preferPostQuantumKex
+  ) {
+    return await startGssapiSshSession(event, {
+      ...options,
+      useSystemOpenSsh: true,
+      preferPostQuantumKex: Boolean(options?.preferPostQuantumKex),
+    });
   }
 
   let retryableEncryptedKeys = [];

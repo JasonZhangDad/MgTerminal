@@ -2,7 +2,7 @@
 
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { buildGssapiSshArgs } = require("./gssapiSession.cjs");
+const { buildGssapiSshArgs, buildSystemOpenSshArgs } = require("./gssapiSession.cjs");
 
 test("buildGssapiSshArgs prefers GSSAPI and disables password prompts", () => {
   const args = buildGssapiSshArgs({
@@ -34,4 +34,19 @@ test("buildGssapiSshArgs includes non-default port", () => {
 
 test("buildGssapiSshArgs requires hostname", () => {
   assert.throws(() => buildGssapiSshArgs({ username: "x" }), /hostname/i);
+});
+
+test("buildSystemOpenSshArgs prefers hybrid PQ KEX when requested", () => {
+  const args = buildSystemOpenSshArgs({
+    hostname: "pq.example.com",
+    username: "alice",
+    preferPostQuantumKex: true,
+    identityFilePaths: ["/tmp/id_ed25519"],
+  });
+  const kex = args.find((a) => String(a).startsWith("KexAlgorithms="));
+  assert.ok(kex);
+  assert.match(kex, /sntrup761x25519|mlkem768x25519/);
+  assert.ok(args.includes("-i"));
+  assert.ok(args.includes("/tmp/id_ed25519"));
+  assert.equal(args[args.length - 1], "alice@pq.example.com");
 });

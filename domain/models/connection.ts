@@ -159,6 +159,16 @@ export interface Host {
   agentIdentityFingerprint?: string;
   agentForwarding?: boolean;
   x11Forwarding?: boolean;
+  /**
+   * Use system OpenSSH client (node-pty) instead of the built-in ssh2 stack.
+   * Required for GSSAPI and for post-quantum KEX preference below.
+   */
+  useSystemOpenSsh?: boolean;
+  /**
+   * Prefer hybrid post-quantum KEX algorithms supported by system OpenSSH
+   * (e.g. sntrup761x25519 / mlkem768x25519 when available). Implies system OpenSSH.
+   */
+  preferPostQuantumKex?: boolean;
   createdAt?: number; // Timestamp when host was created
   startupCommand?: string;
   startupCommandRunMode?: MultiLineRunMode;

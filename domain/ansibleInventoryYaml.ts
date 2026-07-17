@@ -4,7 +4,7 @@
  * Secrets (ansible_password, etc.) are rejected — same policy as INI inventory.
  */
 
-import { parse as parseYaml } from "yaml";
+import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
 
 import type { HostInventoryDocument, HostInventoryItem } from "./hostDataSource";
 
@@ -263,4 +263,64 @@ function assertNoSecretsDeep(value: unknown, path: string): void {
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+/**
+ * Serialize inventory items to Ansible-style YAML (metadata only).
+ */
+export function inventoryItemsToAnsibleYaml(
+  items: HostInventoryItem[],
+  options?: { headerComment?: string },
+): string {
+  const byGroup = new Map<string, HostInventoryItem[]>();
+  for (const item of items) {
+    if (item.protocol === "telnet") continue;
+    const group = (item.group || "ungrouped")
+      .replace(/\\/g, "/")
+      .split("/")
+      .map((p) => p.trim())
+      .filter(Boolean)
+      .join("_")
+      .replace(/[^a-zA-Z0-9._:-]/g, "_") || "ungrouped";
+    const list = byGroup.get(group) || [];
+    list.push(item);
+    byGroup.set(group, list);
+  }
+
+  const children: Record<string, { hosts: Record<string, Record<string, string | number>> }> = {};
+  for (const [group, hosts] of byGroup) {
+    const hostsMap: Record<string, Record<string, string | number>> = {};
+    for (const item of hosts) {
+      const alias = (item.label && !/\s/.test(item.label) ? item.label : item.id)
+        .replace(/[^a-zA-Z0-9._@:+-]/g, "-")
+        .slice(0, 180) || "host";
+      const vars: Record<string, string | number> = {};
+      if (item.hostname && item.hostname !== alias) vars.ansible_host = item.hostname;
+      if (item.username) vars.ansible_user = item.username;
+      if (item.port && item.port !== 22) vars.ansible_port = item.port;
+      if (item.identityHint) vars.ansible_ssh_private_key_file = item.identityHint;
+      hostsMap[alias] = vars;
+    }
+    children[group] = { hosts: hostsMap };
+  }
+
+  const doc = {
+    all: {
+      children,
+    },
+  };
+
+  const header = (options?.headerComment
+    || "Exported by MagiesTerminal (metadata only; no secrets)\nRe-import via Vault → Data Sources.")
+    .split(/\r?\n/)
+    .map((line) => (line.startsWith("#") ? line : `# ${line}`))
+    .join("\n");
+
+  const body = stringifyYaml(doc, {
+    indent: 2,
+    lineWidth: 0,
+    defaultStringType: "PLAIN",
+    defaultKeyType: "PLAIN",
+  });
+  return `${header}\n${body}`;
 }
