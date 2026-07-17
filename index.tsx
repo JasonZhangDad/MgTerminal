@@ -18,6 +18,7 @@ import { TooltipProvider } from './components/ui/tooltip';
 const LazySettingsPage = lazy(() => import('./components/SettingsPage'));
 const LazyTrayPanel = lazy(() => import('./components/TrayPanel'));
 const LazyTerminalPopupPage = lazy(() => import('./components/TerminalPopupPage'));
+const LazyFollowSessionPage = lazy(() => import('./components/FollowSessionPage'));
 
 function SettingsWindowFallback() {
   return (
@@ -135,6 +136,9 @@ const getRoute = () => {
   if (hash === '#/session-window' || hash.startsWith('#/session-window')) {
     return 'main';
   }
+  if (hash === '#/follow-session' || hash.startsWith('#/follow-session')) {
+    return 'follow-session';
+  }
   return 'main';
 };
 
@@ -168,6 +172,16 @@ const renderApp = () => {
         <TooltipProvider delayDuration={300}>
           <Suspense fallback={<TerminalPopupWindowFallback />}>
             <LazyTerminalPopupPage />
+          </Suspense>
+        </TooltipProvider>
+      </ToastProvider>
+    );
+  } else if (route === 'follow-session') {
+    root.render(
+      <ToastProvider>
+        <TooltipProvider delayDuration={300}>
+          <Suspense fallback={<div style={{ padding: 12, color: '#fff' }}>Loading follow session…</div>}>
+            <LazyFollowSessionPage />
           </Suspense>
         </TooltipProvider>
       </ToastProvider>

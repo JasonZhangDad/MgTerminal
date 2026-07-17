@@ -478,6 +478,51 @@ function createBridgeRegistrar(context) {
       }
     });
 
+    // Local follow viewer — attaches to an existing backend sessionId (no second login).
+    ipcMain.handle("magiesTerminal:window:openFollowSession", async (_event, payload) => {
+      try {
+        if (!payload || typeof payload !== "object" || !payload.sessionId) {
+          return { success: false, error: "Invalid follow payload" };
+        }
+        const title = typeof payload.title === "string" && payload.title.trim()
+          ? payload.title.trim()
+          : "Follow session";
+        const win = await getWindowManager().createWindow(electronModule, {
+          preload,
+          devServerUrl: effectiveDevServerUrl,
+          isDev,
+          appIcon: getAppIconPath(),
+          isMac,
+          electronDir,
+          route: "follow-session",
+          registerAsMainWindow: false,
+          onRegisterBridge: registerBridges,
+        });
+        try {
+          win.setTitle(`${title} (follow)`);
+        } catch {
+          // ignore
+        }
+        const delivery = await getWindowManager().sendWhenRendererReady(
+          win,
+          "magiesTerminal:window:openFollowSession",
+          {
+            title,
+            sessionId: payload.sessionId,
+            hostLabel: payload.hostLabel || title,
+          },
+          { timeoutMs: 8000 },
+        );
+        if (!delivery.success) {
+          return { success: false, error: delivery.error || "Failed to open follow window" };
+        }
+        return { success: true };
+      } catch (err) {
+        console.error("[Main] Failed to open follow session window:", err);
+        return { success: false, error: err?.message || "Failed to open follow window" };
+      }
+    });
+
     ipcMain.handle("magiesTerminal:window:openTerminalPopup", async (event, payload) => {
       try {
         if (!payload || typeof payload !== "object") {
