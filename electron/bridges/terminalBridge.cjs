@@ -1291,7 +1291,9 @@ function closeSession(event, payload) {
   closeTerminalOutputSession(payload.sessionId);
   try {
     const sessionFollowManager = require("./sessionFollowManager.cjs");
-    // Host close tears down the follow room for all peers.
+    const sessionFollowLan = require("./sessionFollowLan.cjs");
+    // Host close tears down the follow room + LAN invite for all peers.
+    sessionFollowLan.stopInvite(payload.sessionId);
     sessionFollowManager.stopFollow(payload.sessionId, event?.sender?.id);
   } catch {
     // ignore
@@ -1462,8 +1464,10 @@ function registerHandlers(ipcMain, options = {}) {
   ipcMain.on("magiesTerminal:flow:ack", ackSessionFlow);
   ipcMain.on("magiesTerminal:close", closeSession);
 
-  // Local follow mode (watch / single control lock)
+  // Local follow mode (watch / single control lock) + LAN invite relay
   const sessionFollowManager = require("./sessionFollowManager.cjs");
+  const sessionFollowLan = require("./sessionFollowLan.cjs");
+  sessionFollowLan.configure({ writeToSessionNow });
   const resolveDisplayName = () => {
     try {
       return require("os").userInfo().username || "User";
@@ -1483,7 +1487,46 @@ function registerHandlers(ipcMain, options = {}) {
     );
   });
   ipcMain.handle("magiesTerminal:follow:stop", (event, payload) => {
+    sessionFollowLan.stopInvite(payload?.sessionId);
     return sessionFollowManager.stopFollow(payload?.sessionId, event.sender.id);
+  });
+  ipcMain.handle("magiesTerminal:follow:lanCreateInvite", async (event, payload) => {
+    const sessionId = payload?.sessionId;
+    if (!sessionId || !sessions.get(sessionId)) {
+      return { success: false, error: "Session not found." };
+    }
+    return sessionFollowLan.createInvite({
+      sessionId,
+      hostLabel: payload?.hostLabel,
+      webContentsId: event.sender.id,
+      displayName: payload?.displayName || resolveDisplayName(),
+    });
+  });
+  ipcMain.handle("magiesTerminal:follow:lanStopInvite", (_event, payload) => {
+    return sessionFollowLan.stopInvite(payload?.sessionId);
+  });
+  ipcMain.handle("magiesTerminal:follow:lanGetInvite", (_event, payload) => {
+    return { success: true, invite: sessionFollowLan.getInvite(payload?.sessionId) };
+  });
+  ipcMain.handle("magiesTerminal:follow:lanDecodeInvite", (_event, payload) => {
+    return sessionFollowLan.decodeShare(payload?.shareString || payload?.value || "");
+  });
+  ipcMain.handle("magiesTerminal:follow:lanConnect", async (event, payload) => {
+    return sessionFollowLan.connectAsViewer({
+      shareString: payload?.shareString || payload?.value,
+      displayName: payload?.displayName || resolveDisplayName(),
+      webContentsId: event.sender.id,
+      electronModule,
+    });
+  });
+  ipcMain.handle("magiesTerminal:follow:lanViewerInput", (_event, payload) => {
+    return sessionFollowLan.sendViewerInput(payload?.clientId, payload?.data);
+  });
+  ipcMain.handle("magiesTerminal:follow:lanViewerRequestControl", (_event, payload) => {
+    return sessionFollowLan.sendViewerRequestControl(payload?.clientId);
+  });
+  ipcMain.handle("magiesTerminal:follow:lanViewerDisconnect", (_event, payload) => {
+    return sessionFollowLan.disconnectViewer(payload?.clientId);
   });
   ipcMain.handle("magiesTerminal:follow:join", (event, payload) => {
     const sessionId = payload?.sessionId;

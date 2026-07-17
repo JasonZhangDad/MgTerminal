@@ -19,6 +19,7 @@ const LazySettingsPage = lazy(() => import('./components/SettingsPage'));
 const LazyTrayPanel = lazy(() => import('./components/TrayPanel'));
 const LazyTerminalPopupPage = lazy(() => import('./components/TerminalPopupPage'));
 const LazyFollowSessionPage = lazy(() => import('./components/FollowSessionPage'));
+const LazyLanFollowJoinPage = lazy(() => import('./components/LanFollowJoinPage'));
 
 function SettingsWindowFallback() {
   return (
@@ -139,6 +140,9 @@ const getRoute = () => {
   if (hash === '#/follow-session' || hash.startsWith('#/follow-session')) {
     return 'follow-session';
   }
+  if (hash === '#/lan-follow' || hash.startsWith('#/lan-follow')) {
+    return 'lan-follow';
+  }
   return 'main';
 };
 
@@ -182,6 +186,16 @@ const renderApp = () => {
         <TooltipProvider delayDuration={300}>
           <Suspense fallback={<div style={{ padding: 12, color: '#fff' }}>Loading follow session…</div>}>
             <LazyFollowSessionPage />
+          </Suspense>
+        </TooltipProvider>
+      </ToastProvider>
+    );
+  } else if (route === 'lan-follow') {
+    root.render(
+      <ToastProvider>
+        <TooltipProvider delayDuration={300}>
+          <Suspense fallback={<div style={{ padding: 12, color: '#fff' }}>Loading LAN follow…</div>}>
+            <LazyLanFollowJoinPage />
           </Suspense>
         </TooltipProvider>
       </ToastProvider>
