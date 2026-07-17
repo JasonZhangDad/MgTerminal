@@ -109,9 +109,12 @@ function init(deps) {
   terminalOutputChannel = deps.terminalOutputChannel || null;
   selectZmodemUploadFiles = deps.selectZmodemUploadFiles || null;
   selectZmodemDownloadDirectory = deps.selectZmodemDownloadDirectory || null;
+  const sessionFollowManager = require("./sessionFollowManager.cjs");
   configureTerminalSessionDataEmitter({
     getSession: (sessionId) => sessions?.get(sessionId),
     outputChannel: terminalOutputChannel,
+    getFollowWebContentsIds: (sessionId) => sessionFollowManager.getWebContentsIds(sessionId),
+    webContentsFromId: (id) => electronModule?.webContents?.fromId?.(id),
   });
   cleanupStaleEtTempDirs();
 }
@@ -982,6 +985,30 @@ function writeToSession(event, payload) {
   const session = sessions.get(payload.sessionId);
   if (!session) return;
 
+  // Local follow mode: only the controller peer may write non-automated input.
+  try {
+    const sessionFollowManager = require("./sessionFollowManager.cjs");
+    const senderId = event?.sender?.id;
+    if (Number.isFinite(senderId)) {
+      const gate = sessionFollowManager.shouldBlockWrite(payload.sessionId, senderId, {
+        automated: Boolean(payload.automated),
+      });
+      if (gate.blocked) {
+        try {
+          event.sender.send("magiesTerminal:follow:inputDenied", {
+            sessionId: payload.sessionId,
+            reason: gate.reason || "not_controller",
+          });
+        } catch {
+          // ignore
+        }
+        return;
+      }
+    }
+  } catch {
+    // Follow manager optional if require fails in tests
+  }
+
   if (!payload.automated && !isTerminalReportSequence(payload.data)) {
     clearPendingAutomatedWrites(session);
   }
@@ -1262,6 +1289,13 @@ function closeSession(event, payload) {
   if (!session) return;
   session.closed = true;
   closeTerminalOutputSession(payload.sessionId);
+  try {
+    const sessionFollowManager = require("./sessionFollowManager.cjs");
+    // Host close tears down the follow room for all peers.
+    sessionFollowManager.stopFollow(payload.sessionId, event?.sender?.id);
+  } catch {
+    // ignore
+  }
 
   try {
     clearSessionFlowState(session, { resume: false });
@@ -1427,6 +1461,85 @@ function registerHandlers(ipcMain, options = {}) {
   ipcMain.on("magiesTerminal:flow", setSessionFlowPaused);
   ipcMain.on("magiesTerminal:flow:ack", ackSessionFlow);
   ipcMain.on("magiesTerminal:close", closeSession);
+
+  // Local follow mode (watch / single control lock)
+  const sessionFollowManager = require("./sessionFollowManager.cjs");
+  const resolveDisplayName = () => {
+    try {
+      return require("os").userInfo().username || "User";
+    } catch {
+      return "User";
+    }
+  };
+  ipcMain.handle("magiesTerminal:follow:start", (event, payload) => {
+    const sessionId = payload?.sessionId;
+    if (!sessionId || !sessions.get(sessionId)) {
+      return { success: false, error: "Session not found." };
+    }
+    return sessionFollowManager.startFollow(
+      sessionId,
+      event.sender.id,
+      payload?.displayName || resolveDisplayName(),
+    );
+  });
+  ipcMain.handle("magiesTerminal:follow:stop", (event, payload) => {
+    return sessionFollowManager.stopFollow(payload?.sessionId, event.sender.id);
+  });
+  ipcMain.handle("magiesTerminal:follow:join", (event, payload) => {
+    const sessionId = payload?.sessionId;
+    if (!sessionId || !sessions.get(sessionId)) {
+      return { success: false, error: "Session not found." };
+    }
+    return sessionFollowManager.joinFollow(
+      sessionId,
+      event.sender.id,
+      payload?.displayName || resolveDisplayName(),
+    );
+  });
+  ipcMain.handle("magiesTerminal:follow:leave", (event, payload) => {
+    return sessionFollowManager.leaveFollow(payload?.sessionId, event.sender.id);
+  });
+  ipcMain.handle("magiesTerminal:follow:requestControl", (event, payload) => {
+    return sessionFollowManager.requestControl(payload?.sessionId, event.sender.id);
+  });
+  ipcMain.handle("magiesTerminal:follow:grantControl", (event, payload) => {
+    return sessionFollowManager.grantControl(
+      payload?.sessionId,
+      event.sender.id,
+      payload?.targetPeerId,
+    );
+  });
+  ipcMain.handle("magiesTerminal:follow:revokeControl", (event, payload) => {
+    return sessionFollowManager.revokeControl(payload?.sessionId, event.sender.id);
+  });
+  ipcMain.handle("magiesTerminal:follow:getState", (_event, payload) => {
+    return { success: true, state: sessionFollowManager.getState(payload?.sessionId) };
+  });
+  ipcMain.handle("magiesTerminal:follow:getAudit", (_event, payload) => {
+    return { success: true, events: sessionFollowManager.getAudit(payload?.sessionId) };
+  });
+
+  // Push state changes to all peers in the room.
+  if (!global.__magiesTerminalFollowStateHooked) {
+    global.__magiesTerminalFollowStateHooked = true;
+    sessionFollowManager.onStateChange((sessionId, state) => {
+      const ids = state
+        ? state.peers.map((p) => p.webContentsId)
+        : [];
+      // Also try to notify owner window even if room closed — skip.
+      const unique = Array.from(new Set(ids));
+      for (const id of unique) {
+        try {
+          const wc = electronModule?.webContents?.fromId?.(id);
+          if (wc && !wc.isDestroyed?.()) {
+            wc.send("magiesTerminal:follow:state", { sessionId, state });
+          }
+        } catch {
+          // ignore
+        }
+      }
+    });
+  }
 }
 
 /**

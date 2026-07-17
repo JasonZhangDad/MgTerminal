@@ -18,6 +18,7 @@ import {
 } from '../ui/dialog';
 import { ConfirmDialog } from '../ui/confirm-dialog';
 import { BroadcastToolbarControl } from './BroadcastToolbarControl';
+import { SessionFollowToolbarControl } from './SessionFollowToolbarControl';
 import { DEFAULT_BROADCAST_CONFIG } from '../../domain/broadcastTargets';
 import { TERMINAL_HEX_PANEL_HEIGHT_PX } from './TerminalHexPanel';
 
@@ -455,6 +456,13 @@ function TerminalViewInner({ ctx }: { ctx: TerminalViewContext }) {
             )}
             <div className="flex-1 min-w-0" />
             <div className="flex items-center gap-0.5 flex-shrink-0">
+              {!compactToolbar && (
+                <SessionFollowToolbarControl
+                  sessionId={sessionId}
+                  hostLabel={sessionDisplayName || host?.label}
+                  status={status}
+                />
+              )}
               {inWorkspace && onToggleBroadcast && (
                 onUpdateBroadcastConfig ? (
                   <BroadcastToolbarControl

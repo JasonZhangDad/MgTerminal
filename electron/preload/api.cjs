@@ -597,6 +597,32 @@ function createPreloadApi(ctx) {
     ipcRenderer.on("magiesTerminal:window:openSession", handler);
     return () => ipcRenderer.removeListener("magiesTerminal:window:openSession", handler);
   },
+  // Local follow mode (multiplayer foundation)
+  followStart: (payload) => ipcRenderer.invoke("magiesTerminal:follow:start", payload),
+  followStop: (payload) => ipcRenderer.invoke("magiesTerminal:follow:stop", payload),
+  followJoin: (payload) => ipcRenderer.invoke("magiesTerminal:follow:join", payload),
+  followLeave: (payload) => ipcRenderer.invoke("magiesTerminal:follow:leave", payload),
+  followRequestControl: (payload) => ipcRenderer.invoke("magiesTerminal:follow:requestControl", payload),
+  followGrantControl: (payload) => ipcRenderer.invoke("magiesTerminal:follow:grantControl", payload),
+  followRevokeControl: (payload) => ipcRenderer.invoke("magiesTerminal:follow:revokeControl", payload),
+  followGetState: (payload) => ipcRenderer.invoke("magiesTerminal:follow:getState", payload),
+  followGetAudit: (payload) => ipcRenderer.invoke("magiesTerminal:follow:getAudit", payload),
+  openFollowSessionWindow: (payload) => ipcRenderer.invoke("magiesTerminal:window:openFollowSession", payload),
+  onFollowSessionOpen: (cb) => {
+    const handler = (_event, payload) => cb(payload);
+    ipcRenderer.on("magiesTerminal:window:openFollowSession", handler);
+    return () => ipcRenderer.removeListener("magiesTerminal:window:openFollowSession", handler);
+  },
+  onFollowState: (cb) => {
+    const handler = (_event, payload) => cb(payload);
+    ipcRenderer.on("magiesTerminal:follow:state", handler);
+    return () => ipcRenderer.removeListener("magiesTerminal:follow:state", handler);
+  },
+  onFollowInputDenied: (cb) => {
+    const handler = (_event, payload) => cb(payload);
+    ipcRenderer.on("magiesTerminal:follow:inputDenied", handler);
+    return () => ipcRenderer.removeListener("magiesTerminal:follow:inputDenied", handler);
+  },
   onWindowCommandCloseRequested: (cb) => {
     const handler = () => cb();
     ipcRenderer.on("magiesTerminal:window:command-close", handler);
