@@ -22,6 +22,18 @@ function createPeer(webContentsId, displayName, role) {
     displayName: (displayName || `Window ${webContentsId}`).slice(0, 80),
     role: role || "viewer",
     joinedAt: Date.now(),
+    kind: "local",
+  };
+}
+
+function createRemotePeer(peerId, displayName, role) {
+  return {
+    peerId,
+    webContentsId: null,
+    displayName: (displayName || "LAN viewer").slice(0, 80),
+    role: role || "viewer",
+    joinedAt: Date.now(),
+    kind: "lan",
   };
 }
 
@@ -229,7 +241,9 @@ function getAudit(sessionId) {
 function getWebContentsIds(sessionId) {
   const room = rooms.get(sessionId);
   if (!room) return null;
-  return room.peers.map((p) => p.webContentsId);
+  return room.peers
+    .map((p) => p.webContentsId)
+    .filter((id) => Number.isFinite(id) && id > 0);
 }
 
 function shouldBlockWrite(sessionId, webContentsId, options = {}) {
@@ -243,6 +257,75 @@ function shouldBlockWrite(sessionId, webContentsId, options = {}) {
   if (peer.peerId === room.controllerPeerId) return { blocked: false };
   pushAudit(sessionId, "input_denied", peer.peerId, undefined, options.automated ? "automated" : "viewer");
   return { blocked: true, reason: "not_controller" };
+}
+
+function shouldBlockWriteByPeerId(sessionId, peerId, options = {}) {
+  const room = rooms.get(sessionId);
+  if (!room) return { blocked: false };
+  const peer = room.peers.find((p) => p.peerId === peerId);
+  if (!peer) {
+    pushAudit(sessionId, "input_denied", peerId, undefined, "unknown_peer");
+    return { blocked: true, reason: "unknown_peer" };
+  }
+  if (peer.peerId === room.controllerPeerId) return { blocked: false };
+  pushAudit(sessionId, "input_denied", peer.peerId, undefined, options.automated ? "automated" : "viewer");
+  return { blocked: true, reason: "not_controller" };
+}
+
+/** Join a LAN (non-webContents) peer into an existing room. */
+function joinFollowRemote(sessionId, peerId, displayName) {
+  const room = rooms.get(sessionId);
+  if (!room) return { success: false, error: "Follow room not found." };
+  if (!peerId || typeof peerId !== "string") {
+    return { success: false, error: "Invalid peer id." };
+  }
+  room.peers = room.peers.filter((p) => p.peerId !== peerId);
+  const peer = createRemotePeer(peerId, displayName || "LAN viewer", "viewer");
+  room.peers.push(peer);
+  peerToSession.set(peer.peerId, sessionId);
+  pushAudit(sessionId, "peer_joined", peer.peerId, undefined, "lan");
+  notify(sessionId);
+  return { success: true, state: toPublicState(room), peerId: peer.peerId };
+}
+
+function leaveFollowByPeerId(sessionId, peerId) {
+  const room = rooms.get(sessionId);
+  if (!room) return { success: true, state: null };
+  const peer = room.peers.find((p) => p.peerId === peerId);
+  if (!peer) return { success: true, state: toPublicState(room) };
+  if (peer.kind !== "lan" && peer.webContentsId != null) {
+    return leaveFollow(sessionId, peer.webContentsId);
+  }
+  // Owner cannot be a LAN peer.
+  room.peers = room.peers.filter((p) => p.peerId !== peerId);
+  peerToSession.delete(peerId);
+  room.pendingControlRequests = room.pendingControlRequests.filter((id) => id !== peerId);
+  if (room.controllerPeerId === peerId) {
+    room.controllerPeerId = room.ownerPeerId;
+    room.peers = room.peers.map((p) => ({
+      ...p,
+      role: p.peerId === room.ownerPeerId ? "controller" : "viewer",
+    }));
+  }
+  pushAudit(sessionId, "peer_left", peerId, undefined, "lan");
+  notify(sessionId);
+  return { success: true, state: toPublicState(room) };
+}
+
+function requestControlByPeerId(sessionId, peerId) {
+  const room = rooms.get(sessionId);
+  if (!room) return { success: false, error: "Follow room not found." };
+  const peer = room.peers.find((p) => p.peerId === peerId);
+  if (!peer) return { success: false, error: "Not in room." };
+  if (room.controllerPeerId === peerId) {
+    return { success: false, error: "Already controller." };
+  }
+  if (!room.pendingControlRequests.includes(peerId)) {
+    room.pendingControlRequests.push(peerId);
+    pushAudit(sessionId, "control_requested", peerId);
+    notify(sessionId);
+  }
+  return { success: true, state: toPublicState(room) };
 }
 
 function leaveAllForWebContents(webContentsId) {
@@ -275,13 +358,17 @@ module.exports = {
   stopFollow,
   joinFollow,
   leaveFollow,
+  joinFollowRemote,
+  leaveFollowByPeerId,
   requestControl,
+  requestControlByPeerId,
   grantControl,
   revokeControl,
   getState,
   getAudit,
   getWebContentsIds,
   shouldBlockWrite,
+  shouldBlockWriteByPeerId,
   leaveAllForWebContents,
   onStateChange,
   makePeerId,

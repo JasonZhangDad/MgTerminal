@@ -616,7 +616,26 @@ function createPreloadApi(ctx) {
   followRevokeControl: (payload) => ipcRenderer.invoke("magiesTerminal:follow:revokeControl", payload),
   followGetState: (payload) => ipcRenderer.invoke("magiesTerminal:follow:getState", payload),
   followGetAudit: (payload) => ipcRenderer.invoke("magiesTerminal:follow:getAudit", payload),
+  followLanCreateInvite: (payload) => ipcRenderer.invoke("magiesTerminal:follow:lanCreateInvite", payload),
+  followLanStopInvite: (payload) => ipcRenderer.invoke("magiesTerminal:follow:lanStopInvite", payload),
+  followLanGetInvite: (payload) => ipcRenderer.invoke("magiesTerminal:follow:lanGetInvite", payload),
+  followLanDecodeInvite: (payload) => ipcRenderer.invoke("magiesTerminal:follow:lanDecodeInvite", payload),
+  followLanConnect: (payload) => ipcRenderer.invoke("magiesTerminal:follow:lanConnect", payload),
+  followLanViewerInput: (payload) => ipcRenderer.invoke("magiesTerminal:follow:lanViewerInput", payload),
+  followLanViewerRequestControl: (payload) => ipcRenderer.invoke("magiesTerminal:follow:lanViewerRequestControl", payload),
+  followLanViewerDisconnect: (payload) => ipcRenderer.invoke("magiesTerminal:follow:lanViewerDisconnect", payload),
+  onFollowLanClientEvent: (cb) => {
+    const handler = (_event, payload) => cb(payload);
+    ipcRenderer.on("magiesTerminal:follow:lanClientEvent", handler);
+    return () => ipcRenderer.removeListener("magiesTerminal:follow:lanClientEvent", handler);
+  },
   openFollowSessionWindow: (payload) => ipcRenderer.invoke("magiesTerminal:window:openFollowSession", payload),
+  openLanFollowWindow: (payload) => ipcRenderer.invoke("magiesTerminal:window:openLanFollow", payload),
+  onOpenLanFollow: (cb) => {
+    const handler = (_event, payload) => cb(payload);
+    ipcRenderer.on("magiesTerminal:window:openLanFollow", handler);
+    return () => ipcRenderer.removeListener("magiesTerminal:window:openLanFollow", handler);
+  },
   onFollowSessionOpen: (cb) => {
     const handler = (_event, payload) => cb(payload);
     ipcRenderer.on("magiesTerminal:window:openFollowSession", handler);

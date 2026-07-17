@@ -28,6 +28,50 @@ declare global {
     followGetAudit?(payload: {
       sessionId: string;
     }): Promise<{ success: boolean; events?: SessionFollowAuditEvent[] }>;
+    followLanCreateInvite?(payload: {
+      sessionId: string;
+      hostLabel?: string;
+      displayName?: string;
+    }): Promise<{
+      success: boolean;
+      error?: string;
+      invite?: {
+        sessionId: string;
+        port: number;
+        hosts: string[];
+        token: string;
+        code: string;
+        shareString: string;
+        expiresAt: number;
+        hostLabel?: string;
+      };
+    }>;
+    followLanStopInvite?(payload: { sessionId: string }): Promise<{ success: boolean }>;
+    followLanGetInvite?(payload: {
+      sessionId: string;
+    }): Promise<{ success: boolean; invite?: {
+      sessionId: string;
+      port: number;
+      hosts: string[];
+      token: string;
+      code: string;
+      shareString: string;
+      expiresAt: number;
+      hostLabel?: string;
+      peerCount?: number;
+    } | null }>;
+    followLanDecodeInvite?(payload: {
+      shareString?: string;
+      value?: string;
+    }): Promise<{ ok: boolean; payload?: {
+      v: number;
+      host: string;
+      port: number;
+      token: string;
+      sessionId: string;
+      hostLabel?: string;
+      expiresAt: number;
+    }; error?: string }>;
     openFollowSessionWindow?(payload: {
       sessionId: string;
       title?: string;
