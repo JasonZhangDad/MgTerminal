@@ -901,6 +901,30 @@ jobs:
           fail_on_unmatched_files: false
           token: ${{ secrets.RELEASE_TOKEN }}
 
+      # Updater bridge: clients ≤ v0.4.8 shipped with app-update.yml pointing
+      # at this repo, so they only see new versions published here. Mirror the
+      # release into this repo until the installed base has upgraded to a
+      # build that reads the MgTerminal-releases feed, then delete this step.
+      - name: Create legacy GitHub Release (updater bridge)
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: release_notes.md
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          files: |
+            artifacts/*.AppImage
+            artifacts/*.deb
+            artifacts/*.rpm
+            artifacts/*.pacman
+            artifacts/*.dmg
+            artifacts/*.zip
+            artifacts/*.exe
+            artifacts/*.msi
+            artifacts/*.yml
+            artifacts/*.blockmap
+          generate_release_notes: false
+          fail_on_unmatched_files: false
+          token: ${{ github.token }}
+
   update-nix-release:
     name: update Nix release metadata
     runs-on: ubuntu-latest
