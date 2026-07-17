@@ -77,9 +77,9 @@ Directory.Build.targets
 build_with_vs.bat
 build_with_vs2022.bat
 
-# Bundled MoshCatty mosh-client binaries fetched at pack time by
+# Bundled MoshMagies mosh-client binaries fetched at pack time by
 # scripts/fetch-mosh-binaries.cjs. resources/mosh/README.md is committed;
-# pure single-binary artifacts from binaricat/MoshCatty are never committed.
+# pure single-binary artifacts from Zhangwei930/MoshMagies are never committed.
 /resources/mosh/*/mosh-client
 /resources/mosh/*/mosh-client.exe
 

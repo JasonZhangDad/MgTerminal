@@ -7,7 +7,7 @@ const {
 } = require("../terminalFlowAck.cjs");
 const { createSshConnExecProbe } = require("../ai/sessionShellKind.cjs");
 
-// MoshCatty normally emits this cleanup together with an alternate-screen
+// MoshMagies normally emits this cleanup together with an alternate-screen
 // exit. MagiesTerminal keeps the primary screen, so restore only terminal modes that
 // can leak from a full-screen remote program and leave scrollback untouched.
 const MOSH_PRIMARY_SCREEN_RESET = "\x1b[?1l\x1b[0m\x1b[?25h"
@@ -33,7 +33,7 @@ function createMoshSessionApi(ctx) {
       return bundledMoshClient(opts);
     }
 
-    // MoshCatty is a pure single binary (no Cygwin DLL bag, no terminfo).
+    // MoshMagies is a pure single binary (no Cygwin DLL bag, no terminfo).
     // Runtime env only needs MOSH_KEY / TERM / LANG from the handshake path.
     function addBundledMoshRuntimeEnv(env, _bareClient, _opts = {}) {
       return env;
@@ -479,7 +479,7 @@ function createMoshSessionApi(ctx) {
         key: parsed.key,
         lang,
       });
-      // MagiesTerminal owns the terminal buffer. Keeping MoshCatty on the primary
+      // MagiesTerminal owns the terminal buffer. Keeping MoshMagies on the primary
       // screen preserves scrollback and lets renderer features such as keyword
       // highlighting keep observing the active buffer.
       env.MOSH_NO_TERM_INIT = "1";

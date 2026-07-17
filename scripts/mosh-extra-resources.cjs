@@ -1,5 +1,5 @@
-// Platform-specific electron-builder extraResources for the MoshCatty client.
-// Binaries are downloaded from binaricat/MoshCatty into resources/mosh/ by
+// Platform-specific electron-builder extraResources for the MoshMagies client.
+// Binaries are downloaded from Zhangwei930/MoshMagies into resources/mosh/ by
 // scripts/fetch-mosh-binaries.cjs. Pure single-binary layout only.
 
 const fs = require("node:fs");

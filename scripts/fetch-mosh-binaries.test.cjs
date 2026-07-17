@@ -56,12 +56,12 @@ async function serveAssets(t, assets) {
   return `http://127.0.0.1:${server.address().port}`;
 }
 
-test("fetch-mosh-binaries defaults to the MoshCatty binary repository", () => {
-  assert.deepEqual(parseMoshBinRepository({}), { owner: "binaricat", repo: "MoshCatty" });
-  // Fork CI must not inherit GITHUB_REPOSITORY owner for MoshCatty downloads.
+test("fetch-mosh-binaries defaults to the MoshMagies binary repository", () => {
+  assert.deepEqual(parseMoshBinRepository({}), { owner: "Zhangwei930", repo: "MoshMagies" });
+  // Fork CI must not inherit GITHUB_REPOSITORY owner for MoshMagies downloads.
   assert.deepEqual(parseMoshBinRepository({ GITHUB_REPOSITORY: "owner/project" }), {
-    owner: "binaricat",
-    repo: "MoshCatty",
+    owner: "Zhangwei930",
+    repo: "MoshMagies",
   });
   assert.deepEqual(
     parseMoshBinRepository({ MOSH_BIN_OWNER: "other", MOSH_BIN_REPO: "fork-mosh" }),
@@ -69,7 +69,7 @@ test("fetch-mosh-binaries defaults to the MoshCatty binary repository", () => {
   );
 });
 
-test("TARGETS are pure MoshCatty tarball assets only", () => {
+test("TARGETS are pure MoshMagies tarball assets only", () => {
   for (const t of TARGETS) {
     assert.match(t.file, /^mosh-client-.+\.tar\.gz$/);
     assert.ok(t.binary === "mosh-client" || t.binary === "mosh-client.exe");
@@ -138,7 +138,7 @@ test("fetch-mosh-binaries host mode skips unsupported local targets", async (t) 
     {
       env: {
         ...process.env,
-        MOSH_BIN_RELEASE: "moshcatty-0.1.4",
+        MOSH_BIN_RELEASE: "moshmagies-0.1.4",
         MOSH_BIN_BASE_URL: baseUrl,
         MOSH_BIN_RES_DIR: resDir,
         CI: "true",
@@ -151,28 +151,28 @@ test("fetch-mosh-binaries host mode skips unsupported local targets", async (t) 
   assert.equal(fs.existsSync(resDir), false);
 });
 
-test("fetch-mosh-binaries rejects MoshCatty releases before 0.1.4", async (t) => {
+test("fetch-mosh-binaries rejects MoshMagies releases before 0.1.4", async (t) => {
   const resDir = path.join(makeTmp(t), "resources", "mosh");
 
   await assert.rejects(
     execFileAsync(process.execPath, [script, "--platform=win32", "--arch=x64"], {
       env: {
         ...process.env,
-        MOSH_BIN_RELEASE: "moshcatty-0.1.3",
+        MOSH_BIN_RELEASE: "moshmagies-0.1.3",
         MOSH_BIN_RES_DIR: resDir,
         CI: "true",
       },
       stdio: "pipe",
     }),
-    /below minimum moshcatty-0\.1\.4/,
+    /below minimum moshmagies-0\.1\.4/,
   );
   assert.equal(fs.existsSync(resDir), false);
 });
 
-test("fetch-mosh-binaries unpacks pure Windows MoshCatty tarball", async (t) => {
+test("fetch-mosh-binaries unpacks pure Windows MoshMagies tarball", async (t) => {
   const resDir = path.join(makeTmp(t), "resources", "mosh");
   const tar = makeTarGz(t, {
-    "mosh-client.exe": "pure-moshcatty-exe",
+    "mosh-client.exe": "pure-moshmagies-exe",
   });
   const baseUrl = await serveAssets(t, {
     "mosh-client-win32-x64.tar.gz": tar,
@@ -182,7 +182,7 @@ test("fetch-mosh-binaries unpacks pure Windows MoshCatty tarball", async (t) => 
   await execFileAsync(process.execPath, [script, "--platform=win32", "--arch=x64"], {
     env: {
       ...process.env,
-      MOSH_BIN_RELEASE: "moshcatty-0.1.4",
+      MOSH_BIN_RELEASE: "moshmagies-0.1.4",
       MOSH_BIN_BASE_URL: baseUrl,
       MOSH_BIN_RES_DIR: resDir,
       CI: "true",
@@ -192,7 +192,7 @@ test("fetch-mosh-binaries unpacks pure Windows MoshCatty tarball", async (t) => 
 
   assert.equal(
     fs.readFileSync(path.join(resDir, "win32-x64", "mosh-client.exe"), "utf8"),
-    "pure-moshcatty-exe",
+    "pure-moshmagies-exe",
   );
   assert.equal(fs.existsSync(path.join(resDir, "win32-x64", "mosh-client-win32-x64-dlls")), false);
   assert.equal(fs.existsSync(path.join(resDir, "win32-x64", "terminfo")), false);
@@ -213,7 +213,7 @@ test("fetch-mosh-binaries strips accidental dll/terminfo from Windows tarball", 
   await execFileAsync(process.execPath, [script, "--platform=win32", "--arch=x64"], {
     env: {
       ...process.env,
-      MOSH_BIN_RELEASE: "moshcatty-0.1.4",
+      MOSH_BIN_RELEASE: "moshmagies-0.1.4",
       MOSH_BIN_BASE_URL: baseUrl,
       MOSH_BIN_RES_DIR: resDir,
       CI: "true",
@@ -226,7 +226,7 @@ test("fetch-mosh-binaries strips accidental dll/terminfo from Windows tarball", 
   assert.equal(fs.existsSync(path.join(resDir, "win32-x64", "terminfo")), false);
 });
 
-test("fetch-mosh-binaries unpacks pure Linux MoshCatty tarball", async (t) => {
+test("fetch-mosh-binaries unpacks pure Linux MoshMagies tarball", async (t) => {
   const resDir = path.join(makeTmp(t), "resources", "mosh");
   const tar = makeTarGz(t, {
     "mosh-client": "linux-client",
@@ -239,7 +239,7 @@ test("fetch-mosh-binaries unpacks pure Linux MoshCatty tarball", async (t) => {
   await execFileAsync(process.execPath, [script, "--platform=linux", "--arch=x64"], {
     env: {
       ...process.env,
-      MOSH_BIN_RELEASE: "moshcatty-0.1.4",
+      MOSH_BIN_RELEASE: "moshmagies-0.1.4",
       MOSH_BIN_BASE_URL: baseUrl,
       MOSH_BIN_RES_DIR: resDir,
       CI: "true",
@@ -265,7 +265,7 @@ test("fetch-mosh-binaries rejects tarball without mosh-client", async (t) => {
     execFileAsync(process.execPath, [script, "--platform=linux", "--arch=x64"], {
       env: {
         ...process.env,
-        MOSH_BIN_RELEASE: "moshcatty-0.1.4",
+        MOSH_BIN_RELEASE: "moshmagies-0.1.4",
         MOSH_BIN_BASE_URL: baseUrl,
         MOSH_BIN_RES_DIR: resDir,
         CI: "true",
@@ -288,7 +288,7 @@ test("fetch-mosh-binaries fails when SHA256SUMS lacks the asset", async (t) => {
     execFileAsync(process.execPath, [script, "--platform=win32", "--arch=x64"], {
       env: {
         ...process.env,
-        MOSH_BIN_RELEASE: "moshcatty-0.1.4",
+        MOSH_BIN_RELEASE: "moshmagies-0.1.4",
         MOSH_BIN_BASE_URL: baseUrl,
         MOSH_BIN_RES_DIR: resDir,
         CI: "true",
@@ -316,7 +316,7 @@ test("fetch-mosh-binaries rejects symlinks inside tarballs", { skip: process.pla
     execFileAsync(process.execPath, [script, "--platform=win32", "--arch=x64"], {
       env: {
         ...process.env,
-        MOSH_BIN_RELEASE: "moshcatty-0.1.4",
+        MOSH_BIN_RELEASE: "moshmagies-0.1.4",
         MOSH_BIN_BASE_URL: baseUrl,
         MOSH_BIN_RES_DIR: resDir,
         CI: "true",

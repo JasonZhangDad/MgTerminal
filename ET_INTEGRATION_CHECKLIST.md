@@ -8,11 +8,11 @@
 >    后端 + UI 重新落到上游重构后的目录结构上，并让它启动**捆绑的** `et`。
 >
 > 旧实现参考：`git show 67e81616`（共 7 个 ET 提交，见 `feat/eternal-terminal`）。
-> Mosh 模板参考（**仅 MoshCatty 纯二进制路径**）：`resources/mosh/README.md`、
+> Mosh 模板参考（**仅 MoshMagies 纯二进制路径**）：`resources/mosh/README.md`、
 > `scripts/fetch-mosh-binaries.cjs`、`scripts/resolve-mosh-bin-release.cjs`、
 > `scripts/mosh-extra-resources.cjs`、`electron/bridges/terminalBridge/moshSession.cjs`。
-> 客户端本体在独立仓库 [binaricat/MoshCatty](https://github.com/binaricat/MoshCatty)
-> （`moshcatty-*` releases）；MagiesTerminal 内已无 Cygwin 构建流水线 / FluentTerminal 回退。
+> 客户端本体在独立仓库 [Zhangwei930/MoshMagies](https://github.com/Zhangwei930/MoshMagies)
+> （`moshmagies-*` releases）；MagiesTerminal 内已无 Cygwin 构建流水线 / FluentTerminal 回退。
 
 ## 关键设计差异（ET vs Mosh）
 
@@ -23,25 +23,25 @@
 - **凭证注入**：Mosh 自己驱动 ssh、直接往 PTY 里敲密码；ET 内部驱动 ssh，需用
   **SSH_ASKPASS + 临时 ~/.ssh 环境**把保存的密码/密钥/跳板/算法喂给 et 内部的 ssh
   （旧实现 `prepareEtSshEnvironment` 已完整实现，直接搬运）。
-- **纯二进制**：MoshCatty 与理想 ET 打包都是「每平台一个客户端文件」。Mosh 侧已
+- **纯二进制**：MoshMagies 与理想 ET 打包都是「每平台一个客户端文件」。Mosh 侧已
   无 terminfo / Cygwin DLL 袋；`et` 同样本地不渲染终端。Windows 若动态链 CRT
   才考虑可选 DLL 目录，否则只放 `et[.exe]`。
-- **构建系统**：Mosh 客户端在 **MoshCatty** 仓库用 Rust 构建并发布；MagiesTerminal 只
+- **构建系统**：Mosh 客户端在 **MoshMagies** 仓库用 Rust 构建并发布；MagiesTerminal 只
   `fetch`。**ET** 用 CMake + Ninja + vcpkg
   （`cmake -DDISABLE_TELEMETRY=ON -GNinja -DCMAKE_BUILD_TYPE=RelWithDebInfo`），
   产物是单个 `et`（Windows `et.exe`），由 `scripts/build-et/` + `build-et-binaries.yml` 发布。
 
-## 命名约定（镜像 Mosh / MoshCatty）
+## 命名约定（镜像 Mosh / MoshMagies）
 
-| Mosh (MoshCatty) | ET |
+| Mosh (MoshMagies) | ET |
 |------|----|
 | `resources/mosh/<plat-arch>/mosh-client[.exe]` | `resources/et/<plat-arch>/et[.exe]` |
 | 打包后 `<Resources>/mosh/mosh-client` | 打包后 `<Resources>/et/et` |
-| 上游构建：`binaricat/MoshCatty` CI releases | `scripts/build-et/` + `build-et-binaries.yml` |
+| 上游构建：`Zhangwei930/MoshMagies` CI releases | `scripts/build-et/` + `build-et-binaries.yml` |
 | `scripts/fetch-mosh-binaries.cjs` | `scripts/fetch-et-binaries.cjs` |
 | `scripts/resolve-mosh-bin-release.cjs` | `scripts/resolve-et-bin-release.cjs` |
 | `scripts/mosh-extra-resources.cjs` | `scripts/et-extra-resources.cjs` |
-| env `MOSH_BIN_RELEASE` / 仓库 `MoshCatty` / tag `moshcatty-*` | env `ET_BIN_RELEASE` / 仓库 `MagiesTerminal-et-bin` / tag `et-bin-*` |
+| env `MOSH_BIN_RELEASE` / 仓库 `MoshMagies` / tag `moshmagies-*` | env `ET_BIN_RELEASE` / 仓库 `MagiesTerminal-et-bin` / tag `et-bin-*` |
 | `npm run fetch:mosh[:dev]` | `npm run fetch:et[:dev]` |
 | `bundledMoshClient()` / `resolveBareMoshClient()` | `bundledEtClient()` / `resolveBareEtClient()` |
 
@@ -103,7 +103,7 @@
       `cleanupSessionExternalAuthArtifacts`、`execOnEtSession`、`startEtSession`。
       **改动点**：`etCmd` 由 `findExecutable('et')` 改为 `resolveBareEtClient()`
       （取捆绑二进制）；找不到时抛错（同 mosh：提示跑 `npm run fetch:et:dev`）。
-      Windows 若有动态链接 DLL 目录，可把该目录加进 PATH（MoshCatty 路径已无此需求）。
+      Windows 若有动态链接 DLL 目录，可把该目录加进 PATH（MoshMagies 路径已无此需求）。
 - [x] **3.2** `terminalBridge.cjs` 接线 `createEtSessionApi(ctx)`（镜像 moshSessionApi
       的 ctx），传入 `bundledEtClient`、`tempDirBridge`、`execFile/execFileSync` 等；
       解构出 `startEtSession`、`execOnEtSession`、`cleanupStaleEtTempDirs`、
