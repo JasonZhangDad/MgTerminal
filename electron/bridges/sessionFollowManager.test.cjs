@@ -2,6 +2,9 @@
 
 const test = require("node:test");
 const assert = require("node:assert/strict");
+const fs = require("fs");
+const os = require("os");
+const path = require("path");
 const follow = require("./sessionFollowManager.cjs");
 
 test("follow manager start join grant write gate", () => {
@@ -27,4 +30,30 @@ test("follow manager start join grant write gate", () => {
   follow.stopFollow("s1", 1);
   assert.equal(follow.getWebContentsIds("s1"), null);
   assert.equal(follow.shouldBlockWrite("s1", 2).blocked, false);
+});
+
+test("follow audit persists across reset when disk path configured", () => {
+  follow.__resetForTests();
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "follow-mgr-audit-"));
+  const filePath = path.join(dir, "follow-audit-v1.json");
+  follow.configureAuditPersistence({ filePath });
+
+  follow.startFollow("persist-1", 1, "Host");
+  follow.joinFollow("persist-1", 2, "Viewer");
+  follow.stopFollow("persist-1", 1);
+  const before = follow.getAudit("persist-1");
+  assert.ok(before.length >= 3);
+  assert.ok(before.some((e) => e.type === "follow_started"));
+  assert.ok(before.some((e) => e.type === "follow_stopped"));
+
+  follow.flushAuditPersist();
+
+  // Simulate process restart: clear memory, keep disk.
+  follow.__resetForTests();
+  follow.configureAuditPersistence({ filePath });
+  const after = follow.getAudit("persist-1");
+  assert.ok(after.length >= 3);
+  assert.ok(after.some((e) => e.type === "peer_joined"));
+
+  fs.rmSync(dir, { recursive: true, force: true });
 });

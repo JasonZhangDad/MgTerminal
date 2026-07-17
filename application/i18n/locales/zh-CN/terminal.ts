@@ -73,6 +73,8 @@ export const zhCNTerminalMessages: Messages = {
   'terminal.follow.audit.loading': '加载中…',
   'terminal.follow.audit.empty': '暂无审计事件',
   'terminal.follow.audit.loadFailed': '无法加载审计日志',
+  'terminal.follow.audit.persistedHint':
+    '历史记录保存在本机，并按会话 ID 在应用重启后保留。',
   'terminal.follow.audit.copyText': '复制文本',
   'terminal.follow.audit.copyNdjson': '复制 NDJSON',
   'terminal.follow.audit.copied': '已复制审计日志',

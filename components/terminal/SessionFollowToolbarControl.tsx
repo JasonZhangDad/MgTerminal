@@ -366,83 +366,88 @@ export const SessionFollowToolbarControl: React.FC<SessionFollowToolbarControlPr
                   {t("terminal.follow.revoke")}
                 </Button>
               )}
-              <Button
-                size="sm"
-                variant="outline"
-                className="w-full h-8 text-xs"
-                disabled={busy || auditLoading}
-                onClick={() => handleToggleAudit()}
-              >
-                <ClipboardList size={12} className="mr-1" />
-                {auditOpen ? t("terminal.follow.audit.hide") : t("terminal.follow.audit.show")}
-              </Button>
-              {auditOpen && (
-                <div className="rounded-md border border-border/50 p-2 space-y-1.5">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="text-[11px] font-medium">
-                      {t("terminal.follow.audit.title")}
-                      <span className="ml-1 text-muted-foreground font-normal">
-                        ({auditEvents.length})
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      className="text-[10px] text-muted-foreground hover:text-foreground"
-                      onClick={() => void refreshAudit()}
-                      disabled={auditLoading}
-                    >
-                      {t("terminal.follow.audit.refresh")}
-                    </button>
-                  </div>
-                  {auditEvents.length === 0 ? (
-                    <div className="text-[11px] text-muted-foreground py-2 text-center">
-                      {auditLoading
-                        ? t("terminal.follow.audit.loading")
-                        : t("terminal.follow.audit.empty")}
-                    </div>
-                  ) : (
-                    <ul className="max-h-36 overflow-y-auto space-y-1 pr-0.5">
-                      {[...auditEvents].reverse().map((event, index) => (
-                        <li
-                          key={`${event.ts}-${event.type}-${index}`}
-                          className="text-[10px] leading-snug text-muted-foreground font-mono break-words"
-                        >
-                          {formatFollowAuditLine(event, {
-                            nameByPeerId: peerNameById,
-                            typeLabels: auditTypeLabels,
-                          })}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                  <div className="grid grid-cols-2 gap-1.5">
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      className="h-7 text-[10px]"
-                      disabled={auditEvents.length === 0}
-                      onClick={() => void handleCopyAuditText()}
-                    >
-                      <Copy size={10} className="mr-1" />
-                      {t("terminal.follow.audit.copyText")}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      className="h-7 text-[10px]"
-                      disabled={auditEvents.length === 0}
-                      onClick={() => void handleCopyAuditNdjson()}
-                    >
-                      <Copy size={10} className="mr-1" />
-                      {t("terminal.follow.audit.copyNdjson")}
-                    </Button>
-                  </div>
-                </div>
-              )}
               <Button size="sm" variant="ghost" className="w-full h-8 text-xs text-destructive" disabled={busy} onClick={() => void handleStop()}>
                 {t("terminal.follow.stop")}
               </Button>
             </>
+          )}
+
+          {/* Audit is available even when follow is stopped — history is disk-backed. */}
+          <Button
+            size="sm"
+            variant="outline"
+            className="w-full h-8 text-xs"
+            disabled={busy || auditLoading}
+            onClick={() => handleToggleAudit()}
+          >
+            <ClipboardList size={12} className="mr-1" />
+            {auditOpen ? t("terminal.follow.audit.hide") : t("terminal.follow.audit.show")}
+          </Button>
+          {auditOpen && (
+            <div className="rounded-md border border-border/50 p-2 space-y-1.5">
+              <div className="flex items-center justify-between gap-2">
+                <div className="text-[11px] font-medium">
+                  {t("terminal.follow.audit.title")}
+                  <span className="ml-1 text-muted-foreground font-normal">
+                    ({auditEvents.length})
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  className="text-[10px] text-muted-foreground hover:text-foreground"
+                  onClick={() => void refreshAudit()}
+                  disabled={auditLoading}
+                >
+                  {t("terminal.follow.audit.refresh")}
+                </button>
+              </div>
+              <p className="text-[10px] text-muted-foreground leading-snug">
+                {t("terminal.follow.audit.persistedHint")}
+              </p>
+              {auditEvents.length === 0 ? (
+                <div className="text-[11px] text-muted-foreground py-2 text-center">
+                  {auditLoading
+                    ? t("terminal.follow.audit.loading")
+                    : t("terminal.follow.audit.empty")}
+                </div>
+              ) : (
+                <ul className="max-h-36 overflow-y-auto space-y-1 pr-0.5">
+                  {[...auditEvents].reverse().map((event, index) => (
+                    <li
+                      key={`${event.ts}-${event.type}-${index}`}
+                      className="text-[10px] leading-snug text-muted-foreground font-mono break-words"
+                    >
+                      {formatFollowAuditLine(event, {
+                        nameByPeerId: peerNameById,
+                        typeLabels: auditTypeLabels,
+                      })}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <div className="grid grid-cols-2 gap-1.5">
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="h-7 text-[10px]"
+                  disabled={auditEvents.length === 0}
+                  onClick={() => void handleCopyAuditText()}
+                >
+                  <Copy size={10} className="mr-1" />
+                  {t("terminal.follow.audit.copyText")}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="h-7 text-[10px]"
+                  disabled={auditEvents.length === 0}
+                  onClick={() => void handleCopyAuditNdjson()}
+                >
+                  <Copy size={10} className="mr-1" />
+                  {t("terminal.follow.audit.copyNdjson")}
+                </Button>
+              </div>
+            </div>
           )}
 
           <div className="border-t border-border/40 pt-2 space-y-1.5">
