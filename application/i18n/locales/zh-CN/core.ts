@@ -696,6 +696,8 @@ export const zhCNCoreMessages: Messages = {
   'vault.hosts.empty.desc': '保存主机以快速连接到你的服务器、虚拟机和容器。',
   'deepLink.ssh.invalid': '无效的 ssh:// 链接',
   'deepLink.ssh.confirm': '是否连接来自外部 ssh:// 链接的 {target}？',
+  'deepLink.telnet.confirm': '是否连接来自外部 telnet:// 链接的 {target}？',
+  'deepLink.jms.confirm': '是否连接来自外部 jms:// 链接的 {target}？',
   'deepLink.telnet.invalid': '无效的 telnet:// 链接',
   'deepLink.jms.invalid': '无效的 JumpServer 链接',
   'deepLink.jms.unsupported': '不支持的 JumpServer 协议：{{protocol}}',

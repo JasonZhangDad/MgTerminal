@@ -14,7 +14,7 @@ interface UseSftpConnectionsParams {
   identities: Identity[];
   knownHosts?: KnownHost[];
   onAddKnownHost?: (knownHost: KnownHost) => void;
-  terminalSettings?: { keepaliveInterval: number; keepaliveCountMax: number };
+  terminalSettings?: { verifyHostKeys?: boolean; keepaliveInterval: number; keepaliveCountMax: number };
   leftTabsRef: MutableRefObject<{ tabs: SftpPane[]; activeTabId: string | null }>;
   rightTabsRef: MutableRefObject<{ tabs: SftpPane[]; activeTabId: string | null }>;
   leftTabs: { tabs: SftpPane[] };

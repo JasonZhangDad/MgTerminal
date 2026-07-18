@@ -94,15 +94,18 @@ function ensureDataTap() {
 }
 
 function parseRelayEndpoint(relayUrlOrHost, relayPort) {
-  // Accept "host:port", "ws://host:port", "wss://host:port", or host + port.
+  // TCP NDJSON only. Reject ws:// and wss:// — those never negotiated TLS or
+  // WebSocket here, and treating them as plain TCP was a security footgun.
   if (typeof relayUrlOrHost === "string" && /:\/\//.test(relayUrlOrHost)) {
-    try {
-      const u = new URL(relayUrlOrHost.replace(/^wss:/i, "https:").replace(/^ws:/i, "http:"));
-      const port = Number(u.port) || (u.protocol === "https:" ? 443 : 80);
-      return { host: u.hostname, port };
-    } catch {
-      return null;
-    }
+    return null;
+  }
+  // "host:port" form
+  if (typeof relayUrlOrHost === "string" && relayUrlOrHost.includes(":") && (relayPort == null || relayPort === "")) {
+    const idx = relayUrlOrHost.lastIndexOf(":");
+    const hostPart = relayUrlOrHost.slice(0, idx).trim();
+    const portPart = Math.trunc(Number(relayUrlOrHost.slice(idx + 1)));
+    if (!hostPart || !Number.isFinite(portPart) || portPart < 1 || portPart > 65535) return null;
+    return { host: hostPart, port: portPart };
   }
   const host = String(relayUrlOrHost || "").trim();
   const port = Math.trunc(Number(relayPort));

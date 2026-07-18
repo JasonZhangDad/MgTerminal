@@ -13,15 +13,14 @@ import {
   encodeFollowInviteShareString,
 } from "./sessionFollowInvite";
 
-test("parseRelayEndpoint accepts host:port and ws urls", () => {
+test("parseRelayEndpoint accepts host:port and rejects URL schemes", () => {
   assert.deepEqual(parseRelayEndpoint("relay.example.com:7788"), {
     host: "relay.example.com",
     port: 7788,
   });
-  assert.deepEqual(parseRelayEndpoint("wss://relay.example.com:443/follow"), {
-    host: "relay.example.com",
-    port: 443,
-  });
+  // Former wss:// rewrite falsely implied TLS — reject URL schemes outright.
+  assert.equal(parseRelayEndpoint("wss://relay.example.com:443/follow"), null);
+  assert.equal(parseRelayEndpoint("ws://relay.example.com:7788"), null);
   assert.equal(parseRelayEndpoint("https://evil.example"), null);
 });
 

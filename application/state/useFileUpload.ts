@@ -12,6 +12,11 @@ export type { UploadedFile } from '../../infrastructure/ai/types';
 /** Reject only known binary blobs that AI models can't process */
 const REJECTED_MIME_PREFIXES = ['video/', 'audio/'];
 
+/** Hard caps to keep chat history / localStorage from blowing up (audit M6). */
+export const AI_ATTACHMENT_MAX_FILES = 8;
+export const AI_ATTACHMENT_MAX_BYTES = 8 * 1024 * 1024; // 8 MiB per file
+export const AI_ATTACHMENT_MAX_TOTAL_BYTES = 24 * 1024 * 1024; // 24 MiB per batch
+
 /**
  * Infer MIME type from file extension when the browser/Electron doesn't
  * provide one (common for .yaml, .sh, .toml, and other code/text files).
@@ -117,11 +122,21 @@ async function fileToDataUrl(file: File): Promise<{ dataUrl: string; base64: str
 }
 
 export async function convertFilesToUploads(inputFiles: File[]): Promise<UploadedFile[]> {
-  const supported = inputFiles.filter(isSupportedFile);
+  const supported = inputFiles.filter(isSupportedFile).slice(0, AI_ATTACHMENT_MAX_FILES);
   if (supported.length === 0) return [];
 
+  let remainingTotal = AI_ATTACHMENT_MAX_TOTAL_BYTES;
+  const accepted: File[] = [];
+  for (const file of supported) {
+    if (file.size > AI_ATTACHMENT_MAX_BYTES) continue;
+    if (file.size > remainingTotal) continue;
+    remainingTotal -= file.size;
+    accepted.push(file);
+  }
+  if (accepted.length === 0) return [];
+
   const uploads: Array<UploadedFile | null> = await Promise.all(
-    supported.map(async (file) => {
+    accepted.map(async (file) => {
       const id = crypto.randomUUID();
       const filename = file.name || `file-${Date.now()}`;
       const mediaType = inferMediaType(filename, file.type);

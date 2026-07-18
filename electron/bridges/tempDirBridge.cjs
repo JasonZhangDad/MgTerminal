@@ -20,32 +20,73 @@ let tempFileCounter = 0;
  * Get the MagiesTerminal temp directory path
  * Creates the directory if it doesn't exist
  */
-function getTempDir() {
-  if (cachedTempDir) {
-    // Verify it still exists
-    try {
-      if (fs.existsSync(cachedTempDir)) {
-        return cachedTempDir;
-      }
-    } catch {
-      // Directory was deleted, recreate it
+/**
+ * Ensure path is a real directory we own (not a symlink planted by another user).
+ * Returns true when safe to use.
+ */
+function isSafeOwnedDir(dirPath) {
+  try {
+    const st = fs.lstatSync(dirPath);
+    if (!st.isDirectory() || st.isSymbolicLink()) return false;
+    // On POSIX, require mode bits and ownership by the current uid when available.
+    if (process.platform !== "win32" && typeof process.getuid === "function") {
+      if (st.uid !== process.getuid()) return false;
     }
+    return true;
+  } catch {
+    return false;
   }
-  
+}
+
+function getTempDir() {
+  if (cachedTempDir && isSafeOwnedDir(cachedTempDir)) {
+    return cachedTempDir;
+  }
+  cachedTempDir = null;
+
   const systemTempDir = os.tmpdir();
   const magiesTerminalTempDir = path.join(systemTempDir, MAGIES_TERMINAL_TEMP_DIR_NAME);
-  
+
   try {
-    if (!fs.existsSync(magiesTerminalTempDir)) {
-      fs.mkdirSync(magiesTerminalTempDir, { recursive: true });
-      console.log(`[TempDir] Created MagiesTerminal temp directory: ${magiesTerminalTempDir}`);
+    if (fs.existsSync(magiesTerminalTempDir)) {
+      if (!isSafeOwnedDir(magiesTerminalTempDir)) {
+        // Hostile or unexpected entry — recreate under a unique suffix.
+        const unique = path.join(
+          systemTempDir,
+          `${MAGIES_TERMINAL_TEMP_DIR_NAME}-${process.pid}-${Date.now()}`,
+        );
+        fs.mkdirSync(unique, { recursive: true, mode: 0o700 });
+        try { fs.chmodSync(unique, 0o700); } catch { /* best-effort */ }
+        cachedTempDir = unique;
+        console.warn(`[TempDir] Unsafe temp path replaced: ${magiesTerminalTempDir} → ${unique}`);
+        return unique;
+      }
+      try { fs.chmodSync(magiesTerminalTempDir, 0o700); } catch { /* best-effort */ }
+      cachedTempDir = magiesTerminalTempDir;
+      return magiesTerminalTempDir;
     }
+    fs.mkdirSync(magiesTerminalTempDir, { recursive: true, mode: 0o700 });
+    try { fs.chmodSync(magiesTerminalTempDir, 0o700); } catch { /* best-effort */ }
+    console.log(`[TempDir] Created MagiesTerminal temp directory: ${magiesTerminalTempDir}`);
     cachedTempDir = magiesTerminalTempDir;
     return magiesTerminalTempDir;
   } catch (err) {
     console.error(`[TempDir] Failed to create temp directory:`, err.message);
-    // Fallback to system temp dir
-    return systemTempDir;
+    // Never fall back to the shared system temp root (symlink/cleanup risk).
+    // Use a unique subdirectory under tmpdir instead.
+    const fallback = path.join(
+      systemTempDir,
+      `${MAGIES_TERMINAL_TEMP_DIR_NAME}-fallback-${process.pid}`,
+    );
+    try {
+      fs.mkdirSync(fallback, { recursive: true, mode: 0o700 });
+      try { fs.chmodSync(fallback, 0o700); } catch { /* best-effort */ }
+      cachedTempDir = fallback;
+      return fallback;
+    } catch (fallbackErr) {
+      console.error(`[TempDir] Fallback temp dir failed:`, fallbackErr.message);
+      throw fallbackErr;
+    }
   }
 }
 
@@ -105,31 +146,38 @@ async function clearTempDir() {
   const tempDir = getTempDir();
   let deletedCount = 0;
   let failedCount = 0;
-  
+
+  // Refuse to clear if the path is no longer a safe owned directory (symlink swap).
+  if (!isSafeOwnedDir(tempDir)) {
+    return { deletedCount: 0, failedCount: 0, error: "temp_dir_unsafe" };
+  }
+
   try {
     const files = await fs.promises.readdir(tempDir);
-    
+
     for (const file of files) {
       try {
         const filePath = path.join(tempDir, file);
-        const stat = await fs.promises.stat(filePath);
-        
+        // lstat: never follow symlinks when deciding what to delete.
+        const stat = await fs.promises.lstat(filePath);
+        if (stat.isSymbolicLink()) {
+          await fs.promises.unlink(filePath);
+          deletedCount++;
+          continue;
+        }
         if (stat.isFile()) {
           await fs.promises.unlink(filePath);
           deletedCount++;
-          console.log(`[TempDir] Deleted: ${file}`);
         } else if (stat.isDirectory()) {
-          // Recursively delete subdirectories
           await fs.promises.rm(filePath, { recursive: true, force: true });
           deletedCount++;
-          console.log(`[TempDir] Deleted directory: ${file}`);
         }
       } catch (err) {
         failedCount++;
         console.log(`[TempDir] Could not delete ${file}: ${err.message}`);
       }
     }
-    
+
     console.log(`[TempDir] Cleanup complete: ${deletedCount} deleted, ${failedCount} failed`);
     return { deletedCount, failedCount };
   } catch (err) {

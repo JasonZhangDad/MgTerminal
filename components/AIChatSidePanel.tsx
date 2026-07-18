@@ -994,8 +994,8 @@ const AIChatSidePanelActive: React.FC<AIChatSidePanelProps> = ({
       previewText: file.previewText,
       lineCount: file.lineCount,
     }));
-    const hasTerminalSelectionAttachments = attachments.some(isTerminalSelectionAttachment);
-    if ((!trimmed && !hasTerminalSelectionAttachments) || isStreaming) return;
+    // File/image attachments alone are valid content (not only terminal-selection).
+    if ((!trimmed && attachments.length === 0) || isStreaming) return;
     const sendAgentId = currentSessionView?.agentId ?? draft?.agentId ?? currentAgentId;
     const agentConfig = sendAgentId !== 'magiesTerminal' ? findEnabledExternalAgent(externalAgents, sendAgentId) : undefined;
     if (sendAgentId !== 'magiesTerminal' && !agentConfig) return;

@@ -11,6 +11,7 @@ const os = require("node:os");
 const crypto = require("node:crypto");
 const follow = require("./sessionFollowManager.cjs");
 const { addTerminalDataTap } = require("./emitTerminalSessionData.cjs");
+const { openFollowFrame, sealFollowFrame, writeSealed } = require("./sessionFollowCrypto.cjs");
 
 const invites = new Map(); // sessionId -> invite runtime
 const remoteSockets = new Map(); // peerId -> { socket, sessionId }
@@ -98,7 +99,8 @@ function decodeShare(value) {
   }
 }
 
-function sendJson(socket, obj) {
+/** Cleartext only for pre-auth errors (no token established on the socket yet). */
+function sendClearJson(socket, obj) {
   if (!socket || socket.destroyed) return;
   try {
     socket.write(`${JSON.stringify(obj)}\n`);
@@ -107,13 +109,21 @@ function sendJson(socket, obj) {
   }
 }
 
+function sendJson(socket, obj, token) {
+  if (!token) {
+    sendClearJson(socket, obj);
+    return;
+  }
+  writeSealed(socket, obj, token);
+}
+
 function ensureDataTap() {
   if (dataTapInstalled) return;
   dataTapInstalled = true;
   addDataTap((sessionId, data) => {
     const invite = invites.get(sessionId);
     if (!invite || !invite.peerIds.size) return;
-    const msg = `${JSON.stringify({ type: "data", data })}\n`;
+    const msg = `${sealFollowFrame({ type: "data", data }, invite.token)}\n`;
     for (const peerId of [...invite.peerIds]) {
       const entry = remoteSockets.get(peerId);
       if (!entry?.socket || entry.socket.destroyed) continue;
@@ -139,7 +149,7 @@ function broadcastState(sessionId) {
   const state = follow.getState(sessionId);
   for (const peerId of invite.peerIds) {
     const entry = remoteSockets.get(peerId);
-    if (entry?.socket) sendJson(entry.socket, { type: "state", state });
+    if (entry?.socket) sendJson(entry.socket, { type: "state", state }, invite.token);
   }
 }
 
@@ -157,20 +167,20 @@ function detachPeer(peerId) {
   }
 }
 
-function handleClientMessage(sessionId, peerId, msg, socket) {
+function handleClientMessage(sessionId, peerId, msg, socket, token) {
   if (!msg || typeof msg !== "object") return;
 
   if (msg.type === "input" && typeof msg.data === "string") {
     const gate = follow.shouldBlockWriteByPeerId(sessionId, peerId);
     if (gate.blocked) {
-      sendJson(socket, { type: "inputDenied", reason: gate.reason || "not_controller" });
+      sendJson(socket, { type: "inputDenied", reason: gate.reason || "not_controller" }, token);
       return;
     }
     if (typeof writeToSessionNow === "function") {
       try {
         writeToSessionNow({ sessionId, automated: false }, msg.data);
       } catch (err) {
-        sendJson(socket, { type: "error", error: err?.message || "write_failed" });
+        sendJson(socket, { type: "error", error: err?.message || "write_failed" }, token);
       }
     }
     return;
@@ -178,13 +188,13 @@ function handleClientMessage(sessionId, peerId, msg, socket) {
 
   if (msg.type === "requestControl") {
     const result = follow.requestControlByPeerId(sessionId, peerId);
-    sendJson(socket, { type: "state", state: result.state || follow.getState(sessionId) });
+    sendJson(socket, { type: "state", state: result.state || follow.getState(sessionId) }, token);
     broadcastState(sessionId);
     return;
   }
 
   if (msg.type === "ping") {
-    sendJson(socket, { type: "pong", ts: Date.now() });
+    sendJson(socket, { type: "pong", ts: Date.now() }, token);
   }
 }
 
@@ -198,7 +208,7 @@ function attachClient(socket, invite) {
   const authTimer = setTimeout(() => {
     if (!authed) {
       try {
-        sendJson(socket, { type: "error", error: "auth_timeout" });
+        sendClearJson(socket, { type: "error", error: "auth_timeout" });
       } catch {
         // ignore
       }
@@ -214,7 +224,7 @@ function attachClient(socket, invite) {
     // Cap the un-delimited buffer. A peer that never sends a newline (before or
     // after auth) cannot grow host memory past one frame.
     if (buffer.length > limits.maxLineBytes && buffer.indexOf("\n") < 0) {
-      sendJson(socket, { type: "error", error: "frame_too_large" });
+      sendClearJson(socket, { type: "error", error: "frame_too_large" });
       socket.destroy();
       return;
     }
@@ -223,27 +233,31 @@ function attachClient(socket, invite) {
       const line = buffer.slice(0, idx).trim();
       buffer = buffer.slice(idx + 1);
       if (!line) continue;
-      let msg;
-      try {
-        msg = JSON.parse(line);
-      } catch {
-        sendJson(socket, { type: "error", error: "bad_json" });
+      // Frames are AES-GCM sealed with the invite token (E2E on the LAN path).
+      const opened = openFollowFrame(line, invite.token);
+      if (!opened.ok) {
+        sendClearJson(socket, { type: "error", error: opened.error || "bad_frame" });
+        if (!authed) {
+          socket.destroy();
+          return;
+        }
         continue;
       }
+      const msg = opened.msg;
 
       if (!authed) {
         if (msg.type !== "hello" || msg.token !== invite.token) {
-          sendJson(socket, { type: "error", error: "unauthorized" });
+          sendClearJson(socket, { type: "error", error: "unauthorized" });
           socket.destroy();
           return;
         }
         if (isExpired(invite.expiresAt)) {
-          sendJson(socket, { type: "error", error: "expired" });
+          sendClearJson(socket, { type: "error", error: "expired" });
           socket.destroy();
           return;
         }
         if (invite.peerIds.size >= limits.maxPeers) {
-          sendJson(socket, { type: "error", error: "too_many_peers" });
+          sendClearJson(socket, { type: "error", error: "too_many_peers" });
           socket.destroy();
           return;
         }
@@ -255,7 +269,7 @@ function attachClient(socket, invite) {
           typeof msg.displayName === "string" ? msg.displayName : "LAN viewer",
         );
         if (!joined.success) {
-          sendJson(socket, { type: "error", error: joined.error || "join_failed" });
+          sendClearJson(socket, { type: "error", error: joined.error || "join_failed" });
           socket.destroy();
           return;
         }
@@ -268,12 +282,12 @@ function attachClient(socket, invite) {
           sessionId: invite.sessionId,
           hostLabel: invite.hostLabel,
           state: joined.state,
-        });
+        }, invite.token);
         broadcastState(invite.sessionId);
         continue;
       }
 
-      handleClientMessage(invite.sessionId, peerId, msg, socket);
+      handleClientMessage(invite.sessionId, peerId, msg, socket, invite.token);
     }
   });
 
@@ -455,7 +469,7 @@ function connectAsViewer({ shareString, displayName, webContentsId, electronModu
         type: "hello",
         token: payload.token,
         displayName: displayName || "LAN viewer",
-      });
+      }, payload.token);
     });
 
     let buffer = "";
@@ -466,6 +480,7 @@ function connectAsViewer({ shareString, displayName, webContentsId, electronModu
       sessionId: payload.sessionId,
       peerId: null,
       hostLabel: payload.hostLabel,
+      token: payload.token,
     };
     outboundClients.set(clientId, entry);
 
@@ -491,11 +506,17 @@ function connectAsViewer({ shareString, displayName, webContentsId, electronModu
         const line = buffer.slice(0, idx);
         buffer = buffer.slice(idx + 1);
         if (!line.trim()) continue;
+        const opened = openFollowFrame(line.trim(), payload.token);
+        // Pre-auth errors may arrive cleartext.
         let msg;
-        try {
-          msg = JSON.parse(line);
-        } catch {
-          continue;
+        if (opened.ok) {
+          msg = opened.msg;
+        } else {
+          try {
+            msg = JSON.parse(line);
+          } catch {
+            continue;
+          }
         }
         if (msg.type === "error") {
           fail(msg.error || "remote_error");
@@ -546,14 +567,14 @@ function connectAsViewer({ shareString, displayName, webContentsId, electronModu
 function sendViewerInput(clientId, data) {
   const entry = outboundClients.get(clientId);
   if (!entry?.socket || entry.socket.destroyed) return { success: false, error: "not_connected" };
-  sendJson(entry.socket, { type: "input", data: String(data ?? "") });
+  sendJson(entry.socket, { type: "input", data: String(data ?? "") }, entry.token);
   return { success: true };
 }
 
 function sendViewerRequestControl(clientId) {
   const entry = outboundClients.get(clientId);
   if (!entry?.socket || entry.socket.destroyed) return { success: false, error: "not_connected" };
-  sendJson(entry.socket, { type: "requestControl" });
+  sendJson(entry.socket, { type: "requestControl" }, entry.token);
   return { success: true };
 }
 

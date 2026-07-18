@@ -5,6 +5,17 @@ const assert = require("node:assert/strict");
 const net = require("node:net");
 const follow = require("./sessionFollowManager.cjs");
 const lan = require("./sessionFollowLan.cjs");
+const { sealFollowFrame, openFollowFrame } = require("./sessionFollowCrypto.cjs");
+
+function writeSealed(socket, obj, token) {
+  socket.write(`${sealFollowFrame(obj, token)}\n`);
+}
+
+function parseFollowLine(line, token) {
+  const opened = openFollowFrame(line.trim(), token);
+  if (opened.ok) return opened.msg;
+  return JSON.parse(line);
+}
 
 test("encode/decode share string", () => {
   const payload = {
@@ -56,7 +67,7 @@ test("LAN invite accepts hello and relays granted input", async () => {
       }
     }, 20);
     const socket = net.connect({ host: "127.0.0.1", port }, () => {
-      socket.write(`${JSON.stringify({ type: "hello", token, displayName: "Peer" })}\n`);
+      writeSealed(socket, { type: "hello", token, displayName: "Peer" }, token);
     });
     let buf = "";
     socket.setEncoding("utf8");
@@ -68,14 +79,14 @@ test("LAN invite accepts hello and relays granted input", async () => {
         buf = buf.slice(idx + 1);
         let msg;
         try {
-          msg = JSON.parse(line);
+          msg = parseFollowLine(line, token);
         } catch {
           continue;
         }
         if (msg.type === "welcome") {
           const grant = follow.grantControl("sess-lan", 101, msg.peerId);
           assert.equal(grant.success, true);
-          socket.write(`${JSON.stringify({ type: "input", data: "hello-lan" })}\n`);
+          writeSealed(socket, { type: "input", data: "hello-lan" }, token);
         }
       }
     });
@@ -98,7 +109,7 @@ function connectRaw(port) {
   });
 }
 
-function nextMessage(socket) {
+function nextMessage(socket, token) {
   return new Promise((resolve, reject) => {
     let buf = "";
     const timer = setTimeout(() => reject(new Error("no message")), 3000);
@@ -110,7 +121,7 @@ function nextMessage(socket) {
         clearTimeout(timer);
         socket.removeListener("data", onData);
         try {
-          resolve(JSON.parse(buf.slice(0, idx)));
+          resolve(parseFollowLine(buf.slice(0, idx), token));
         } catch (err) {
           reject(err);
         }
@@ -173,14 +184,14 @@ test("connections beyond the peer limit are refused", async () => {
     // First peer authenticates and takes the only slot.
     const first = await connectRaw(invite.port);
     sockets.push(first);
-    first.write(`${JSON.stringify({ type: "hello", token: invite.token, displayName: "A" })}\n`);
-    const welcome = await nextMessage(first);
+    writeSealed(first, { type: "hello", token: invite.token, displayName: "A" }, invite.token);
+    const welcome = await nextMessage(first, invite.token);
     assert.equal(welcome.type, "welcome");
 
     const second = await connectRaw(invite.port);
     sockets.push(second);
-    second.write(`${JSON.stringify({ type: "hello", token: invite.token, displayName: "B" })}\n`);
-    const rejected = await nextMessage(second);
+    writeSealed(second, { type: "hello", token: invite.token, displayName: "B" }, invite.token);
+    const rejected = await nextMessage(second, invite.token);
     assert.equal(rejected.error, "too_many_peers");
   } finally {
     for (const s of sockets) s.destroy();

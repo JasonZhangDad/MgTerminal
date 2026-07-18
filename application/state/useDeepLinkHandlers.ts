@@ -116,6 +116,9 @@ export function useDeepLinkHandlers({
       ignoreTargetUsername: Boolean(target.password),
     });
 
+    const targetLabel = `${target.username ? `${target.username}@` : ""}${target.hostname}${target.port ? `:${target.port}` : ""}`;
+    if (!globalThis.confirm(t("deepLink.telnet.confirm", { target: targetLabel }))) return;
+
     if (matchedEffectiveHost) {
       if (target.password) {
         const ephemeralHost = buildTelnetDeepLinkEphemeralHostFromSaved(matchedEffectiveHost, target, {
@@ -158,6 +161,8 @@ export function useDeepLinkHandlers({
       toast.warning(t('deepLink.jms.unsupported', { protocol: target.protocol }));
       return;
     }
+    const targetLabel = `${target.username ? `${target.username}@` : ""}${target.hostname}${target.port ? `:${target.port}` : ""}`;
+    if (!globalThis.confirm(t("deepLink.jms.confirm", { target: targetLabel }))) return;
     const ephemeralHost = buildJmsDeepLinkEphemeralHost(target, {
       id: crypto.randomUUID(),
       now: Date.now(),

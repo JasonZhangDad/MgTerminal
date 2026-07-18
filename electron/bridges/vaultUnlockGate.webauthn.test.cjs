@@ -10,8 +10,8 @@ test("webauthn register + assertion unlocks the vault gate", () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "vault-wa-"));
   const gate = createVaultUnlockGate({ userDataPath: dir });
   assert.equal(gate.configure({ pin: "1234" }).success, true);
-  gate.lock();
-  assert.equal(gate.status().locked, true);
+  // Registration requires an unlocked session (cannot enroll while locked).
+  assert.equal(gate.status().locked, false);
 
   const { privateKey, publicKey } = crypto.generateKeyPairSync("ec", {
     namedCurve: "P-256",
@@ -30,6 +30,19 @@ test("webauthn register + assertion unlocks the vault gate", () => {
   assert.equal(done.success, true);
   gate.lock();
   assert.equal(gate.status().hasWebAuthn, true);
+  // Locked enrollment is refused.
+  const lockedReg = gate.beginWebAuthnChallenge("register");
+  assert.equal(lockedReg.success, true);
+  const lockedDone = gate.completeWebAuthnRegistration({
+    challengeId: lockedReg.challengeId,
+    challenge: lockedReg.challenge,
+    credentialId: "evil",
+    publicKeySpki: spki.toString("base64url"),
+    rpId: "localhost",
+    algorithm: -7,
+  });
+  assert.equal(lockedDone.success, false);
+  assert.equal(lockedDone.error, "unlock_required");
 
   const ch = gate.beginWebAuthnChallenge("assert");
   const clientData = Buffer.from(

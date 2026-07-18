@@ -152,3 +152,45 @@ test("disable clears config and unlocks", () => {
     fs.rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test("locked gate refuses disable and PIN reconfigure without currentPin", () => {
+  const dir = tmpUserData();
+  try {
+    createVaultUnlockGate({ userDataPath: dir }).configure({ pin: "1111" });
+    const gate = createVaultUnlockGate({ userDataPath: dir });
+    assert.equal(gate.isLocked(), true);
+
+    const denied = gate.configure({ disable: true });
+    assert.equal(denied.success, false);
+    assert.equal(denied.error, "unlock_required");
+    assert.equal(gate.isLocked(), true);
+
+    const wrong = gate.configure({ disable: true, currentPin: "0000" });
+    assert.equal(wrong.success, false);
+    assert.equal(wrong.error, "pin_incorrect");
+
+    const ok = gate.configure({ disable: true, currentPin: "1111" });
+    assert.equal(ok.success, true);
+    assert.equal(ok.status.enabled, false);
+    assert.equal(gate.isLocked(), false);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("PIN unlock is rate-limited after repeated failures", () => {
+  const dir = tmpUserData();
+  try {
+    createVaultUnlockGate({ userDataPath: dir }).configure({ pin: "9999" });
+    const gate = createVaultUnlockGate({ userDataPath: dir });
+    for (let i = 0; i < 5; i += 1) {
+      assert.equal(gate.unlockWithPin("0000").success, false);
+    }
+    const limited = gate.unlockWithPin("9999");
+    assert.equal(limited.success, false);
+    assert.equal(limited.error, "pin_rate_limited");
+    assert.equal(typeof limited.retryAfterMs, "number");
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});

@@ -146,28 +146,16 @@ export function decodeAnyFollowInviteShareString(value: string):
   return { ok: false, error: "version" };
 }
 
-/** Parse host:port, ws(s)://host:port, or bare host (port required separately). */
+/** Parse host:port or bare host (port required separately). No ws/wss — TCP only. */
 export function parseRelayEndpoint(
   value: string,
   fallbackPort?: number,
 ): { host: string; port: number } | null {
   const trimmed = String(value || "").trim();
   if (!trimmed) return null;
+  // Reject URL schemes (including former wss:// pretence of TLS).
   if (/:\/\//.test(trimmed)) {
-    // Only ws/wss forms are accepted as URL endpoints (TCP relay is host:port).
-    if (!/^wss?:\/\//i.test(trimmed)) return null;
-    try {
-      const normalized = trimmed.replace(/^wss:/i, "https:").replace(/^ws:/i, "http:");
-      const u = new URL(normalized);
-      // Browser/Node URL hides default ports (443/80) as empty string.
-      const port = u.port
-        ? Number(u.port)
-        : (fallbackPort ?? (u.protocol === "https:" ? 443 : 80));
-      if (!u.hostname || !Number.isFinite(port) || port < 1) return null;
-      return { host: u.hostname, port };
-    } catch {
-      return null;
-    }
+    return null;
   }
   const hostPort = /^(\[[^\]]+\]|[^:]+):(\d+)$/.exec(trimmed);
   if (hostPort) {

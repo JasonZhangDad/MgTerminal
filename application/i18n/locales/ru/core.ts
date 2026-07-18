@@ -835,6 +835,8 @@ export const ruCoreMessages: Messages = {
   'vault.hosts.header.live': 'Активных: {count}',
   'deepLink.ssh.invalid': 'Недопустимая ссылка ssh://',
   'deepLink.ssh.confirm': 'Подключиться к {target} из внешней ссылки ssh://?',
+  'deepLink.telnet.confirm': 'Подключиться к {target} из внешней ссылки telnet://?',
+  'deepLink.jms.confirm': 'Подключиться к {target} из внешней ссылки jms://?',
   'deepLink.telnet.invalid': 'Недопустимая ссылка telnet://',
   'deepLink.jms.invalid': 'Недопустимая ссылка JumpServer',
   'deepLink.jms.unsupported': 'Неподдерживаемый протокол JumpServer: {{protocol}}',

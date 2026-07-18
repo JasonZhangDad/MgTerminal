@@ -151,6 +151,10 @@ const connectTargetProbe = (runId, buildAlgorithms) => async ({
     connectOpts.port = port;
   }
 
+  // Host-key decision is resolved before auth methods run. Never send password
+  // material to an untrusted or changed key (audit H2).
+  let hostKeyStatus = "unknown";
+  let hostKeyRejected = false;
   connectOpts.hostVerifier = (rawKey, callback) => {
     const keyInfo = hostKeyVerifier.describeHostKey(rawKey);
     const decision = hostKeyVerifier.classifyHostKey({
@@ -168,13 +172,20 @@ const connectTargetProbe = (runId, buildAlgorithms) => async ({
     })) {
       status = "trusted-system";
     }
+    hostKeyStatus = status;
     try {
       onHostKey({ status, keyType: keyInfo.keyType, fingerprint: keyInfo.fingerprint });
     } catch {
       // Reporting must not break the probe.
     }
-    // Diagnostics only observes: accept to continue probing auth. No shell is
-    // opened and no data beyond the auth exchange is sent.
+    // Only trusted keys may proceed to authentication. Unknown/changed keys
+    // fail closed so saved passwords are never offered to a MITM.
+    const trusted = status === "trusted" || status === "trusted-system";
+    if (!trusted) {
+      hostKeyRejected = true;
+      callback(false);
+      return;
+    }
     callback(true);
   };
 
@@ -198,6 +209,9 @@ const connectTargetProbe = (runId, buildAlgorithms) => async ({
     connectOpts.agent = agentSocket;
     methods.push({ type: "agent", id: "agent", label: "SSH agent" });
   }
+  // Password material is attached only after hostVerifier accepts a trusted
+  // key. We still register methods here; ssh2 invokes hostVerifier before the
+  // authHandler, so a rejected key never reaches password/kbd-int offers.
   if (hasPassword) {
     // Many PAM-backed servers only advertise keyboard-interactive for the
     // password challenge (see #969 / moshStatsConnection). Offer both.
@@ -242,6 +256,9 @@ const connectTargetProbe = (runId, buildAlgorithms) => async ({
     let methodIndex = 0;
 
     connectOpts.authHandler = (methodsLeft, partialSuccess, callback) => {
+      if (hostKeyRejected) {
+        return callback(false);
+      }
       if (methodsLeft === null && lastTried === null) {
         lastTried = "none";
         return callback("none");
@@ -259,6 +276,12 @@ const connectTargetProbe = (runId, buildAlgorithms) => async ({
         methodIndex += 1;
         const wireName = method.type === "agent" ? "publickey" : method.type;
         if (!available.includes(wireName)) continue;
+        // Never offer password or keyboard-interactive until the host key is
+        // known-good. Publickey/agent are also withheld on untrusted keys.
+        if (hostKeyStatus !== "trusted" && hostKeyStatus !== "trusted-system") {
+          hostKeyRejected = true;
+          return callback(false);
+        }
         tried.push(method.id);
         lastTried = method.id;
         try {
@@ -319,11 +342,15 @@ const connectTargetProbe = (runId, buildAlgorithms) => async ({
       untrack();
       resolve({
         ok: false,
-        error: err?.message || String(err),
+        error: hostKeyRejected
+          ? `Host key ${hostKeyStatus}; authentication aborted`
+          : (err?.message || String(err)),
         methodsTried: tried,
         needsInteractive,
         sawPartialSuccess,
         encryptedKeySkipped: keyProbe.encryptedKeySkipped,
+        hostKeyStatus,
+        hostKeyRejected,
       });
     });
     try {
@@ -338,6 +365,8 @@ const connectTargetProbe = (runId, buildAlgorithms) => async ({
         methodsTried: tried,
         needsInteractive,
         encryptedKeySkipped: keyProbe.encryptedKeySkipped,
+        hostKeyStatus,
+        hostKeyRejected,
       });
     }
   });

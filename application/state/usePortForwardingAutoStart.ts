@@ -26,7 +26,7 @@ export interface UsePortForwardingAutoStartOptions {
   proxyProfiles: ProxyProfile[];
   groupConfigs: GroupConfig[];
   knownHosts?: KnownHost[];
-  terminalSettings?: { keepaliveInterval: number; keepaliveCountMax: number };
+  terminalSettings?: { verifyHostKeys?: boolean; keepaliveInterval: number; keepaliveCountMax: number };
 }
 
 const AUTO_START_PROXY_NOT_READY_ERROR = "Proxy or jump host configuration is not ready";

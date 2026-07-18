@@ -94,10 +94,9 @@ export const buildConnectionDiagnosticsRequest = ({
         ? resolveProxyConfigAuth(jumpHost.proxyConfig, identities)
         : undefined,
       identityFilePaths: resolveIdentityFilePaths(jumpHost, jumpAuth),
-      // Diagnostics is non-interactive: an unanswerable host-key prompt on a
-      // hop would hang the probe, so hops accept and the final target's key
-      // is classified and reported instead.
-      verifyHostKeys: false,
+      // Jump hops still classify keys via knownHosts when the chain connector
+      // supports it. Prefer fail-closed over hanging on interactive prompts.
+      verifyHostKeys: true,
       legacyAlgorithms: jumpHost.legacyAlgorithms,
       skipEcdsaHostKey: jumpHost.skipEcdsaHostKey,
       algorithmOverrides: jumpHost.algorithms,
@@ -122,9 +121,8 @@ export const buildConnectionDiagnosticsRequest = ({
       : undefined,
     jumpHosts: jumpHosts.length > 0 ? jumpHosts : undefined,
     knownHosts,
-    // The diagnostics bridge classifies the target host key itself; hop
-    // verification is disabled (see jumpHosts note above).
-    verifyHostKeys: false,
+    // Probe refuses auth when the host key is unknown/changed (audit H2).
+    verifyHostKeys: true,
     legacyAlgorithms: host.legacyAlgorithms,
     skipEcdsaHostKey: host.skipEcdsaHostKey,
     algorithmOverrides: host.algorithms,

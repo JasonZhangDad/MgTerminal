@@ -23,6 +23,9 @@ const MIN_PIN_ITERATIONS = 10_000;
 const PIN_MIN_LEN = 4;
 const PIN_MAX_LEN = 12;
 const DERIVED_KEY_BYTES = 32;
+/** Sliding-window PIN rate limit (wrong attempts). */
+const PIN_MAX_FAILURES = 5;
+const PIN_LOCKOUT_MS = 30_000;
 
 function normalizeWebAuthnCredential(value) {
   if (!value || typeof value !== "object") return undefined;
@@ -106,6 +109,8 @@ function createVaultUnlockGate(options = {}) {
 
   let config = { enabled: false };
   let sessionUnlocked = false;
+  /** @type {{ failures: number, lockedUntil: number }} */
+  let pinThrottle = { failures: 0, lockedUntil: 0 };
 
   const load = () => {
     if (!configPath) return;
@@ -156,13 +161,65 @@ function createVaultUnlockGate(options = {}) {
     }
   };
 
+  const checkPinThrottle = () => {
+    if (pinThrottle.lockedUntil > Date.now()) {
+      return {
+        ok: false,
+        error: "pin_rate_limited",
+        retryAfterMs: pinThrottle.lockedUntil - Date.now(),
+      };
+    }
+    return { ok: true };
+  };
+
+  const notePinFailure = () => {
+    pinThrottle.failures += 1;
+    if (pinThrottle.failures >= PIN_MAX_FAILURES) {
+      pinThrottle.lockedUntil = Date.now() + PIN_LOCKOUT_MS;
+      pinThrottle.failures = 0;
+    }
+  };
+
+  const notePinSuccess = () => {
+    pinThrottle = { failures: 0, lockedUntil: 0 };
+  };
+
+  /**
+   * Require proof of presence when changing an already-enabled unlock config.
+   * Accepts current session unlock, or a correct current PIN (rate-limited).
+   */
+  const requireReauth = (currentPin) => {
+    if (!config.enabled) return { ok: true };
+    if (sessionUnlocked) return { ok: true };
+    if (typeof currentPin === "string" && currentPin.length > 0) {
+      const throttle = checkPinThrottle();
+      if (!throttle.ok) return throttle;
+      if (hasPin() && verifyPin(currentPin, config)) {
+        notePinSuccess();
+        sessionUnlocked = true;
+        return { ok: true };
+      }
+      notePinFailure();
+      return { ok: false, error: "pin_incorrect" };
+    }
+    return { ok: false, error: "unlock_required" };
+  };
+
   const unlockWithPin = (pin) => {
     if (!config.enabled) {
       sessionUnlocked = true;
       return { success: true };
     }
     if (!hasPin()) return { success: false, error: "pin_unavailable" };
-    if (!verifyPin(pin, config)) return { success: false, error: "pin_incorrect" };
+    const throttle = checkPinThrottle();
+    if (!throttle.ok) {
+      return { success: false, error: throttle.error, retryAfterMs: throttle.retryAfterMs };
+    }
+    if (!verifyPin(pin, config)) {
+      notePinFailure();
+      return { success: false, error: "pin_incorrect" };
+    }
+    notePinSuccess();
     sessionUnlocked = true;
     return { success: true };
   };
@@ -211,6 +268,11 @@ function createVaultUnlockGate(options = {}) {
     if (!config.enabled) {
       // Registration requires unlock feature to already be enabled (PIN path).
       return { success: false, error: "not_enabled" };
+    }
+    // Must already be unlocked this session — never enroll a new authenticator
+    // while the vault is locked (audit: renderer-only bypass).
+    if (isLocked()) {
+      return { success: false, error: "unlock_required" };
     }
     const challengeEntry = webauthnChallenges.get(payload?.challengeId);
     if (!challengeEntry || challengeEntry.purpose !== "register") {
@@ -274,8 +336,10 @@ function createVaultUnlockGate(options = {}) {
     return { success: true };
   };
 
-  const clearWebAuthn = () => {
+  const clearWebAuthn = (input) => {
     if (!config.enabled) return { success: true, status: status() };
+    const auth = requireReauth(input?.currentPin);
+    if (!auth.ok) return { success: false, error: auth.error, retryAfterMs: auth.retryAfterMs };
     const { webauthn: _drop, ...rest } = config;
     config = rest;
     persist();
@@ -288,14 +352,25 @@ function createVaultUnlockGate(options = {}) {
   };
 
   const configure = (input) => {
-    if (input?.disable === true || input?.enabled === false) {
+    // Disabling or re-setting PIN on an already-enabled gate requires proof of
+    // presence (session unlock or current PIN). First-time enable is open.
+    const isDisable = input?.disable === true || input?.enabled === false;
+    if (config.enabled) {
+      const auth = requireReauth(input?.currentPin);
+      if (!auth.ok) {
+        return { success: false, error: auth.error, retryAfterMs: auth.retryAfterMs, status: status() };
+      }
+    }
+
+    if (isDisable) {
       config = { enabled: false };
       sessionUnlocked = true;
+      notePinSuccess();
       persist();
       return { success: true, status: status() };
     }
     const valid = validatePin(input?.pin);
-    if (!valid.ok) return { success: false, error: valid.reason };
+    if (!valid.ok) return { success: false, error: valid.reason, status: status() };
     const hashed = hashPin(input.pin, undefined, DEFAULT_PIN_ITERATIONS);
     config = {
       enabled: true,
@@ -307,6 +382,7 @@ function createVaultUnlockGate(options = {}) {
     };
     // Configuring implies the user is present now.
     sessionUnlocked = true;
+    notePinSuccess();
     persist();
     return { success: true, status: status() };
   };
@@ -389,7 +465,7 @@ function registerHandlers(ipcMain, gate) {
     gate.completeWebAuthnRegistration(payload));
   ipcMain.handle("magiesTerminal:vault:unlockWithWebAuthn", (_event, payload) =>
     gate.unlockWithWebAuthn(payload));
-  ipcMain.handle("magiesTerminal:vault:clearWebAuthn", () => gate.clearWebAuthn());
+  ipcMain.handle("magiesTerminal:vault:clearWebAuthn", (_event, input) => gate.clearWebAuthn(input || {}));
   ipcMain.handle("magiesTerminal:vault:lock", () => gate.lock());
   ipcMain.handle("magiesTerminal:vault:configureUnlock", (_event, input) => gate.configure(input));
   ipcMain.handle("magiesTerminal:vault:adoptLegacyUnlockConfig", (_event, legacy) =>
@@ -404,4 +480,6 @@ module.exports = {
   hashPin,
   verifyPin,
   DEFAULT_PIN_ITERATIONS,
+  PIN_MAX_FAILURES,
+  PIN_LOCKOUT_MS,
 };

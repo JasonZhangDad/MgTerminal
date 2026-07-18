@@ -991,6 +991,8 @@ export const enCoreMessages: Messages = {
   'vault.hosts.empty.desc': 'Save hosts to quickly connect to your servers, VMs, and containers.',
   'deepLink.ssh.invalid': 'Invalid ssh:// link',
   'deepLink.ssh.confirm': 'Connect to {target} from an external ssh:// link?',
+  'deepLink.telnet.confirm': 'Connect to {target} from an external telnet:// link?',
+  'deepLink.jms.confirm': 'Connect to {target} from an external jms:// link?',
   'deepLink.telnet.invalid': 'Invalid telnet:// link',
   'deepLink.jms.invalid': 'Invalid JumpServer link',
   'deepLink.jms.unsupported': 'Unsupported JumpServer protocol: {{protocol}}',

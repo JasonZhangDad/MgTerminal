@@ -52,6 +52,9 @@ function buildRdpLaunchPlan(platform, { rdpFilePath, hostname, port, username, p
     const commands = [];
     let cleanup;
     if (password) {
+      // Password still reaches cmdkey argv (Windows API limitation). Mitigate
+      // residual risk with aggressive cleanup: delete on failure immediately
+      // and always schedule a short delayed delete after launch.
       commands.push({
         command: "cmdkey",
         args: [`/generic:TERMSRV/${host}`, `/user:${user || "Administrator"}`, `/pass:${password}`],
@@ -60,6 +63,8 @@ function buildRdpLaunchPlan(platform, { rdpFilePath, hostname, port, username, p
         command: "cmdkey",
         args: [`/delete:TERMSRV/${host}`],
         delayMs: CLEANUP_DELAY_MS,
+        // Also delete immediately if mstsc fails to start (see launchRdp).
+        immediateOnFailure: true,
       };
     }
     commands.push({ command: "mstsc", args: [rdpFilePath] });
@@ -135,12 +140,14 @@ async function launchRdp(options) {
   const validationError = validateRdpLaunchOptions(options);
   if (validationError) return { success: false, error: validationError };
 
+  let plan;
+  let rdpFilePath;
   try {
     const content = buildRdpFileContent(options);
-    const rdpFilePath = getTempFilePath(`rdp-${Date.now()}.rdp`);
+    rdpFilePath = getTempFilePath(`rdp-${Date.now()}.rdp`);
     await fs.promises.writeFile(rdpFilePath, content, { encoding: "utf8", mode: 0o600 });
 
-    const plan = buildRdpLaunchPlan(process.platform, { ...options, rdpFilePath });
+    plan = buildRdpLaunchPlan(process.platform, { ...options, rdpFilePath });
     for (let i = 0; i < plan.commands.length; i += 1) {
       const isLast = i === plan.commands.length - 1;
       await runCommand(plan.commands[i], { detached: isLast });
@@ -149,6 +156,17 @@ async function launchRdp(options) {
     return { success: true };
   } catch (err) {
     console.error("[RdpBridge] launch failed:", err?.message);
+    // Do not leave cmdkey credentials lingering when mstsc fails to start.
+    if (plan?.cleanup?.immediateOnFailure) {
+      try {
+        await runCommand(plan.cleanup, { detached: false });
+      } catch {
+        // best-effort
+      }
+    }
+    if (rdpFilePath) {
+      fs.promises.unlink(rdpFilePath).catch(() => {});
+    }
     return { success: false, error: err?.message || "Failed to launch RDP client" };
   }
 }

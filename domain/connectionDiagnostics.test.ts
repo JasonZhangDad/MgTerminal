@@ -48,7 +48,7 @@ test("password host maps to request with password and no key material", () => {
   assert.equal(request.username, "deploy");
   assert.equal(request.password, "secret");
   assert.equal(request.privateKey, undefined);
-  assert.equal(request.verifyHostKeys, false);
+  assert.equal(request.verifyHostKeys, true);
   assert.equal(request.jumpHosts, undefined);
 });
 
@@ -92,7 +92,7 @@ test("reference key host maps to identityFilePaths, not inline key", () => {
   assert.deepEqual(request.identityFilePaths, ["~/.ssh/id_ed25519"]);
 });
 
-test("chain hosts map to jumpHosts with host key prompts disabled", () => {
+test("chain hosts map to jumpHosts with host key verification enabled", () => {
   const bastion = baseHost({
     id: "b1",
     hostname: "bastion.example.com",
@@ -108,7 +108,8 @@ test("chain hosts map to jumpHosts with host key prompts disabled", () => {
   assert.equal(request.jumpHosts?.length, 1);
   assert.equal(request.jumpHosts?.[0].hostname, "bastion.example.com");
   assert.equal(request.jumpHosts?.[0].username, "jump");
-  assert.equal(request.jumpHosts?.[0].verifyHostKeys, false);
+  assert.equal(request.jumpHosts?.[0].verifyHostKeys, true);
+  assert.equal(request.verifyHostKeys, true);
 });
 
 test("known hosts are forwarded for host key classification", () => {

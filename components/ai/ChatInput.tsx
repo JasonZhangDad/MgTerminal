@@ -130,7 +130,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
   providerSwitcher,
 }) => {
   const { t } = useI18n();
-  const hasTerminalSelectionAttachment = files.some((file) => file.terminalSelection);
+  const hasAnyAttachment = files.length > 0;
   const [expanded, setExpanded] = useState(false);
   // Consolidate menu state into a single discriminated union to prevent multiple menus open simultaneously
   type ActiveMenu = 'model' | 'attach' | 'atMention' | 'slashCommand' | 'perm' | null;
@@ -1112,7 +1112,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
             <PromptInputSubmit
               status={status}
               onStop={onStop}
-              disabled={(!value.trim() && !hasTerminalSelectionAttachment) || disabled}
+              disabled={(!value.trim() && !hasAnyAttachment) || disabled}
             />
           </div>
         </PromptInputFooter>
