@@ -1,6 +1,11 @@
 # Änderungsprotokoll
 
 
+## [0.5.7] - 2026-07-18
+
+### Funktionen
+- **Anonyme Absturzberichte (Opt-in)**: standardmäßig aus; nach Aktivierung unter Einstellungen → System werden bereinigte Absturzzusammenfassungen (ohne Pfade, Benutzernamen, Hostnamen oder Sitzungsdaten) gesendet, um Abstürze schneller zu beheben
+
 ## [0.5.6] - 2026-07-18
 
 ### Sicherheit

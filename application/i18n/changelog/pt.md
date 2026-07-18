@@ -1,6 +1,11 @@
 # Registro de alterações
 
 
+## [0.5.7] - 2026-07-18
+
+### Funcionalidades
+- **Relatórios de falhas anônimos (opcional)**: desligado por padrão; quando ativado em Configurações → Sistema, resumos de falhas higienizados (sem caminhos, nomes de usuário, hosts ou dados de sessão) são enviados para corrigir falhas mais rápido
+
 ## [0.5.6] - 2026-07-18
 
 ### Segurança
