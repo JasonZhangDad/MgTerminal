@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 
-import changelogRaw from "../CHANGELOG.md?raw";
+import { getChangelogRaw } from "../application/i18n/changelog";
 import { parseChangelog } from "../domain/changelog";
 import { useI18n } from "../application/i18n/I18nProvider";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
@@ -11,10 +11,10 @@ interface ChangelogDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-/** In-app release notes viewer fed by the bundled CHANGELOG.md. */
+/** In-app release notes viewer fed by the bundled per-locale changelogs. */
 export default function ChangelogDialog({ open, onOpenChange }: ChangelogDialogProps) {
-  const { t } = useI18n();
-  const entries = useMemo(() => parseChangelog(changelogRaw), []);
+  const { t, resolvedLocale } = useI18n();
+  const entries = useMemo(() => parseChangelog(getChangelogRaw(resolvedLocale)), [resolvedLocale]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
