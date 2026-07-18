@@ -999,9 +999,9 @@ export const ruCoreMessages: Messages = {
   'teamVault.audit.type.package_shared': 'Пакет отправлен',
   'teamVault.audit.type.audit_cleared': 'Аудит очищен',
   'settings.application.whatsNew.summary': '{versions} версий · {changes} изменений',
-  'settings.application.whatsNew.inLatest': 'в последней',
+  'settings.application.whatsNew.inLatest': 'в этой версии',
   'settings.application.whatsNew.latest': 'Последняя',
   'settings.application.whatsNew.changeCount': '{count} изменений',
-  'settings.application.whatsNew.empty': 'Заметок о выпуске пока нет',
-  'settings.application.whatsNew.footer': 'Полный журнал — в репозитории на GitHub',
+  'settings.application.whatsNew.empty': 'В этой сборке нет заметок о выпуске.',
+  'settings.application.whatsNew.footer': 'Заметки о выпуске следуют текущему языку интерфейса.',
 };

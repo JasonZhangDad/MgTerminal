@@ -415,7 +415,7 @@ export const zhCNCoreMessages: Messages = {
   'settings.application.whatsNew': '更新内容',
   'settings.application.whatsNew.subtitle': '查看发布说明',
   'settings.application.whatsNew.summary': '{versions} 个版本 · {changes} 条变更',
-  'settings.application.whatsNew.inLatest': '条在本版本',
+  'settings.application.whatsNew.inLatest': '在本版本',
   'settings.application.whatsNew.latest': '最新',
   'settings.application.whatsNew.changeCount': '{count} 条变更',
   'settings.application.whatsNew.empty': '当前构建没有可用的更新日志。',

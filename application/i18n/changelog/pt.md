@@ -1,6 +1,14 @@
 # Registro de alterações
 
 
+## [0.5.3] - 2026-07-18
+
+### Correções
+- **Rolagem do diálogo de novidades**: notas longas podem ser roladas dentro da janela do diálogo
+
+### Melhorias
+- Texto da contagem de alterações da versão mais recente corrigido; strings de «Novidades» preenchidas nos 10 idiomas da interface
+
 ## [0.5.2] - 2026-07-18
 
 ### Funcionalidades

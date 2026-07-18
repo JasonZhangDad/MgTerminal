@@ -26,7 +26,6 @@ import {
 import { cn } from "../lib/utils";
 import { Badge } from "./ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./ui/dialog";
-import { ScrollArea } from "./ui/scroll-area";
 
 interface ChangelogDialogProps {
   open: boolean;
@@ -290,14 +289,18 @@ export default function ChangelogDialog({ open, onOpenChange }: ChangelogDialogP
                 <span className="text-[11px] text-muted-foreground">{entries[0].date}</span>
               ) : null}
               <span className="text-[11px] text-muted-foreground">
-                · {countChangelogItems(entries[0])}{" "}
+                ·{" "}
+                {t("settings.application.whatsNew.changeCount", {
+                  count: countChangelogItems(entries[0]),
+                })}{" "}
                 {t("settings.application.whatsNew.inLatest")}
               </span>
             </div>
           )}
         </DialogHeader>
 
-        <ScrollArea className="min-h-0 flex-1">
+        {/* Native overflow: ScrollArea + flex-1 does not establish a scrollport here. */}
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-gutter:stable]">
           <div className="space-y-3 px-5 py-4">
             {entries.length === 0 ? (
               <div className="rounded-xl border border-dashed border-border/60 py-12 text-center text-sm text-muted-foreground">
@@ -318,7 +321,7 @@ export default function ChangelogDialog({ open, onOpenChange }: ChangelogDialogP
               ))
             )}
           </div>
-        </ScrollArea>
+        </div>
 
         <div className="shrink-0 border-t border-border/60 bg-muted/20 px-6 py-2.5 text-[11px] text-muted-foreground">
           {t("settings.application.whatsNew.footer")}

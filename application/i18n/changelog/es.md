@@ -1,6 +1,14 @@
 # Registro de cambios
 
 
+## [0.5.3] - 2026-07-18
+
+### Correcciones
+- **Desplazamiento del diálogo de novedades**: las notas largas se pueden desplazar dentro del diálogo
+
+### Mejoras
+- Texto del recuento de cambios de la última versión corregido; cadenas de «Novedades» completadas en los 10 idiomas de la interfaz
+
 ## [0.5.2] - 2026-07-18
 
 ### Funciones

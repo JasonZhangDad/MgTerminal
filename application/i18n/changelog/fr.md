@@ -1,6 +1,14 @@
 # Journal des modifications
 
 
+## [0.5.3] - 2026-07-18
+
+### Corrections
+- **Défilement des notes de version** : les notes longues peuvent défiler dans la fenêtre du dialogue
+
+### Améliorations
+- Libellé du nombre de changements de la dernière version corrigé ; chaînes « Nouveautés » complétées pour les 10 langues d’interface
+
 ## [0.5.2] - 2026-07-18
 
 ### Fonctionnalités

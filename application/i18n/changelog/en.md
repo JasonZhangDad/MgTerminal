@@ -1,6 +1,14 @@
 # Changelog
 
 
+## [0.5.3] - 2026-07-18
+
+### Fixes
+- **Changelog dialog scroll**: long release notes can be scrolled when they exceed the dialog viewport
+
+### Improvements
+- Fix latest-version change count wording; fill missing What's New strings for all 10 UI languages
+
 ## [0.5.2] - 2026-07-18
 
 ### Features

@@ -1,6 +1,14 @@
 # Änderungsprotokoll
 
 
+## [0.5.3] - 2026-07-18
+
+### Korrekturen
+- **Versionshinweise-Dialog scrollbar**: lange Hinweise können im Dialog-Viewport gescrollt werden
+
+### Verbesserungen
+- Zähltext der aktuellen Version korrigiert; fehlende „Neuerungen“-Texte für alle 10 UI-Sprachen ergänzt
+
 ## [0.5.2] - 2026-07-18
 
 ### Funktionen
