@@ -610,7 +610,7 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({
           <AiActivityIndicator
             variant="generating"
             framed
-            showIcon
+            showIcon={false}
             label={t('ai.chat.generating')}
           />
         )}

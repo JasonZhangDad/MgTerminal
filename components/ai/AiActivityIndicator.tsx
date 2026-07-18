@@ -1,6 +1,6 @@
 /**
- * Shared visual for AI "working" states: typing dots + optional shimmer label.
- * Used while waiting for first tokens, during thinking, and compaction status.
+ * Shared visual for AI "working" states.
+ * Grok-style rounded-square spinner + optional shimmer label.
  */
 
 import { Bot, Brain } from 'lucide-react';
@@ -15,47 +15,65 @@ export type AiActivityIndicatorProps = {
   variant?: AiActivityVariant;
   /** Show the soft card chrome (default true for generating). */
   framed?: boolean;
-  /** Show leading icon (bot / brain). */
+  /** Show leading icon (bot / brain). Defaults off when spinner is present. */
   showIcon?: boolean;
   className?: string;
   /** Extra content after the label (e.g. elapsed time). */
   trailing?: React.ReactNode;
 };
 
-const VARIANT_ICON: Record<AiActivityVariant, React.ReactNode> = {
-  generating: <Bot size={12} strokeWidth={2.25} />,
-  thinking: <Brain size={12} strokeWidth={2.25} />,
-  compact: <Bot size={11} strokeWidth={2.25} />,
-};
-
 /**
- * Three-dot wave — pure CSS, no layout thrash.
+ * Grok-like rounded square that spins — a soft plate with a bright arc
+ * chasing around the border (conic-gradient mask).
  */
-export const AiTypingDots: React.FC<{ className?: string; size?: 'sm' | 'md' }> = ({
-  className,
-  size = 'md',
-}) => {
-  const dot = size === 'sm' ? 'h-1 w-1' : 'h-1.5 w-1.5';
+export const AiSquareSpinner: React.FC<{
+  className?: string;
+  size?: 'sm' | 'md' | 'lg';
+  /** thinking = violet tint; default = primary */
+  tone?: 'primary' | 'violet';
+}> = ({ className, size = 'md', tone = 'primary' }) => {
+  const box =
+    size === 'sm' ? 'h-3.5 w-3.5' : size === 'lg' ? 'h-5 w-5' : 'h-4 w-4';
+  const radius = size === 'sm' ? 'rounded-[4px]' : size === 'lg' ? 'rounded-[6px]' : 'rounded-[5px]';
+
   return (
     <span
-      className={cn('ai-typing-dots inline-flex items-center gap-[5px]', className)}
+      className={cn(
+        'ai-square-spinner relative inline-flex shrink-0 items-center justify-center',
+        box,
+        className,
+      )}
+      data-tone={tone}
       aria-hidden
     >
-      <span className={cn('ai-typing-dot', dot)} style={{ animationDelay: '0ms' }} />
-      <span className={cn('ai-typing-dot', dot)} style={{ animationDelay: '160ms' }} />
-      <span className={cn('ai-typing-dot', dot)} style={{ animationDelay: '320ms' }} />
+      {/* Spinning conic border */}
+      <span className={cn('ai-square-spinner__ring absolute inset-0', radius)} />
+      {/* Inner plate so the center stays solid */}
+      <span
+        className={cn(
+          'ai-square-spinner__core absolute inset-[2px]',
+          radius,
+          tone === 'violet' ? 'bg-violet-500/10' : 'bg-primary/10',
+        )}
+      />
     </span>
   );
 };
+
+/** @deprecated alias kept for any external imports */
+export const AiTypingDots = AiSquareSpinner;
 
 export const AiActivityIndicator: React.FC<AiActivityIndicatorProps> = ({
   label,
   variant = 'generating',
   framed = variant === 'generating',
-  showIcon = variant === 'generating',
+  showIcon = false,
   className,
   trailing,
 }) => {
+  const tone = variant === 'thinking' ? 'violet' : 'primary';
+  const spinnerSize = variant === 'compact' ? 'sm' : variant === 'generating' ? 'md' : 'sm';
+
   const body = (
     <>
       {showIcon && (
@@ -68,10 +86,14 @@ export const AiActivityIndicator: React.FC<AiActivityIndicatorProps> = ({
             variant === 'compact' && 'h-5 w-5 rounded-md',
           )}
         >
-          {VARIANT_ICON[variant]}
+          {variant === 'thinking' ? (
+            <Brain size={12} strokeWidth={2.25} />
+          ) : (
+            <Bot size={12} strokeWidth={2.25} />
+          )}
         </span>
       )}
-      <AiTypingDots size={variant === 'compact' ? 'sm' : 'md'} />
+      <AiSquareSpinner size={spinnerSize} tone={tone} />
       {label ? (
         <span
           className={cn(
@@ -110,7 +132,6 @@ export const AiActivityIndicator: React.FC<AiActivityIndicatorProps> = ({
         className,
       )}
     >
-      {/* Soft sweep behind the dots */}
       <span className="ai-activity-sheen pointer-events-none absolute inset-0" aria-hidden />
       <span className="relative z-[1] flex min-w-0 items-center gap-2.5">{body}</span>
     </div>

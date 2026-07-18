@@ -592,32 +592,49 @@ html[data-theme-transition] *::after {
   }
 }
 
-/* AI typing dots — soft wave + glow, used while waiting for first tokens. */
-.ai-typing-dots {
-  height: 1rem;
+/*
+ * Grok-style rounded-square spinner:
+ * outer plate spins a conic-gradient “arc”; inner core stays put so it reads
+ * as a soft square with a chasing highlight on the border.
+ */
+.ai-square-spinner {
+  /* keep layout box stable while ring rotates */
 }
 
-.ai-typing-dot {
-  display: inline-block;
-  border-radius: 9999px;
-  background: hsl(var(--primary));
-  box-shadow: 0 0 0 0 hsl(var(--primary) / 0);
-  animation: ai-typing-dot 1.15s ease-in-out infinite;
-  will-change: transform, opacity;
+.ai-square-spinner__ring {
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    transparent 220deg,
+    hsl(var(--primary) / 0.15) 260deg,
+    hsl(var(--primary) / 0.95) 320deg,
+    hsl(var(--primary) / 0.35) 350deg,
+    transparent 360deg
+  );
+  animation: ai-square-spin 0.85s linear infinite;
+  will-change: transform;
 }
 
-@keyframes ai-typing-dot {
-  0%,
-  80%,
-  100% {
-    transform: translateY(0) scale(0.78);
-    opacity: 0.32;
-    box-shadow: 0 0 0 0 hsl(var(--primary) / 0);
-  }
-  40% {
-    transform: translateY(-3px) scale(1.12);
-    opacity: 1;
-    box-shadow: 0 0 10px 1px hsl(var(--primary) / 0.45);
+.ai-square-spinner[data-tone='violet'] .ai-square-spinner__ring {
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    transparent 220deg,
+    rgb(167 139 250 / 0.15) 260deg,
+    rgb(167 139 250 / 0.95) 320deg,
+    rgb(167 139 250 / 0.35) 350deg,
+    transparent 360deg
+  );
+}
+
+.ai-square-spinner__core {
+  /* slightly inset so the spinning ring reads as a 2px frame */
+  box-shadow: inset 0 0 0 1px hsl(var(--border) / 0.35);
+}
+
+@keyframes ai-square-spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 
@@ -644,15 +661,20 @@ html[data-theme-transition] *::after {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ai-typing-dot,
+  .ai-square-spinner__ring,
   .thinking-shimmer,
   .thinking-shimmer--primary,
   .ai-activity-sheen {
     animation: none !important;
   }
-  .ai-typing-dot {
-    opacity: 0.7;
-    transform: none;
+  .ai-square-spinner__ring {
+    /* static partial border when motion is reduced */
+    background: linear-gradient(
+      135deg,
+      hsl(var(--primary) / 0.25),
+      hsl(var(--primary) / 0.85),
+      hsl(var(--primary) / 0.25)
+    ) !important;
   }
   .thinking-shimmer,
   .thinking-shimmer--primary {

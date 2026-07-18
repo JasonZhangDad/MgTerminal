@@ -10,7 +10,7 @@ import { Brain, ChevronRight } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useI18n } from '../../application/i18n/I18nProvider';
 import { cn } from '../../lib/utils';
-import { AiTypingDots } from './AiActivityIndicator';
+import { AiSquareSpinner } from './AiActivityIndicator';
 
 interface ThinkingBlockProps {
   content: string;
@@ -106,7 +106,7 @@ const ThinkingBlock: React.FC<ThinkingBlockProps> = ({
         />
         {isStreaming ? (
           <span className="inline-flex min-w-0 items-center gap-2">
-            <AiTypingDots size="sm" />
+            <AiSquareSpinner size="sm" tone="violet" />
             <span className="thinking-shimmer thinking-shimmer--primary whitespace-nowrap text-[12px] font-medium">
               {t('ai.chat.thinking')}
             </span>
