@@ -772,7 +772,7 @@ export const enVaultMessages: Messages = {
     'Use the system OpenSSH client and prefer hybrid PQ key exchange (mlkem768x25519 / sntrup761x25519 when supported). Falls back to classical KEX if the server rejects PQ. Built-in ssh2 has no hybrid PQ KEX.',
   'hostDetails.useSystemOpenSsh': 'Use system OpenSSH transport',
   'hostDetails.useSystemOpenSsh.desc':
-    'Spawn the platform ssh binary instead of MagiesTerminal’s built-in ssh2 stack. Required for GSSAPI and for post-quantum KEX preference. Jump hosts and MagiesTerminal proxies are not supported on this path.',
+    'Spawn the platform ssh binary instead of MagiesTerminal’s built-in ssh2 stack. Required for GSSAPI and for post-quantum KEX preference. Jump hosts ride OpenSSH ProxyJump; HTTP/SOCKS proxies are relayed through the app (not combinable with jump hosts).',
   'hostDetails.legacyAlgorithms': 'Allow Legacy Algorithms',
   'hostDetails.legacyAlgorithms.desc': 'Enable deprecated SSH algorithms (diffie-hellman-group1, ssh-dss, 3des-cbc, etc.) for connecting to older network equipment.',
   'hostDetails.legacyAlgorithms.warning': 'These algorithms have known security weaknesses. Only enable for legacy devices that do not support modern cryptography.',
@@ -933,7 +933,7 @@ export const enVaultMessages: Messages = {
   'hostDetails.credential.agent': 'SSH Agent',
   'hostDetails.credential.gssapi': 'GSSAPI / Kerberos',
   'hostDetails.credential.gssapiHint':
-    'Uses the system OpenSSH client with GSSAPIAuthentication (Kerberos ticket cache). Requires a valid TGT (e.g. kinit). Jump hosts and MagiesTerminal proxies are not supported on this path.',
+    'Uses the system OpenSSH client with GSSAPIAuthentication (Kerberos ticket cache). Requires a valid TGT (e.g. kinit). Jump hosts ride OpenSSH ProxyJump, so Kerberos SSO applies to every hop.',
   'hostDetails.agent.loading': 'Reading agent identities...',
   'hostDetails.agent.unavailable': 'No SSH agent detected. Start ssh-agent (or enable your key manager\'s agent) and try again.',
   'hostDetails.agent.empty': 'The SSH agent holds no keys. Add one with ssh-add.',

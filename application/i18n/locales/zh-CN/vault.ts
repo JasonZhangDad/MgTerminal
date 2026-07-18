@@ -223,7 +223,7 @@ export const zhCNVaultMessages: Messages = {
     '使用系统 OpenSSH 客户端，并优先协商混合后量子密钥交换（支持时选用 mlkem768x25519 / sntrup761x25519）。若服务端拒绝 PQ，则回退经典 KEX。内置 ssh2 不含混合 PQ KEX。',
   'hostDetails.useSystemOpenSsh': '使用系统 OpenSSH 传输',
   'hostDetails.useSystemOpenSsh.desc':
-    '通过平台 ssh 可执行文件建立连接，而非 MagiesTerminal 内置 ssh2。GSSAPI 与后量子 KEX 偏好需要此路径。暂不支持跳板主机与 MagiesTerminal 代理。',
+    '通过平台 ssh 可执行文件建立连接，而非 MagiesTerminal 内置 ssh2。GSSAPI 与后量子 KEX 偏好需要此路径。跳板主机经 OpenSSH ProxyJump 支持；HTTP/SOCKS 代理由应用内回环中继支持（与跳板不可同时使用）。',
   'hostDetails.legacyAlgorithms': '允许旧版算法',
   'hostDetails.legacyAlgorithms.desc': '启用已弃用的 SSH 算法（diffie-hellman-group1、ssh-dss、3des-cbc 等）以连接老旧网络设备。',
   'hostDetails.legacyAlgorithms.warning': '这些算法存在已知安全漏洞，仅建议在老旧设备不支持现代加密时启用。',
@@ -865,7 +865,7 @@ export const zhCNVaultMessages: Messages = {
   'hostDetails.credential.agent': 'SSH Agent',
   'hostDetails.credential.gssapi': 'GSSAPI / Kerberos',
   'hostDetails.credential.gssapiHint':
-    '通过系统 OpenSSH 客户端使用 GSSAPIAuthentication（Kerberos 票据缓存）。需先取得有效 TGT（如 kinit）。此路径暂不支持跳板主机与 MagiesTerminal 代理。',
+    '通过系统 OpenSSH 客户端使用 GSSAPIAuthentication（Kerberos 票据缓存）。需先取得有效 TGT（如 kinit）。跳板主机经 OpenSSH ProxyJump 支持，Kerberos SSO 覆盖链路每一跳。',
   'hostDetails.agent.loading': '正在读取 Agent 中的身份…',
   'hostDetails.agent.unavailable': '未检测到 SSH Agent。请先启动 ssh-agent(或启用密钥管理器的 Agent)后重试。',
   'hostDetails.agent.empty': 'SSH Agent 中没有密钥,可用 ssh-add 添加。',
