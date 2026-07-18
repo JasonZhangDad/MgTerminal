@@ -110,7 +110,6 @@ function VersionEntryCard({
   changesLabel: string;
 }) {
   const [open, setOpen] = useState(defaultOpen);
-  const itemCount = countChangelogItems(entry);
 
   return (
     <article

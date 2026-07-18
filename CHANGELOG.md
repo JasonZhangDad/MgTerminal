@@ -1,5 +1,21 @@
 # Changelog
 
+
+## [0.5.2] - 2026-07-18
+
+### 功能
+- **本地优先团队 Vault**：仅元数据主机清单包分享、角色（owner/editor/viewer）与 HMAC 签名审计；密码与私钥永不离开本机
+- **会话跟随 WAN 中继**：TCP NDJSON 中继支持 NAT 后协作观看；可内嵌本机中继或自建 `scripts/follow-relay.cjs`
+- **设备 Passkey 解锁 Vault**：WebAuthn 平台认证器（Touch ID / Windows Hello / 安全密钥）主进程校验；非云端多设备同步
+- **内置 ssh2 混合后量子 KEX**：优先 `mlkem768x25519-sha256`，服务端不支持时回退经典算法
+- **RDP 主机支持**：Vault 一键拉起系统远程桌面客户端（Windows mstsc、macOS Windows App、Linux xfreerdp）
+- **系统 OpenSSH 跳板与代理**：跳板链与 HTTP/SOCKS 代理可用于系统 OpenSSH 会话
+
+### 优化
+- **全局 UI 组件升级**：按钮、输入、浮层、侧栏、空状态、Toast 等统一圆角/阴影/焦点环
+- **AI 侧栏体验**：问答布局、模型/权限控件、思考指示器（方块旋转）与输入排版
+- **更新日志对话框重设计**：按版本折叠、分类着色、跟随界面语言
+
 ## [0.5.0] - 2026-07-17
 
 ### 功能

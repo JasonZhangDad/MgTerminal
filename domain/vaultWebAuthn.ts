@@ -196,12 +196,10 @@ export function verifyWebAuthnAssertionEs256(
 
 function loadNodeCrypto(): typeof import("node:crypto") | undefined {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     return require("node:crypto");
   } catch {
     try {
       // ESM / tsx path
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { createRequire } = require("node:module");
       return createRequire(import.meta.url)("node:crypto");
     } catch {

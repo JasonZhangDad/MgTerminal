@@ -1,5 +1,21 @@
 # 更新日誌
 
+
+## [0.5.2] - 2026-07-18
+
+### 功能
+- **本機優先團隊 Vault**：僅中繼資料主機清單包分享、角色（owner/editor/viewer）與 HMAC 簽名稽核；密碼與私鑰永不離開本機
+- **工作階段跟隨 WAN 中繼**：TCP NDJSON 中繼支援 NAT 後協作觀看；可內嵌本機中繼或自建 `scripts/follow-relay.cjs`
+- **裝置 Passkey 解鎖 Vault**：WebAuthn 平台驗證器（Touch ID / Windows Hello / 安全金鑰）主行程驗證；非雲端多裝置同步
+- **內建 ssh2 混合後量子 KEX**：優先 `mlkem768x25519-sha256`，伺服器不支援時回退經典演算法
+- **RDP 主機支援**：Vault 一鍵啟動系統遠端桌面用戶端（Windows mstsc、macOS Windows App、Linux xfreerdp）
+- **系統 OpenSSH 跳板與代理**：跳板鏈與 HTTP/SOCKS 代理可用於系統 OpenSSH 工作階段
+
+### 優化
+- **全域 UI 元件升級**：按鈕、輸入、浮層、側欄、空狀態、Toast 等統一圓角/陰影/焦點環
+- **AI 側欄體驗**：問答版面、模型/權限控制、思考指示器（方塊旋轉）與輸入排版
+- **更新日誌對話框重設計**：依版本摺疊、分類著色、跟隨介面語言
+
 ## [0.5.0] - 2026-07-17
 
 ### 功能

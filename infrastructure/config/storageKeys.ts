@@ -75,6 +75,8 @@ export const STORAGE_KEY_TEAM_VAULT_POLICY = 'magiesTerminal_team_vault_policy_v
 export const STORAGE_KEY_TEAM_VAULT_AUDIT = 'magiesTerminal_team_vault_audit_v1';
 /** Default WAN follow relay host:port for outbound invites. */
 export const STORAGE_KEY_FOLLOW_WAN_RELAY = 'magiesTerminal_follow_wan_relay_v1';
+/** Display name used in team vault / follow collaboration UI. */
+export const STORAGE_KEY_DISPLAY_NAME = 'magiesTerminal_display_name_v1';
 
 // Update check
 export const STORAGE_KEY_UPDATE_LAST_CHECK = 'magiesTerminal_update_last_check_v1';

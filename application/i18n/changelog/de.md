@@ -1,5 +1,21 @@
 # Änderungsprotokoll
 
+
+## [0.5.2] - 2026-07-18
+
+### Funktionen
+- **Local-first Team-Vault**: nur Metadaten-Hostinventarpakete, Rollen (owner/editor/viewer) und HMAC-signiertes Audit; Passwörter und private Schlüssel verlassen das Gerät nicht
+- **Session-Follow über WAN-Relay**: TCP-NDJSON-Relay für NAT-freundliches Mitverfolgen; eingebettetes lokales Relay oder selbst gehostetes `scripts/follow-relay.cjs`
+- **Geräte-Passkey zum Vault-Entsperren**: WebAuthn-Plattform-Authentifikatoren (Touch ID / Windows Hello / Security Key) im Hauptprozess geprüft; kein Cloud-Multi-Geräte-Sync
+- **Eingebaute ssh2-Hybrid-PQ-KEX**: bevorzugt `mlkem768x25519-sha256`, fällt bei Nichtunterstützung auf klassische Algorithmen zurück
+- **RDP-Host-Unterstützung**: System-Remotedesktop aus dem Vault starten (Windows mstsc, macOS Windows App, Linux xfreerdp)
+- **System-OpenSSH Jump und Proxy**: Jump-Ketten und HTTP/SOCKS-Proxys für System-OpenSSH-Sitzungen
+
+### Verbesserungen
+- **Globale UI-Komponenten-Aktualisierung**: einheitliche Radien, weiche Schatten und Fokusringe für Buttons, Eingaben, Popovers, Seitenpanels, Leerzustände und Toasts
+- **AI-Seitenleiste verfeinert**: Q&A-Layout, Modell-/Berechtigungskontrollen, quadratischer Denk-Spinner und Eingabetypografie
+- **Changelog-Dialog neu gestaltet**: einklappbare Versionen, Abschnittsfarben und sprachabhängige Release Notes
+
 ## [0.5.0] - 2026-07-17
 
 ### Funktionen

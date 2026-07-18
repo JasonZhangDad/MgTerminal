@@ -1,5 +1,21 @@
 # Registro de alterações
 
+
+## [0.5.2] - 2026-07-18
+
+### Funcionalidades
+- **Vault de equipe local-first**: pacotes de inventário só com metadados, papéis (owner/editor/viewer) e auditoria HMAC; senhas e chaves privadas não saem do dispositivo
+- **Follow de sessão via relé WAN**: relé TCP NDJSON amigável a NAT; relé local embutido ou `scripts/follow-relay.cjs` auto-hospedado
+- **Desbloqueio do Vault com passkey do dispositivo**: autenticadores WebAuthn (Touch ID / Windows Hello / chave de segurança) verificados no processo principal; não é sync multi-dispositivo na nuvem
+- **KEX pós-quântico híbrido ssh2 embutido**: prefere `mlkem768x25519-sha256` e volta a algoritmos clássicos se não suportado
+- **Suporte a hosts RDP**: abre o cliente de área de trabalho remota do sistema a partir do Vault (Windows mstsc, macOS Windows App, Linux xfreerdp)
+- **Jump e proxy OpenSSH do sistema**: cadeias de jump e proxies HTTP/SOCKS em sessões OpenSSH do sistema
+
+### Melhorias
+- **Atualização global de componentes de UI**: raios, sombras suaves e anéis de foco unificados em botões, entradas, popovers, painéis laterais, estados vazios e toasts
+- **Painel lateral de IA refinado**: layout de Q&A, controles de modelo/permissão, spinner de pensamento quadrado e tipografia de entrada
+- **Diálogo de changelog redesenhado**: versões recolhíveis, cores por seção e notas no idioma da UI
+
 ## [0.5.0] - 2026-07-17
 
 ### Funcionalidades

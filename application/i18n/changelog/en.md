@@ -1,5 +1,21 @@
 # Changelog
 
+
+## [0.5.2] - 2026-07-18
+
+### Features
+- **Local-first team vault**: metadata-only host inventory packages, roles (owner/editor/viewer), and HMAC-signed audit; passwords and private keys never leave the device
+- **Session follow over WAN relay**: TCP NDJSON relay for NAT-friendly co-viewing; embedded local relay or self-hosted `scripts/follow-relay.cjs`
+- **Device passkey vault unlock**: WebAuthn platform authenticators (Touch ID / Windows Hello / security key) verified in the main process; not multi-device cloud sync
+- **Built-in ssh2 hybrid post-quantum KEX**: prefers `mlkem768x25519-sha256`, falls back to classical algorithms when unsupported
+- **RDP host support**: launch the system remote-desktop client from Vault (Windows mstsc, macOS Windows App, Linux xfreerdp)
+- **System OpenSSH jump and proxy**: jump chains and HTTP/SOCKS proxies work for system OpenSSH sessions
+
+### Improvements
+- **Global UI component refresh**: consistent radius, soft shadows, and focus rings across buttons, inputs, popovers, aside panels, empty states, and toasts
+- **AI sidebar polish**: Q&A layout, model/permission controls, square thinking spinner, and input typography
+- **Changelog dialog redesign**: collapsible versions, section coloring, and locale-matched release notes
+
 ## [0.5.0] - 2026-07-17
 
 ### Features

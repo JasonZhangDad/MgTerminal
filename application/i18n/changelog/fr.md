@@ -1,5 +1,21 @@
 # Journal des modifications
 
+
+## [0.5.2] - 2026-07-18
+
+### Fonctionnalités
+- **Coffre d’équipe local-first** : paquets d’inventaire hôtes métadonnées uniquement, rôles (owner/editor/viewer) et audit signé HMAC ; mots de passe et clés privées ne quittent pas l’appareil
+- **Suivi de session via relais WAN** : relais TCP NDJSON compatible NAT ; relais local intégré ou `scripts/follow-relay.cjs` auto-hébergé
+- **Déverrouillage Vault par passkey d’appareil** : authentificateurs WebAuthn (Touch ID / Windows Hello / clé de sécurité) vérifiés dans le processus principal ; pas de sync multi-appareils cloud
+- **KEX post-quantique hybride ssh2 intégré** : privilégie `mlkem768x25519-sha256`, repli classique si non pris en charge
+- **Prise en charge des hôtes RDP** : lancement du client bureau à distance système depuis le Vault (Windows mstsc, macOS Windows App, Linux xfreerdp)
+- **Saut et proxy OpenSSH système** : chaînes de jump et proxies HTTP/SOCKS pour les sessions OpenSSH système
+
+### Améliorations
+- **Rafraîchissement global des composants UI** : rayons, ombres douces et anneaux de focus unifiés pour boutons, champs, popovers, panneaux latéraux, états vides et toasts
+- **Panneau latéral IA peaufiné** : mise en page Q&R, contrôles modèle/permission, spinner de réflexion carré et typographie de saisie
+- **Dialogue journal des versions repensé** : versions repliables, couleurs par section et notes selon la langue de l’interface
+
 ## [0.5.0] - 2026-07-17
 
 ### Fonctionnalités

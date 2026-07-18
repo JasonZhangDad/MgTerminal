@@ -8,7 +8,7 @@ import {
   formatFollowAuditLine,
 } from "../../domain/sessionFollow";
 import { STORAGE_KEY_FOLLOW_WAN_RELAY } from "../../infrastructure/config/storageKeys";
-import { localStorageAdapter } from "../../infrastructure/persistence/localStorageAdapter";
+import { localStorageAdapter } from "@/infrastructure/persistence/localStorageAdapter";
 import { magiesTerminalBridge } from "@/infrastructure/services/magiesTerminalBridge";
 import { cn } from "../../lib/utils";
 import { Button } from "../ui/button";

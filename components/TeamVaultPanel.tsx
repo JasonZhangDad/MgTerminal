@@ -19,7 +19,6 @@ import {
   UserPlus,
   Users,
 } from "lucide-react";
-import { toast } from "sonner";
 import { useI18n } from "../application/i18n/I18nProvider";
 import {
   clearTeamVaultAudit,
@@ -40,11 +39,15 @@ import {
   type TeamVaultRole,
 } from "../domain/teamVault";
 import type { Host } from "../domain/models";
-import { STORAGE_KEY_HOSTS } from "../infrastructure/config/storageKeys";
-import { localStorageAdapter } from "../infrastructure/persistence/localStorageAdapter";
+import {
+  STORAGE_KEY_DISPLAY_NAME,
+  STORAGE_KEY_HOSTS,
+} from "../infrastructure/config/storageKeys";
+import { localStorageAdapter } from "@/infrastructure/persistence/localStorageAdapter";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
+import { toast } from "./ui/toast";
 import { cn } from "../lib/utils";
 
 export type TeamVaultPanelProps = {
@@ -94,13 +97,9 @@ export const TeamVaultPanel: React.FC<TeamVaultPanelProps> = ({
   const [policy, setPolicy] = useState<TeamVaultPolicy | null>(() => readTeamVaultPolicy());
   const [tab, setTab] = useState<PanelTab>("overview");
   const [teamName, setTeamName] = useState("");
-  const [displayName, setDisplayName] = useState(() => {
-    try {
-      return localStorage.getItem("magiesTerminal_display_name_v1") || "";
-    } catch {
-      return "";
-    }
-  });
+  const [displayName, setDisplayName] = useState(
+    () => localStorageAdapter.readString(STORAGE_KEY_DISPLAY_NAME) || "",
+  );
   const [shareInput, setShareInput] = useState("");
   const [lastShareString, setLastShareString] = useState<string | null>(null);
   const [exportPreview, setExportPreview] = useState<{
@@ -156,11 +155,7 @@ export const TeamVaultPanel: React.FC<TeamVaultPanelProps> = ({
         teamName: teamName.trim(),
         ownerDisplayName: displayName.trim(),
       });
-      try {
-        localStorage.setItem("magiesTerminal_display_name_v1", displayName.trim());
-      } catch {
-        // ignore
-      }
+      localStorageAdapter.writeString(STORAGE_KEY_DISPLAY_NAME, displayName.trim());
       setPolicy(next);
       setTab("overview");
       refresh();
@@ -189,7 +184,7 @@ export const TeamVaultPanel: React.FC<TeamVaultPanelProps> = ({
         await navigator.clipboard.writeText(result.shareString);
         toast.success(t("teamVault.exported"));
       } catch {
-        toast.message(t("teamVault.exportedClipboardFailed"));
+        toast.info(t("teamVault.exportedClipboardFailed"));
       }
       refresh();
     } finally {
@@ -239,11 +234,7 @@ export const TeamVaultPanel: React.FC<TeamVaultPanelProps> = ({
         toast.error(t("teamVault.importFailed", { error: result.error }));
         return;
       }
-      try {
-        localStorage.setItem("magiesTerminal_display_name_v1", displayName.trim());
-      } catch {
-        // ignore
-      }
+      localStorageAdapter.writeString(STORAGE_KEY_DISPLAY_NAME, displayName.trim());
       setPolicy(result.policy);
       setShareInput("");
       setTab("overview");
