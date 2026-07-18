@@ -428,9 +428,9 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({
 
                 {message.content && (
                   isUser
-                    ? <div className="whitespace-pre-wrap break-words text-[13px] leading-[1.45]">{message.content}</div>
+                    ? <div className="whitespace-pre-wrap break-words text-[13.5px] leading-[1.6] [overflow-wrap:anywhere]">{message.content}</div>
                     : hideMarkdown
-                      ? <div className="whitespace-pre-wrap break-words text-[13px] leading-[1.45]">{message.content}</div>
+                      ? <div className="whitespace-pre-wrap break-words text-[13.5px] leading-[1.65] [overflow-wrap:anywhere]">{message.content}</div>
                       : (
                           <React.Profiler {...getAIPanelProfilerProps('AIChatPanel.Markdown')}>
                             <MessageResponse isAnimating={isThisStreaming}>

@@ -530,9 +530,9 @@ const ChatInput: React.FC<ChatInputProps> = ({
     'h-6 w-6 shrink-0 rounded-full bg-transparent text-foreground/62 hover:bg-muted/24 hover:text-foreground';
 
   return (
-    <div className="shrink-0 px-4 pb-4">
+    <div className="shrink-0 px-4 pb-4 pt-1">
       <div ref={inputShellRef} className="relative">
-      <PromptInput onSubmit={handleSubmit}>
+      <PromptInput onSubmit={handleSubmit} className="block">
         {/* File attachment chips */}
         {files.length > 0 && (
           <div className="flex gap-1.5 px-3 pt-2 pb-0.5 flex-wrap">
@@ -625,9 +625,12 @@ const ChatInput: React.FC<ChatInputProps> = ({
             onKeyDown={handleTextareaKeyDown}
             placeholder={placeholder || defaultPlaceholder}
             disabled={disabled}
+            spellCheck={false}
             className={[
-              selectedUserSkills.length > 0 ? 'pt-1.5' : undefined,
-              expanded ? 'max-h-[220px]' : undefined,
+              selectedUserSkills.length > 0 ? 'pt-2' : undefined,
+              // Leave room for the expand control; keep glyphs fully visible.
+              'pr-10',
+              expanded ? 'max-h-[280px] min-h-[120px]' : undefined,
             ].filter(Boolean).join(' ')}
             maxLength={100000}
           />
@@ -636,9 +639,9 @@ const ChatInput: React.FC<ChatInputProps> = ({
               <button
                 type="button"
                 onClick={() => setExpanded((e) => !e)}
-                className="absolute top-3.5 right-3 rounded-md p-1 text-muted-foreground/38 hover:text-muted-foreground/72 hover:bg-muted/25 transition-colors cursor-pointer"
+                className="absolute top-3 right-2.5 rounded-md p-1.5 text-muted-foreground/40 hover:text-muted-foreground/75 hover:bg-muted/30 transition-colors cursor-pointer"
               >
-                <Expand size={12} />
+                <Expand size={13} />
               </button>
             </TooltipTrigger>
             <TooltipContent>{expanded ? t('ai.chat.collapse') : t('ai.chat.expand')}</TooltipContent>
