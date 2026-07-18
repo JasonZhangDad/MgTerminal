@@ -11,7 +11,10 @@
 - **端口转发实时通道视图**：本地/远程/动态转发的逐连接来源、目标与流量字节统计
 - **脚本 onOutput 触发动作扩展**：命中输出模式可选桌面通知、提示音、标记标签页、开始会话记录
 - **安全粘贴与精确广播**：多行粘贴延迟/等待提示符/危险命令确认；广播可精确指定工作区/选定/分组/窗口
-- **系统 OpenSSH 通道增强**：GSSAPI/Kerberos 与后量子（PQ）算法经系统 OpenSSH 支持
+- **系统 OpenSSH 通道增强**：GSSAPI/Kerberos 与后量子（PQ）算法经系统 OpenSSH 支持；跳板链与 HTTP/SOCKS 代理可用
+- **内置 ssh2 混合后量子 KEX**：优先协商 `mlkem768x25519-sha256`（ML-KEM-768 + X25519），服务端不支持时回退经典算法；无需强制走系统 ssh
+- **RDP 主机支持**：Vault 主机可启用 RDP，一键启动系统远程桌面客户端（Windows mstsc、macOS Windows App、Linux xfreerdp）
+- **更新日志跟随界面语言**：应用内 Changelog 按当前 UI 语言展示（10 种语言）
 
 ### Windows ARM64
 - **win-arm64 安装包补齐 mosh / ET 捆绑**：MoshMagies 0.1.9 与 EternalTerminal 6.2.10 首发 Windows arm64 原生二进制

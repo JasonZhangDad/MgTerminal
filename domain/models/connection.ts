@@ -161,12 +161,14 @@ export interface Host {
   x11Forwarding?: boolean;
   /**
    * Use system OpenSSH client (node-pty) instead of the built-in ssh2 stack.
-   * Required for GSSAPI and for post-quantum KEX preference below.
+   * Required for GSSAPI/Kerberos. Optional for PQ KEX (system OpenSSH also
+   * offers sntrup761 hybrid algorithms not implemented in-process).
    */
   useSystemOpenSsh?: boolean;
   /**
-   * Prefer hybrid post-quantum KEX algorithms supported by system OpenSSH
-   * (e.g. sntrup761x25519 / mlkem768x25519 when available). Implies system OpenSSH.
+   * Prefer hybrid post-quantum KEX. Built-in ssh2 offers mlkem768x25519-sha256
+   * (via patched library + ML-KEM preload) with classical fallback. Combined
+   * with useSystemOpenSsh, system OpenSSH prefers mlkem/sntrup hybrids.
    */
   preferPostQuantumKex?: boolean;
   createdAt?: number; // Timestamp when host was created

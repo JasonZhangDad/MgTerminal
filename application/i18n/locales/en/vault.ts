@@ -767,12 +767,12 @@ export const enVaultMessages: Messages = {
   'hostDetails.section.terminalBehavior': 'Terminal Behavior',
   'hostDetails.lineTimestamps': 'Show output timestamps',
   'hostDetails.lineTimestamps.desc': 'Show local time beside visible output lines for this host without changing terminal text.',
-  'hostDetails.preferPostQuantumKex': 'Prefer post-quantum KEX (system OpenSSH)',
+  'hostDetails.preferPostQuantumKex': 'Prefer post-quantum KEX',
   'hostDetails.preferPostQuantumKex.desc':
-    'Use the system OpenSSH client and prefer hybrid PQ key exchange (mlkem768x25519 / sntrup761x25519 when supported). Falls back to classical KEX if the server rejects PQ. Built-in ssh2 has no hybrid PQ KEX.',
+    'Prefer hybrid PQ key exchange. Built-in stack uses mlkem768x25519-sha256 with classical fallback. With system OpenSSH enabled, also offers sntrup761 hybrids when the platform ssh supports them.',
   'hostDetails.useSystemOpenSsh': 'Use system OpenSSH transport',
   'hostDetails.useSystemOpenSsh.desc':
-    'Spawn the platform ssh binary instead of MagiesTerminal’s built-in ssh2 stack. Required for GSSAPI and for post-quantum KEX preference. Jump hosts ride OpenSSH ProxyJump; HTTP/SOCKS proxies are relayed through the app (not combinable with jump hosts).',
+    'Spawn the platform ssh binary instead of MagiesTerminal’s built-in ssh2 stack. Required for GSSAPI/Kerberos. Jump hosts ride OpenSSH ProxyJump; HTTP/SOCKS proxies are relayed through the app (not combinable with jump hosts).',
   'hostDetails.legacyAlgorithms': 'Allow Legacy Algorithms',
   'hostDetails.legacyAlgorithms.desc': 'Enable deprecated SSH algorithms (diffie-hellman-group1, ssh-dss, 3des-cbc, etc.) for connecting to older network equipment.',
   'hostDetails.legacyAlgorithms.warning': 'These algorithms have known security weaknesses. Only enable for legacy devices that do not support modern cryptography.',

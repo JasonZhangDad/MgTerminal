@@ -11,7 +11,10 @@
 - **포트 포워딩 실시간 채널 보기**: 로컬/원격/동적 포워딩의 연결별 소스, 대상, 트래픽 바이트 통계
 - **스크립트 onOutput 트리거 동작 확장**: 출력 패턴이 일치하면 데스크톱 알림, 알림음, 탭 마커, 세션 녹화 시작 선택 가능
 - **안전 붙여넣기와 정밀 브로드캐스트**: 여러 줄 붙여넣기 지연 / 프롬프트 대기 / 위험 명령 확인. 브로드캐스트는 워크스페이스/선택/그룹/창을 정확히 지정 가능
-- **시스템 OpenSSH 채널 강화**: GSSAPI/Kerberos 및 포스트 양자(PQ) 알고리즘을 시스템 OpenSSH를 통해 지원
+- **시스템 OpenSSH 채널 강화**: GSSAPI/Kerberos 및 포스트 양자(PQ) 알고리즘을 시스템 OpenSSH를 통해 지원; 점프 체인 및 HTTP/SOCKS 프록시 지원
+- **내장 ssh2 하이브리드 포스트 양자 KEX**: `mlkem768x25519-sha256`(ML-KEM-768 + X25519)을 우선 협상하고, 서버 미지원 시 고전 알고리즘으로 폴백; 시스템 ssh 강제 불필요
+- **RDP 호스트 지원**: Vault 호스트에서 RDP를 활성화하고 시스템 원격 데스크톱 클라이언트(Windows mstsc / macOS Windows App / Linux xfreerdp) 실행
+- **변경 로그가 UI 언어를 따름**: 앱 내 Changelog를 현재 UI 언어로 표시(10개 언어)
 
 ### Windows ARM64
 - **win-arm64 설치 패키지에 mosh / ET 번들 추가**: MoshMagies 0.1.9와 EternalTerminal 6.2.10이 Windows arm64 네이티브 바이너리 최초 제공

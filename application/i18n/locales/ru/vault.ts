@@ -793,12 +793,12 @@ export const ruVaultMessages: Messages = {
   'hostDetails.section.terminalBehavior': 'Поведение терминала',
   'hostDetails.lineTimestamps': 'Показывать время вывода',
   'hostDetails.lineTimestamps.desc': 'Показывать локальное время рядом с видимыми строками вывода для этого хоста, не изменяя текст терминала.',
-  'hostDetails.preferPostQuantumKex': 'Предпочитать постквантовый KEX (системный OpenSSH)',
+  'hostDetails.preferPostQuantumKex': 'Предпочитать постквантовый KEX',
   'hostDetails.preferPostQuantumKex.desc':
-    'Использовать системный клиент OpenSSH и предпочитать гибридный постквантовый обмен ключами (mlkem768x25519 / sntrup761x25519 при поддержке). При отказе сервера — откат к классическому KEX. Встроенный ssh2 не поддерживает гибридный PQ KEX.',
+    'Предпочитать гибридный постквантовый обмен ключами. Встроенный стек использует mlkem768x25519-sha256 с откатом к классическому KEX. При включённом системном OpenSSH также предлагаются гибриды sntrup761, если платформенный ssh их поддерживает.',
   'hostDetails.useSystemOpenSsh': 'Использовать транспорт системного OpenSSH',
   'hostDetails.useSystemOpenSsh.desc':
-    'Запускать платформенный ssh вместо встроенного стека ssh2 MagiesTerminal. Нужно для GSSAPI и предпочтения постквантового KEX. Jump-хосты идут через OpenSSH ProxyJump; HTTP/SOCKS-прокси ретранслируются приложением (не сочетаются с jump-хостами).',
+    'Запускать платформенный ssh вместо встроенного стека ssh2 MagiesTerminal. Нужно для GSSAPI/Kerberos. Jump-хосты идут через OpenSSH ProxyJump; HTTP/SOCKS-прокси ретранслируются приложением (не сочетаются с jump-хостами).',
   'hostDetails.legacyAlgorithms': 'Разрешить устаревшие алгоритмы',
   'hostDetails.legacyAlgorithms.desc': 'Включить устаревшие SSH-алгоритмы (diffie-hellman-group1, ssh-dss, 3des-cbc и т. д.) для подключения к старому сетевому оборудованию.',
   'hostDetails.legacyAlgorithms.warning': 'У этих алгоритмов есть известные слабые места безопасности. Включайте только для устаревших устройств, которые не поддерживают современную криптографию.',

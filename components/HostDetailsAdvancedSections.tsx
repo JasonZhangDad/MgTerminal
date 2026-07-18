@@ -335,22 +335,14 @@ export const HostDetailsAdvancedSections: React.FC<HostDetailsAdvancedSectionsPr
             hint={t("hostDetails.preferPostQuantumKex.desc")}
             enabled={!!form.preferPostQuantumKex}
             onToggle={() => {
-              const next = !form.preferPostQuantumKex;
-              update("preferPostQuantumKex", next);
-              if (next) update("useSystemOpenSsh", true);
+              update("preferPostQuantumKex", !form.preferPostQuantumKex);
             }}
           />
           <ToggleRow
             label={t("hostDetails.useSystemOpenSsh")}
             hint={t("hostDetails.useSystemOpenSsh.desc")}
-            enabled={!!(form.useSystemOpenSsh || form.preferPostQuantumKex)}
+            enabled={!!form.useSystemOpenSsh}
             onToggle={() => {
-              if (form.preferPostQuantumKex) {
-                // PQ implies system OpenSSH; turning off system also clears PQ.
-                update("preferPostQuantumKex", false);
-                update("useSystemOpenSsh", false);
-                return;
-              }
               update("useSystemOpenSsh", !form.useSystemOpenSsh);
             }}
           />

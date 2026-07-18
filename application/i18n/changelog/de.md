@@ -11,7 +11,10 @@
 - **Live-Kanalansicht der Portweiterleitung**: Quelle, Ziel und Traffic-Bytes pro Verbindung für lokale/entfernte/dynamische Weiterleitungen
 - **Erweiterte onOutput-Trigger-Aktionen für Skripte**: bei Treffern im Ausgabemuster wahlweise Desktop-Benachrichtigung, Signalton, Tab-Markierung oder Start der Sitzungsaufzeichnung
 - **Sicheres Einfügen und präziser Broadcast**: Verzögerung beim mehrzeiligen Einfügen / Warten auf Prompt / Bestätigung gefährlicher Befehle; Broadcast gezielt an Workspace/Auswahl/Gruppe/Fenster
-- **Verbesserte System-OpenSSH-Kanäle**: GSSAPI/Kerberos und Post-Quanten-Algorithmen (PQ) über das System-OpenSSH unterstützt
+- **Verbesserte System-OpenSSH-Kanäle**: GSSAPI/Kerberos und Post-Quanten-Algorithmen (PQ) über das System-OpenSSH unterstützt; Jump-Ketten und HTTP/SOCKS-Proxys verfügbar
+- **Eingebauter ssh2-Hybrid-Post-Quanten-KEX**: bevorzugt `mlkem768x25519-sha256` (ML-KEM-768 + X25519) mit klassischem Fallback; kein System-ssh erforderlich
+- **RDP-Host-Unterstützung**: RDP für Vault-Hosts aktivieren und den System-Remotedesktop-Client starten (Windows mstsc, macOS Windows App, Linux xfreerdp)
+- **Änderungsprotokoll folgt der UI-Sprache**: In-App-Release-Notes in der aktuellen UI-Sprache (10 Sprachen)
 
 ### Windows ARM64
 - **win-arm64-Installer bündeln jetzt mosh / ET**: MoshMagies 0.1.9 und EternalTerminal 6.2.10 erstmals als native Windows-arm64-Binaries

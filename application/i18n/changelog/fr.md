@@ -11,7 +11,10 @@
 - **Vue en direct des canaux de redirection de ports** : source, cible et statistiques d'octets de trafic par connexion pour les redirections locales/distantes/dynamiques
 - **Extensions d'actions de déclencheur onOutput des scripts** : un motif de sortie détecté peut déclencher une notification de bureau, un son, un marqueur d'onglet ou le démarrage de l'enregistrement de session
 - **Collage sécurisé et diffusion précise** : délai de collage multiligne / attente d'invite / confirmation des commandes dangereuses ; la diffusion peut cibler précisément l'espace de travail/la sélection/le groupe/la fenêtre
-- **Améliorations des canaux OpenSSH système** : GSSAPI/Kerberos et algorithmes post-quantiques (PQ) pris en charge via l'OpenSSH du système
+- **Améliorations des canaux OpenSSH système** : GSSAPI/Kerberos et algorithmes post-quantiques (PQ) pris en charge via l'OpenSSH du système ; chaînes de saut et proxies HTTP/SOCKS disponibles
+- **KEX post-quantique hybride ssh2 intégré** : préfère `mlkem768x25519-sha256` (ML-KEM-768 + X25519) avec repli classique ; n'exige plus le ssh système
+- **Prise en charge des hôtes RDP** : activer RDP sur les hôtes du coffre et lancer le client Bureau à distance du système (Windows mstsc, macOS Windows App, Linux xfreerdp)
+- **Journal des modifications selon la langue de l'interface** : notes de version dans la langue d'interface actuelle (10 langues)
 
 ### Windows ARM64
 - **Les installateurs win-arm64 embarquent désormais mosh / ET** : MoshMagies 0.1.9 et EternalTerminal 6.2.10 inaugurent les binaires natifs Windows arm64

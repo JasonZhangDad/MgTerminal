@@ -11,7 +11,10 @@
 - **Port forwarding live channel view**: per-connection source, target, and traffic byte statistics for local/remote/dynamic forwards
 - **Script onOutput trigger action extensions**: matching output patterns can fire desktop notifications, sounds, tab markers, or start session recording
 - **Safe paste and precise broadcast**: multi-line paste delay / wait-for-prompt / dangerous-command confirmation; broadcast can target workspace/selected/group/window precisely
-- **System OpenSSH channel enhancements**: GSSAPI/Kerberos and post-quantum (PQ) algorithms supported via system OpenSSH
+- **System OpenSSH channel enhancements**: GSSAPI/Kerberos and post-quantum (PQ) algorithms supported via system OpenSSH; jump chains and HTTP/SOCKS proxies available
+- **Built-in ssh2 hybrid post-quantum KEX**: prefers `mlkem768x25519-sha256` (ML-KEM-768 + X25519) with classical fallback; no longer requires system ssh
+- **RDP host support**: enable RDP on Vault hosts and launch the system remote-desktop client (Windows mstsc, macOS Windows App, Linux xfreerdp)
+- **Changelog follows UI language**: in-app release notes render in the current UI locale (10 languages)
 
 ### Windows ARM64
 - **win-arm64 installers now bundle mosh / ET**: MoshMagies 0.1.9 and EternalTerminal 6.2.10 debut native Windows arm64 binaries

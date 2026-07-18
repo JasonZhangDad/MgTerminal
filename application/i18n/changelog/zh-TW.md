@@ -11,7 +11,10 @@
 - **連接埠轉送即時通道檢視**：本機/遠端/動態轉送的逐連線來源、目標與流量位元組統計
 - **指令碼 onOutput 觸發動作擴充**：命中輸出模式可選桌面通知、提示音、標記分頁、開始工作階段錄製
 - **安全貼上與精確廣播**：多行貼上延遲/等待提示符/危險指令確認；廣播可精確指定工作區/選定/分組/視窗
-- **系統 OpenSSH 通道增強**：GSSAPI/Kerberos 與後量子（PQ）演算法經系統 OpenSSH 支援
+- **系統 OpenSSH 通道增強**：GSSAPI/Kerberos 與後量子（PQ）演算法經系統 OpenSSH 支援；支援跳板鏈與 HTTP/SOCKS 代理
+- **內建 ssh2 混合後量子 KEX**：優先協商 `mlkem768x25519-sha256`（ML-KEM-768 + X25519），伺服器不支援時回退經典演算法；不必強制使用系統 ssh
+- **RDP 主機支援**：Vault 主機可啟用 RDP，一鍵啟動系統遠端桌面用戶端（Windows mstsc、macOS Windows App、Linux xfreerdp）
+- **更新日誌跟隨介面語言**：應用內 Changelog 依目前 UI 語言顯示（10 種語言）
 
 ### Windows ARM64
 - **win-arm64 安裝包補齊 mosh / ET 綑綁**：MoshMagies 0.1.9 與 EternalTerminal 6.2.10 首發 Windows arm64 原生二進位

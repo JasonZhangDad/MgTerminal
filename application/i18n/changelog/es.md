@@ -11,7 +11,10 @@
 - **Vista en vivo de canales de reenvío de puertos**: origen, destino y estadísticas de bytes de tráfico por conexión para reenvíos locales/remotos/dinámicos
 - **Ampliación de acciones del disparador onOutput de scripts**: al coincidir un patrón de salida puede lanzar una notificación de escritorio, un sonido, un marcador de pestaña o iniciar la grabación de la sesión
 - **Pegado seguro y difusión precisa**: retardo de pegado multilínea / espera del prompt / confirmación de comandos peligrosos; la difusión puede dirigirse con precisión a espacio de trabajo/selección/grupo/ventana
-- **Mejoras del canal OpenSSH del sistema**: GSSAPI/Kerberos y algoritmos poscuánticos (PQ) admitidos a través del OpenSSH del sistema
+- **Mejoras del canal OpenSSH del sistema**: GSSAPI/Kerberos y algoritmos poscuánticos (PQ) admitidos a través del OpenSSH del sistema; cadenas de salto y proxies HTTP/SOCKS disponibles
+- **KEX poscuántico híbrido de ssh2 integrado**: prefiere `mlkem768x25519-sha256` (ML-KEM-768 + X25519) con respaldo clásico; ya no requiere el ssh del sistema
+- **Soporte de hosts RDP**: habilitar RDP en hosts del Vault y lanzar el cliente de escritorio remoto del sistema (Windows mstsc, macOS Windows App, Linux xfreerdp)
+- **El registro de cambios sigue el idioma de la interfaz**: notas de la versión en el idioma actual de la UI (10 idiomas)
 
 ### Windows ARM64
 - **Los instaladores win-arm64 ya incluyen mosh / ET**: MoshMagies 0.1.9 y EternalTerminal 6.2.10 estrenan binarios nativos de Windows arm64
