@@ -51,7 +51,7 @@ export interface EnvVar {
 }
 
 // Protocol type for connections
-export type HostProtocol = 'ssh' | 'telnet' | 'mosh' | 'et' | 'local' | 'serial';
+export type HostProtocol = 'ssh' | 'telnet' | 'mosh' | 'et' | 'local' | 'serial' | 'rdp';
 export type HostIconMode = 'auto' | 'custom';
 export type HostIconColorMode = 'auto' | 'manual';
 export type HostIconId =
@@ -190,6 +190,8 @@ export interface Host {
   moshServerPath?: string; // Custom mosh-server path (e.g., /usr/local/bin/mosh-server)
   etEnabled?: boolean;
   etPort?: number; // EternalTerminal server port (default: 2022)
+  rdpEnabled?: boolean; // Offer RDP (system client launch) for this host
+  rdpPort?: number; // RDP port (default: 3389)
   theme?: string;
   themeOverride?: boolean; // Explicitly override the global terminal theme for this host
   fontFamily?: string; // Terminal font family for this host

@@ -926,6 +926,12 @@ export const ruVaultMessages: Messages = {
   'hostDetails.section.et': 'EternalTerminal',
   'hostDetails.et.port': 'Порт сервера ET',
   'hostDetails.et.port.desc': 'Порт, который слушает etserver (по умолчанию 2022)',
+  'hostDetails.section.rdp': 'RDP',
+  'hostDetails.rdp.desc': 'Открывает удалённый рабочий стол в системном RDP-клиенте (mstsc / Windows App / xfreerdp)',
+  'hostDetails.rdp.port': 'Порт RDP',
+  'hostDetails.rdp.port.desc': 'Порт службы удалённого рабочего стола (по умолчанию 3389)',
+  'rdp.launchFailed': 'Не удалось запустить RDP-клиент',
+  'rdp.launchUnavailable': 'Запуск RDP недоступен в этой сборке',
 
 
   'hostDetails.testConnection': 'Проверить подключение',

@@ -877,6 +877,10 @@ function createPreloadApi(ctx) {
       hostHealthProgressListeners.delete(cb);
     };
   },
+  // RDP: launch the system RDP client for a vault host
+  launchRdp: async (options) => {
+    return ipcRenderer.invoke("magiesTerminal:rdp:launch", options);
+  },
   // Connection diagnostics ("Test Connection")
   runConnectionDiagnostics: async (options) => {
     return ipcRenderer.invoke("magiesTerminal:diagnostics:run", options);
