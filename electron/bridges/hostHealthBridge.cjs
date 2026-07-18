@@ -137,10 +137,19 @@ const createHostProber = (event, runId, sshBridge) => async (hostRequest) => {
 
   if (!probe.ok) {
     closeAll(null);
+    // Prefer a human-readable reason over the generic ssh2 failure string.
+    let error = probe.error;
+    if (probe.needsInteractive) {
+      error = "Server requires interactive authentication (e.g. MFA)";
+    } else if (probe.encryptedKeySkipped && !probe.methodsTried?.length) {
+      error = "Configured private key is encrypted and no passphrase is saved";
+    } else if (!probe.methodsTried?.length) {
+      error = probe.error || "No usable authentication credentials available";
+    }
     return {
       status: summarizeHealthStatus({ tcpOk: true, authOk: false }),
       latencyMs,
-      error: probe.error,
+      error,
       needsInteractive: probe.needsInteractive,
       checkedAt,
     };

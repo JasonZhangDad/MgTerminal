@@ -20,6 +20,7 @@ const {
   expandIdentityFilePath,
   findAllDefaultPrivateKeys,
   getAvailableAgentSocket,
+  isAutoFillablePasswordChallenge,
   isKeyEncrypted,
   isPasswordProvided,
   looksLikePrivateKey,
@@ -131,6 +132,8 @@ const connectTargetProbe = (runId, buildAlgorithms) => async ({
     username: options.username || "root",
     timeout: DIAG_TCP_TIMEOUT_MS,
     readyTimeout: DIAG_READY_TIMEOUT_MS,
+    // Enabled below when a saved password is available so PAM-style hosts
+    // that only advertise keyboard-interactive (not "password") can auth.
     tryKeyboard: false,
     algorithms: buildAlgorithms(options.legacyAlgorithms, {
       skipEcdsaHostKey: options.skipEcdsaHostKey,
@@ -196,7 +199,16 @@ const connectTargetProbe = (runId, buildAlgorithms) => async ({
     methods.push({ type: "agent", id: "agent", label: "SSH agent" });
   }
   if (hasPassword) {
+    // Many PAM-backed servers only advertise keyboard-interactive for the
+    // password challenge (see #969 / moshStatsConnection). Offer both.
     methods.push({ type: "password", id: "password", label: "password" });
+    methods.push({
+      type: "keyboard-interactive",
+      id: "keyboard-interactive",
+      label: "keyboard-interactive",
+    });
+    connectOpts.tryKeyboard = true;
+    connectOpts.password = options.password;
   }
   for (const keyInfo of usableDefaultKeys) {
     methods.push({
@@ -205,6 +217,18 @@ const connectTargetProbe = (runId, buildAlgorithms) => async ({
       id: `publickey-default-${keyInfo.keyName}`,
       label: `key ${keyInfo.keyName}`,
     });
+  }
+
+  if (methods.length === 0) {
+    return {
+      ok: false,
+      error: keyProbe.encryptedKeySkipped
+        ? "Configured private key is encrypted and no passphrase is saved"
+        : "No usable authentication credentials available for probe",
+      methodsTried: [],
+      needsInteractive: false,
+      encryptedKeySkipped: keyProbe.encryptedKeySkipped,
+    };
   }
 
   return await new Promise((resolve) => {
@@ -250,6 +274,11 @@ const connectTargetProbe = (runId, buildAlgorithms) => async ({
             password: options.password,
           });
         }
+        if (method.type === "keyboard-interactive") {
+          // String form lets ssh2 fire the keyboard-interactive event, which
+          // we answer non-interactively with the saved password when possible.
+          return callback("keyboard-interactive");
+        }
         return callback({
           type: "publickey",
           username: connectOpts.username,
@@ -257,11 +286,27 @@ const connectTargetProbe = (runId, buildAlgorithms) => async ({
           passphrase: method.passphrase,
         });
       }
-      if (available.includes("keyboard-interactive")) {
+      if (available.includes("keyboard-interactive") && !hasPassword) {
         needsInteractive = true;
       }
       return callback(false);
     };
+
+    // Non-interactive keyboard-interactive: auto-fill a single password
+    // prompt; finish empty on MFA/OTP so the probe fails cleanly (no modal).
+    if (connectOpts.tryKeyboard && hasPassword) {
+      let autoFilledOnce = false;
+      conn.on("keyboard-interactive", (_name, _instr, _lang, prompts, finishKbd) => {
+        if (!autoFilledOnce && isAutoFillablePasswordChallenge(prompts, options.password)) {
+          autoFilledOnce = true;
+          finishKbd([options.password]);
+          return;
+        }
+        // Multi-prompt / OTP / second attempt: mark interactive and bail.
+        needsInteractive = true;
+        finishKbd([]);
+      });
+    }
 
     conn.on("ready", () => {
       if (settled) return;
