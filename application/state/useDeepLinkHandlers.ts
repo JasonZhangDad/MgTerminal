@@ -4,7 +4,7 @@
  * matching, ephemeral host creation, and the connect flow.
  */
 
-import { useEffect, useEffectEvent } from 'react';
+import React, { useEffect, useEffectEvent } from 'react';
 import {
   buildSshDeepLinkConnectionHost,
   buildSshDeepLinkHostDraft,

@@ -10,6 +10,8 @@ declare global {
       releaseNotes?: string;
       releaseDate?: string | null;
       error?: string;
+      ready?: boolean;
+      downloading?: boolean;
     }>;
     downloadUpdate?(): Promise<{ success: boolean; error?: string }>;
     installUpdate?(): Promise<{

@@ -323,7 +323,7 @@ export const useVaultState = () => {
   }, []);
 
   const updateHosts = useCallback((data: Host[]) => {
-    const cleaned = normalizeVaultOrder(data.map(sanitizeHost));
+    const cleaned = normalizeVaultOrder(data.map((host) => sanitizeHost(host)));
     setHosts(cleaned);
     const ver = ++hostsWriteVersion.current;
     return encryptHosts(cleaned).then((enc) => {
@@ -674,7 +674,7 @@ export const useVaultState = () => {
           if (ver === hostsWriteVersion.current) {
             const sanitized = normalizeVaultOrder(
               migrateHostsFromLegacyLineTimestamps(
-                nextHosts.map(sanitizeHost),
+                nextHosts.map((host) => sanitizeHost(host)),
                 readLegacyLineTimestampsEnabled(),
               ),
             );
@@ -897,7 +897,7 @@ export const useVaultState = () => {
     ]);
 
     if (hostVer === hostsWriteVersion.current) {
-      const sanitized = normalizeVaultOrder(decHosts.map(sanitizeHost));
+      const sanitized = normalizeVaultOrder(decHosts.map((host) => sanitizeHost(host)));
       setHosts(sanitized);
       encryptHosts(sanitized).then((enc) => {
         if (hostVer === hostsWriteVersion.current)
@@ -970,7 +970,7 @@ export const useVaultState = () => {
           // Discard if a newer storage event arrived OR a local write occurred
           // during the decrypt (writeVersion would have advanced).
           if (seq === hostsReadSeq.current && writeAtStart === hostsWriteVersion.current)
-            setHosts(normalizeVaultOrder(dec.map(sanitizeHost)));
+            setHosts(normalizeVaultOrder(dec.map((host) => sanitizeHost(host))));
         });
         return;
       }

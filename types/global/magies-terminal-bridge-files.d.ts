@@ -114,8 +114,14 @@ declare global {
     }): Promise<{ success: boolean; error?: string; message?: string }>;
 
     // Main-process device-unlock boundary for vault secrets
-    vaultUnlockStatus?(): Promise<{ enabled: boolean; locked: boolean; hasPin: boolean }>;
-    vaultUnlockWithPin?(pin: string): Promise<{ success: boolean; error?: string }>;
+    vaultUnlockStatus?(): Promise<{
+      enabled: boolean;
+      locked: boolean;
+      hasPin: boolean;
+      hasWebAuthn?: boolean;
+      webauthnCredentialId?: string | null;
+    }>;
+    vaultUnlockWithPin?(pin: string): Promise<{ success: boolean; error?: string; retryAfterMs?: number }>;
     vaultUnlockWithPlatform?(payload?: {
       reason?: string;
     }): Promise<{ success: boolean; error?: string }>;
@@ -124,12 +130,41 @@ declare global {
       pin?: string;
       disable?: boolean;
       enabled?: boolean;
-    }): Promise<{ success: boolean; error?: string; status?: { enabled: boolean; locked: boolean; hasPin: boolean } }>;
+      currentPin?: string;
+    }): Promise<{ success: boolean; error?: string; retryAfterMs?: number; status?: { enabled: boolean; locked: boolean; hasPin: boolean } }>;
     vaultAdoptLegacyUnlockConfig?(legacy: unknown): Promise<{
       success: boolean;
       adopted?: boolean;
       status?: { enabled: boolean; locked: boolean; hasPin: boolean };
     }>;
+    vaultBeginWebAuthnChallenge?(payload?: {
+      purpose?: "assert" | "register";
+    }): Promise<{
+      success: boolean;
+      error?: string;
+      challengeId?: string;
+      challenge?: string;
+      expiresAt?: number;
+      purpose?: string;
+      rpId?: string;
+      credential?: { credentialId: string; publicKeySpki: string; rpId: string } | null;
+    }>;
+    vaultCompleteWebAuthnRegistration?(payload: {
+      challengeId?: string;
+      challenge?: string;
+      credentialId?: string;
+      publicKeySpki?: string;
+      rpId?: string;
+      algorithm?: number;
+      transports?: string[];
+    }): Promise<{ success: boolean; error?: string; status?: unknown }>;
+    vaultUnlockWithWebAuthn?(payload: {
+      challengeId?: string;
+      authenticatorData?: string;
+      clientDataJSON?: string;
+      signature?: string;
+    }): Promise<{ success: boolean; error?: string }>;
+    vaultClearWebAuthn?(input?: { currentPin?: string }): Promise<{ success: boolean; error?: string; status?: unknown }>;
 
     // Credential encryption (safeStorage + local vault fallback)
     credentialsAvailable?(): Promise<boolean>;

@@ -408,7 +408,9 @@ function registerHandlers(ipcMain, electronModule, options = {}) {
     };
   });
 
-  ipcMain.handle("magiesTerminal:credentials:encrypt", (_event, plaintext) => {
+  const { withTrustedIpcSender } = require("./ipcSenderGuard.cjs");
+
+  ipcMain.handle("magiesTerminal:credentials:encrypt", withTrustedIpcSender((_event, plaintext) => {
     if (typeof plaintext !== "string" || plaintext.length === 0) {
       return plaintext ?? "";
     }
@@ -416,9 +418,15 @@ function registerHandlers(ipcMain, electronModule, options = {}) {
       return plaintext;
     }
     return encryptValue(plaintext);
-  });
+  }, {
+    errorResult: (error) => {
+      const err = new Error(`Untrusted IPC sender: ${error}`);
+      err.code = "ERR_IPC_UNTRUSTED";
+      throw err;
+    },
+  }));
 
-  ipcMain.handle("magiesTerminal:credentials:decrypt", (_event, value) => {
+  ipcMain.handle("magiesTerminal:credentials:decrypt", withTrustedIpcSender((_event, value) => {
     // Device-unlock boundary: while the vault is locked, no renderer (or
     // DevTools/peer window) may decrypt secrets, regardless of any renderer-side
     // unlock flag. assertUnlocked throws ERR_VAULT_LOCKED when locked.
@@ -438,7 +446,13 @@ function registerHandlers(ipcMain, electronModule, options = {}) {
       );
     }
     return result;
-  });
+  }, {
+    errorResult: (error) => {
+      const err = new Error(`Untrusted IPC sender: ${error}`);
+      err.code = "ERR_IPC_UNTRUSTED";
+      throw err;
+    },
+  }));
 }
 
 module.exports = {

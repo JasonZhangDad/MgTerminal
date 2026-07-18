@@ -380,7 +380,7 @@ export const startPortForward = async (
   identities: Identity[],
   onStatusChange: (status: PortForwardingRule['status'], error?: string) => void,
   enableReconnect = false,
-  terminalSettings?: Pick<TerminalSettings, 'verifyHostKeys' | 'keepaliveInterval' | 'keepaliveCountMax'>,
+  terminalSettings?: Partial<Pick<TerminalSettings, 'verifyHostKeys' | 'keepaliveInterval' | 'keepaliveCountMax'>>,
   knownHosts?: KnownHost[],
 ): Promise<{ success: boolean; error?: string }> => {
   const globalTerminalSettings = { ...FALLBACK_TERMINAL_SETTINGS, ...(terminalSettings ?? {}) };

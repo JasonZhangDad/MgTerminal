@@ -566,25 +566,31 @@ export function useUpdateCheck(options?: {
         downloadError: null,
       }));
       const result = await bridge.installUpdate();
-      if (result?.success) {
+      // installUpdate may return void on some platforms; narrow before property access.
+      if (result && typeof result === 'object') {
+        if (result.success) {
+          return;
+        }
+        if (result.needsSave) {
+          autoDownloadStatusRef.current = 'ready';
+          setUpdateState((prev) => ({ ...prev, autoDownloadStatus: 'ready' }));
+          return;
+        }
+        const error = result.error || 'Update installer did not start.';
+        if (result.unsupported) {
+          openReleasePage();
+        }
+        onInstallFailedRef.current?.(error);
+        autoDownloadStatusRef.current = 'error';
+        setUpdateState((prev) => ({
+          ...prev,
+          autoDownloadStatus: 'error',
+          downloadError: error,
+        }));
         return;
       }
-      if (result?.needsSave) {
-        autoDownloadStatusRef.current = 'ready';
-        setUpdateState((prev) => ({ ...prev, autoDownloadStatus: 'ready' }));
-        return;
-      }
-      const error = result?.error || 'Update installer did not start.';
-      if (result?.unsupported) {
-        openReleasePage();
-      }
-      onInstallFailedRef.current?.(error);
-      autoDownloadStatusRef.current = 'error';
-      setUpdateState((prev) => ({
-        ...prev,
-        autoDownloadStatus: 'error',
-        downloadError: error,
-      }));
+      // void / undefined: treat as started (legacy path).
+      return;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Install failed';
       onInstallFailedRef.current?.(message);

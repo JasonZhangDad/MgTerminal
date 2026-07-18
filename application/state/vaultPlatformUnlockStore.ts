@@ -43,7 +43,7 @@ export function isVaultPlatformUnlockRequired(): boolean {
 export async function enableVaultPlatformUnlockWithPin(pin: string): Promise<VaultPlatformUnlockConfig> {
   const valid = validateVaultPlatformUnlockPin(pin);
   if (!valid.ok) {
-    throw new Error(valid.reason);
+    throw new Error("reason" in valid ? valid.reason : "invalid_pin");
   }
   const hashed = await hashVaultPlatformUnlockPin(pin);
   const config: VaultPlatformUnlockConfig = {

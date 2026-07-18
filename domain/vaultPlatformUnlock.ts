@@ -54,8 +54,11 @@ export function validateVaultPlatformUnlockPin(pin: string): { ok: true } | { ok
   return { ok: true };
 }
 
-function toHex(buffer: ArrayBuffer): string {
-  return Array.from(new Uint8Array(buffer))
+function toHex(buffer: ArrayBuffer | ArrayBufferView): string {
+  const bytes = buffer instanceof ArrayBuffer
+    ? new Uint8Array(buffer)
+    : new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength);
+  return Array.from(bytes)
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
 }
@@ -78,9 +81,11 @@ export async function hashVaultPlatformUnlockPin(
   if (!cryptoApi?.subtle) {
     throw new Error("Web Crypto unavailable for PIN hashing.");
   }
-  const salt = saltHex
+  const saltBytes = saltHex
     ? fromHex(saltHex)
     : cryptoApi.getRandomValues(new Uint8Array(16));
+  // Copy into a plain ArrayBuffer-backed view for Web Crypto BufferSource typing.
+  const salt = new Uint8Array(saltBytes);
   const keyMaterial = await cryptoApi.subtle.importKey(
     "raw",
     new TextEncoder().encode(pin.trim()),
@@ -100,7 +105,7 @@ export async function hashVaultPlatformUnlockPin(
   );
   return {
     pinHash: toHex(bits),
-    pinSalt: toHex(salt.buffer.slice(salt.byteOffset, salt.byteOffset + salt.byteLength)),
+    pinSalt: toHex(salt),
     pinIterations: iterations,
   };
 }

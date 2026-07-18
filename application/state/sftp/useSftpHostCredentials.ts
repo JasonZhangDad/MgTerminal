@@ -27,7 +27,7 @@ interface UseSftpHostCredentialsParams {
   keys: SSHKey[];
   identities: Identity[];
   knownHosts?: KnownHost[];
-  terminalSettings?: Pick<TerminalSettings, 'verifyHostKeys' | 'keepaliveInterval' | 'keepaliveCountMax'>;
+  terminalSettings?: Partial<Pick<TerminalSettings, 'verifyHostKeys' | 'keepaliveInterval' | 'keepaliveCountMax'>>;
 }
 
 /**

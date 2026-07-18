@@ -10,6 +10,7 @@ const crypto = require("node:crypto");
 const follow = require("./sessionFollowManager.cjs");
 const { addTerminalDataTap } = require("./emitTerminalSessionData.cjs");
 const { createFollowRelayServer } = require("./sessionFollowRelay.cjs");
+const { openFollowFrame, writeSealed } = require("./sessionFollowCrypto.cjs");
 
 const INVITE_TTL_MS = 30 * 60 * 1000;
 const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -40,13 +41,27 @@ function formatCode(token) {
   return `${code.slice(0, 4)}-${code.slice(4)}`;
 }
 
-function sendJson(socket, obj) {
+/** Cleartext control frames (relayJoin / relayWelcome / relay errors). */
+function sendClearJson(socket, obj) {
   if (!socket || socket.destroyed) return;
   try {
     socket.write(`${JSON.stringify(obj)}\n`);
   } catch {
     // ignore
   }
+}
+
+/** Application frames sealed with the invite token (E2E; relay is opaque). */
+function sendAppJson(socket, obj, token) {
+  writeSealed(socket, obj, token);
+}
+
+function sendJson(socket, obj, token) {
+  if (token) {
+    sendAppJson(socket, obj, token);
+    return;
+  }
+  sendClearJson(socket, obj);
 }
 
 function encodeShare(payload) {
@@ -89,7 +104,7 @@ function ensureDataTap() {
   addDataTap((sessionId, data) => {
     const runtime = hostRuntimes.get(sessionId);
     if (!runtime?.socket || runtime.socket.destroyed) return;
-    sendJson(runtime.socket, { type: "data", data });
+    sendAppJson(runtime.socket, { type: "data", data }, runtime.token);
   });
 }
 
@@ -215,7 +230,7 @@ async function createWanInvite({
   };
   hostRuntimes.set(sessionId, runtime);
 
-  sendJson(socket, {
+  sendClearJson(socket, {
     type: "relayJoin",
     role: "host",
     roomId,
@@ -237,7 +252,28 @@ async function createWanInvite({
       } catch {
         continue;
       }
-      handleHostRelayMessage(sessionId, runtime, msg);
+      // Clear relay control frames.
+      if (
+        msg.type === "relayWelcome"
+        || msg.type === "viewerJoined"
+        || msg.type === "viewerLeft"
+        || msg.type === "error"
+        || msg.type === "closed"
+      ) {
+        handleHostRelayMessage(sessionId, runtime, msg);
+        continue;
+      }
+      // Sealed viewer application frame wrapped by the relay.
+      if (msg.type === "relayViewerFrame" && typeof msg.frame === "string") {
+        const opened = openFollowFrame(msg.frame, runtime.token);
+        if (!opened.ok) continue;
+        handleHostRelayMessage(sessionId, runtime, {
+          ...opened.msg,
+          peerId: String(msg.peerId || ""),
+        });
+        continue;
+      }
+      // Legacy cleartext app frames (should not appear after E2E) — ignore.
     }
   });
   socket.on("close", () => {
@@ -247,8 +283,8 @@ async function createWanInvite({
     if (hostRuntimes.get(sessionId) === runtime) hostRuntimes.delete(sessionId);
   });
 
-  // Push initial state once connected
-  sendJson(socket, { type: "state", state: follow.getState(sessionId) });
+  // Push initial state once connected (sealed app frame).
+  sendAppJson(socket, { type: "state", state: follow.getState(sessionId) }, token);
 
   const payload = {
     v: 2,
@@ -275,6 +311,7 @@ async function createWanInvite({
 
 function handleHostRelayMessage(sessionId, runtime, msg) {
   if (!msg || typeof msg !== "object") return;
+  const token = runtime.token;
 
   if (msg.type === "viewerJoined") {
     const peerId = String(msg.peerId || "");
@@ -286,14 +323,14 @@ function handleHostRelayMessage(sessionId, runtime, msg) {
     );
     if (joined.success) {
       runtime.peerMap.set(peerId, peerId);
-      sendJson(runtime.socket, {
+      sendAppJson(runtime.socket, {
         type: "welcome",
         peerId,
         sessionId,
         hostLabel: runtime.hostLabel,
         state: joined.state,
-      });
-      sendJson(runtime.socket, { type: "state", state: follow.getState(sessionId) });
+      }, token);
+      sendAppJson(runtime.socket, { type: "state", state: follow.getState(sessionId) }, token);
     }
     return;
   }
@@ -301,7 +338,7 @@ function handleHostRelayMessage(sessionId, runtime, msg) {
   if (msg.type === "viewerLeft") {
     const peerId = String(msg.peerId || "");
     if (peerId) follow.leaveFollowByPeerId(sessionId, peerId);
-    sendJson(runtime.socket, { type: "state", state: follow.getState(sessionId) });
+    sendAppJson(runtime.socket, { type: "state", state: follow.getState(sessionId) }, token);
     return;
   }
 
@@ -309,11 +346,11 @@ function handleHostRelayMessage(sessionId, runtime, msg) {
     const peerId = String(msg.peerId || "");
     const gate = follow.shouldBlockWriteByPeerId(sessionId, peerId);
     if (gate.blocked) {
-      sendJson(runtime.socket, {
+      sendAppJson(runtime.socket, {
         type: "inputDenied",
         peerId,
         reason: gate.reason || "not_controller",
-      });
+      }, token);
       return;
     }
     if (typeof writeToSessionNow === "function") {
@@ -330,7 +367,7 @@ function handleHostRelayMessage(sessionId, runtime, msg) {
     const peerId = String(msg.peerId || "");
     if (!peerId) return;
     follow.requestControlByPeerId(sessionId, peerId);
-    sendJson(runtime.socket, { type: "state", state: follow.getState(sessionId) });
+    sendAppJson(runtime.socket, { type: "state", state: follow.getState(sessionId) }, token);
   }
 }
 
@@ -400,7 +437,7 @@ function connectAsViewer({ shareString, displayName, onEvent }) {
     }, 12_000);
 
     socket.once("connect", () => {
-      sendJson(socket, {
+      sendClearJson(socket, {
         type: "relayJoin",
         role: "viewer",
         roomId: payload.roomId,
@@ -417,11 +454,17 @@ function connectAsViewer({ shareString, displayName, onEvent }) {
         const line = buffer.slice(0, idx).trim();
         buffer = buffer.slice(idx + 1);
         if (!line) continue;
+        // Prefer sealed app frames; fall back to clear control JSON.
+        const opened = openFollowFrame(line, payload.token);
         let msg;
-        try {
-          msg = JSON.parse(line);
-        } catch {
-          continue;
+        if (opened.ok) {
+          msg = opened.msg;
+        } else {
+          try {
+            msg = JSON.parse(line);
+          } catch {
+            continue;
+          }
         }
         if (msg.type === "relayWelcome" && !settled) {
           clearTimeout(timer);
@@ -462,14 +505,14 @@ function connectAsViewer({ shareString, displayName, onEvent }) {
 function viewerInput(clientKey, data) {
   const client = viewerClients.get(clientKey);
   if (!client?.socket) return { success: false, error: "not_connected" };
-  sendJson(client.socket, { type: "input", data: String(data ?? "") });
+  sendAppJson(client.socket, { type: "input", data: String(data ?? "") }, client.payload.token);
   return { success: true };
 }
 
 function viewerRequestControl(clientKey) {
   const client = viewerClients.get(clientKey);
   if (!client?.socket) return { success: false, error: "not_connected" };
-  sendJson(client.socket, { type: "requestControl" });
+  sendAppJson(client.socket, { type: "requestControl" }, client.payload.token);
   return { success: true };
 }
 

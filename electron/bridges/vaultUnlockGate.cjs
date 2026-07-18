@@ -455,21 +455,27 @@ function verifyAssertionEs256(input) {
 
 function registerHandlers(ipcMain, gate) {
   if (!ipcMain || !gate) return;
-  ipcMain.handle("magiesTerminal:vault:unlockStatus", () => gate.status());
-  ipcMain.handle("magiesTerminal:vault:unlockWithPin", (_event, pin) => gate.unlockWithPin(pin));
-  ipcMain.handle("magiesTerminal:vault:unlockWithPlatform", (_event, payload) =>
-    gate.unlockWithPlatform(payload?.reason));
-  ipcMain.handle("magiesTerminal:vault:beginWebAuthnChallenge", (_event, payload) =>
-    gate.beginWebAuthnChallenge(payload?.purpose || "assert"));
-  ipcMain.handle("magiesTerminal:vault:completeWebAuthnRegistration", (_event, payload) =>
-    gate.completeWebAuthnRegistration(payload));
-  ipcMain.handle("magiesTerminal:vault:unlockWithWebAuthn", (_event, payload) =>
-    gate.unlockWithWebAuthn(payload));
-  ipcMain.handle("magiesTerminal:vault:clearWebAuthn", (_event, input) => gate.clearWebAuthn(input || {}));
-  ipcMain.handle("magiesTerminal:vault:lock", () => gate.lock());
-  ipcMain.handle("magiesTerminal:vault:configureUnlock", (_event, input) => gate.configure(input));
-  ipcMain.handle("magiesTerminal:vault:adoptLegacyUnlockConfig", (_event, legacy) =>
-    gate.adoptLegacyConfig(legacy));
+  const { withTrustedIpcSender } = require("./ipcSenderGuard.cjs");
+  const guard = (fn) => withTrustedIpcSender(fn, {
+    errorResult: (error) => ({ success: false, error }),
+  });
+
+  ipcMain.handle("magiesTerminal:vault:unlockStatus", guard(() => gate.status()));
+  ipcMain.handle("magiesTerminal:vault:unlockWithPin", guard((_event, pin) => gate.unlockWithPin(pin)));
+  ipcMain.handle("magiesTerminal:vault:unlockWithPlatform", guard((_event, payload) =>
+    gate.unlockWithPlatform(payload?.reason)));
+  ipcMain.handle("magiesTerminal:vault:beginWebAuthnChallenge", guard((_event, payload) =>
+    gate.beginWebAuthnChallenge(payload?.purpose || "assert")));
+  ipcMain.handle("magiesTerminal:vault:completeWebAuthnRegistration", guard((_event, payload) =>
+    gate.completeWebAuthnRegistration(payload)));
+  ipcMain.handle("magiesTerminal:vault:unlockWithWebAuthn", guard((_event, payload) =>
+    gate.unlockWithWebAuthn(payload)));
+  ipcMain.handle("magiesTerminal:vault:clearWebAuthn", guard((_event, input) =>
+    gate.clearWebAuthn(input || {})));
+  ipcMain.handle("magiesTerminal:vault:lock", guard(() => gate.lock()));
+  ipcMain.handle("magiesTerminal:vault:configureUnlock", guard((_event, input) => gate.configure(input)));
+  ipcMain.handle("magiesTerminal:vault:adoptLegacyUnlockConfig", guard((_event, legacy) =>
+    gate.adoptLegacyConfig(legacy)));
 }
 
 module.exports = {

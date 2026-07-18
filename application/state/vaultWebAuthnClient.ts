@@ -131,7 +131,13 @@ export async function unlockVaultWithWebAuthn(): Promise<boolean> {
       purpose: "assert",
     },
     rpId: challengeRes.credential.rpId || resolveRpId(),
-    credential: challengeRes.credential,
+    credential: {
+      credentialId: challengeRes.credential.credentialId,
+      publicKeySpki: challengeRes.credential.publicKeySpki,
+      rpId: challengeRes.credential.rpId,
+      algorithm: -7,
+      createdAt: 0,
+    },
   });
 
   const publicKey: PublicKeyCredentialRequestOptions = {

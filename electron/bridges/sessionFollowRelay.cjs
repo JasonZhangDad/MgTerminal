@@ -4,9 +4,14 @@
  * Lightweight TCP NDJSON room relay for WAN follow.
  * Host and viewers dial out to the relay (NAT-friendly). No WebSocket dependency.
  *
- * First line after connect:
+ * First line after connect (cleartext control):
  *   { type: "relayJoin", role: "host"|"viewer", roomId, token, displayName? }
- * Then the same session-follow frame types as LAN (data/state/input/...).
+ *
+ * After join, application frames are treated as opaque lines (E2E sealed by
+ * peers with the invite token). The relay must not re-parse or re-encode them:
+ *   - host → viewers: forward the raw line
+ *   - viewer → host: wrap as { type: "relayViewerFrame", peerId, frame: <raw line> }
+ * Control notices from the relay itself stay cleartext (viewerJoined/Left, …).
  */
 
 const net = require("node:net");
@@ -93,18 +98,19 @@ function createFollowRelayServer(options = {}) {
       }
       let idx;
       while ((idx = buffer.indexOf("\n")) >= 0) {
-        const line = buffer.slice(0, idx).trim();
+        const rawLine = buffer.slice(0, idx);
+        const line = rawLine.trim();
         buffer = buffer.slice(idx + 1);
         if (!line) continue;
-        let msg;
-        try {
-          msg = JSON.parse(line);
-        } catch {
-          sendJson(socket, { type: "error", error: "bad_json" });
-          continue;
-        }
 
         if (!joined) {
+          let msg;
+          try {
+            msg = JSON.parse(line);
+          } catch {
+            sendJson(socket, { type: "error", error: "bad_json" });
+            continue;
+          }
           if (msg.type !== "relayJoin") {
             sendJson(socket, { type: "error", error: "expected_relayJoin" });
             socket.destroy();
@@ -177,8 +183,8 @@ function createFollowRelayServer(options = {}) {
         }
 
         if (meta.role === "host") {
-          // Fan-out to all viewers (data/state/welcome/inputDenied/error/closed)
-          const out = `${JSON.stringify(msg)}\n`;
+          // Opaque fan-out: do not parse/re-encode application frames.
+          const out = `${line}\n`;
           for (const viewer of room.viewers.values()) {
             if (!viewer || viewer.destroyed) continue;
             try { viewer.write(out); } catch { /* ignore */ }
@@ -186,11 +192,12 @@ function createFollowRelayServer(options = {}) {
           continue;
         }
 
-        // viewer → host only
+        // viewer → host: attach peerId outside the sealed payload.
         if (room.hostSocket && !room.hostSocket.destroyed) {
           sendJson(room.hostSocket, {
-            ...msg,
+            type: "relayViewerFrame",
             peerId: meta.peerId,
+            frame: line,
           });
         } else {
           sendJson(socket, { type: "error", error: "host_offline" });
