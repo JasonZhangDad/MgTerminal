@@ -1,6 +1,11 @@
 # Journal des modifications
 
 
+## [0.5.7] - 2026-07-18
+
+### Fonctionnalités
+- **Rapports de plantage anonymes (opt-in)** : désactivé par défaut ; une fois activé dans Paramètres → Système, des résumés de plantage assainis (sans chemins, noms d'utilisateur, noms d'hôte ni données de session) sont envoyés pour corriger les plantages plus vite
+
 ## [0.5.6] - 2026-07-18
 
 ### Sécurité

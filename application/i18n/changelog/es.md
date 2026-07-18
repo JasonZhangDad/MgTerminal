@@ -1,6 +1,11 @@
 # Registro de cambios
 
 
+## [0.5.7] - 2026-07-18
+
+### Funciones
+- **Informes de fallos anónimos (opcional)**: desactivado por defecto; al activarlo en Ajustes → Sistema, se envían resúmenes de fallos depurados (sin rutas, nombres de usuario, hosts ni datos de sesión) para corregir fallos más rápido
+
 ## [0.5.6] - 2026-07-18
 
 ### Seguridad

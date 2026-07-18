@@ -1,6 +1,11 @@
 # Changelog
 
 
+## [0.5.7] - 2026-07-18
+
+### Features
+- **Opt-in anonymous crash reporting**: off by default; when enabled in Settings → System, sanitized crash summaries (no paths, usernames, hostnames, or session data) are sent to help fix crashes faster
+
 ## [0.5.6] - 2026-07-18
 
 ### Security
