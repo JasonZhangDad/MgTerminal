@@ -30,6 +30,16 @@ type LanInviteInfo = {
   peerCount?: number;
 };
 
+type WanInviteInfo = {
+  relayHost: string;
+  relayPort: number;
+  roomId: string;
+  code: string;
+  shareString: string;
+  expiresAt: number;
+  localRelay?: boolean;
+};
+
 export const SessionFollowToolbarControl: React.FC<SessionFollowToolbarControlProps> = ({
   sessionId,
   hostLabel,
@@ -39,6 +49,7 @@ export const SessionFollowToolbarControl: React.FC<SessionFollowToolbarControlPr
   const [state, setState] = useState<SessionFollowPublicState | null>(null);
   const [busy, setBusy] = useState(false);
   const [lanInvite, setLanInvite] = useState<LanInviteInfo | null>(null);
+  const [wanInvite, setWanInvite] = useState<WanInviteInfo | null>(null);
   const [joinOpen, setJoinOpen] = useState(false);
   const [joinValue, setJoinValue] = useState("");
   const [auditOpen, setAuditOpen] = useState(false);
@@ -170,15 +181,43 @@ export const SessionFollowToolbarControl: React.FC<SessionFollowToolbarControlPr
     }
   }, [hostLabel, sessionId, t]);
 
-  const handleCopyShare = useCallback(async () => {
-    if (!lanInvite?.shareString) return;
+  const handleWanInvite = useCallback(async () => {
+    const bridge = magiesTerminalBridge.get();
+    if (!bridge?.followWanCreateInvite) {
+      toast.error(t("terminal.follow.error.unavailable"));
+      return;
+    }
+    setBusy(true);
     try {
-      await navigator.clipboard.writeText(lanInvite.shareString);
+      // Default: embedded local relay (same machine / port-forward). Pass
+      // relayHost/relayPort for a public VPS running scripts/follow-relay.cjs.
+      const result = await bridge.followWanCreateInvite({
+        sessionId,
+        hostLabel: hostLabel || sessionId,
+        useLocalRelay: true,
+      });
+      if (!result?.success || !result.invite) {
+        toast.error(result?.error || t("terminal.follow.wan.error.create") || "WAN invite failed");
+        return;
+      }
+      setWanInvite(result.invite as WanInviteInfo);
+      if (result.state) setState(result.state as SessionFollowPublicState);
+      toast.success(t("terminal.follow.wan.created") || "WAN follow invite ready");
+    } finally {
+      setBusy(false);
+    }
+  }, [hostLabel, sessionId, t]);
+
+  const handleCopyShare = useCallback(async () => {
+    const share = wanInvite?.shareString || lanInvite?.shareString;
+    if (!share) return;
+    try {
+      await navigator.clipboard.writeText(share);
       toast.success(t("terminal.follow.lan.copied"));
     } catch {
       toast.error(t("terminal.follow.lan.copyFailed"));
     }
-  }, [lanInvite, t]);
+  }, [lanInvite, wanInvite, t]);
 
   const handleGrant = useCallback(async (targetPeerId: string) => {
     const bridge = magiesTerminalBridge.get();
@@ -354,6 +393,10 @@ export const SessionFollowToolbarControl: React.FC<SessionFollowToolbarControlPr
                 <Network size={12} className="mr-1" />
                 {t("terminal.follow.lan.create")}
               </Button>
+              <Button size="sm" variant="outline" className="w-full h-8 text-xs" disabled={busy} onClick={() => void handleWanInvite()}>
+                <Network size={12} className="mr-1" />
+                {t("terminal.follow.wan.create") || "WAN invite (relay)"}
+              </Button>
               {lanInvite && (
                 <div className="rounded-md border border-border/50 p-2 space-y-1.5 text-[11px]">
                   <div className="font-medium">{t("terminal.follow.lan.inviteTitle")}</div>
@@ -362,6 +405,22 @@ export const SessionFollowToolbarControl: React.FC<SessionFollowToolbarControlPr
                   </div>
                   <div>
                     {t("terminal.follow.lan.code")}: <span className="font-mono font-semibold">{lanInvite.code}</span>
+                  </div>
+                  <Button size="sm" variant="secondary" className="w-full h-7 text-[11px]" onClick={() => void handleCopyShare()}>
+                    <Copy size={11} className="mr-1" />
+                    {t("terminal.follow.lan.copyShare")}
+                  </Button>
+                </div>
+              )}
+              {wanInvite && (
+                <div className="rounded-md border border-border/50 p-2 space-y-1.5 text-[11px]">
+                  <div className="font-medium">{t("terminal.follow.wan.inviteTitle") || "WAN follow invite"}</div>
+                  <div className="text-muted-foreground break-all">
+                    {wanInvite.relayHost}:{wanInvite.relayPort}
+                    {wanInvite.localRelay ? " (local relay)" : ""}
+                  </div>
+                  <div>
+                    {t("terminal.follow.lan.code")}: <span className="font-mono font-semibold">{wanInvite.code}</span>
                   </div>
                   <Button size="sm" variant="secondary" className="w-full h-7 text-[11px]" onClick={() => void handleCopyShare()}>
                     <Copy size={11} className="mr-1" />

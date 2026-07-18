@@ -24,6 +24,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "../../ui/tooltip";
 import { Toggle, Select, SettingRow, SectionHeader, SettingCard, SettingsTabContent } from "../settings-ui";
 import { cn } from "../../../lib/utils";
 import { toast } from "../../ui/toast";
+import { TeamVaultPanel } from "../../TeamVaultPanel";
 
 interface CrashLogFile {
   fileName: string;
@@ -866,10 +867,50 @@ const SettingsSystemTab: React.FC<SettingsSystemTabProps> = ({
                   </div>
                 )}
                 {vaultUnlockEnabled && !vaultUnlockSetupOpen && (
-                  <p className="text-xs text-muted-foreground">
-                    {t("settings.system.vaultUnlock.enabledHint")}
-                  </p>
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground">
+                      {t("settings.system.vaultUnlock.enabledHint")}
+                    </p>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        void (async () => {
+                          try {
+                            const { registerVaultWebAuthn } = await import(
+                              "../../../application/state/vaultWebAuthnClient"
+                            );
+                            const result = await registerVaultWebAuthn();
+                            if (!result.success) {
+                              toast.error(
+                                result.error === "webauthn_unavailable"
+                                  ? (t("settings.system.vaultUnlock.webauthnUnavailable") || "Passkey unavailable on this device")
+                                  : (t("settings.system.vaultUnlock.webauthnFailed") || "Passkey registration failed"),
+                              );
+                              return;
+                            }
+                            toast.success(
+                              t("settings.system.vaultUnlock.webauthnRegistered")
+                                || "Device passkey registered for vault unlock",
+                            );
+                          } catch {
+                            toast.error(t("settings.system.vaultUnlock.webauthnFailed") || "Passkey registration failed");
+                          }
+                        })();
+                      }}
+                    >
+                      {t("settings.system.vaultUnlock.registerWebAuthn") || "Register device passkey"}
+                    </Button>
+                    <p className="text-[11px] text-muted-foreground">
+                      {t("settings.system.vaultUnlock.webauthnHint")
+                        || "Binds a platform authenticator (Touch ID / Windows Hello / etc.) to this device for unlock. Not a portable cloud passkey."}
+                    </p>
+                  </div>
                 )}
+
+                <div className="pt-2">
+                  <TeamVaultPanel hosts={[]} />
+                </div>
               </div>
 
               {credentialRepairMessage && (

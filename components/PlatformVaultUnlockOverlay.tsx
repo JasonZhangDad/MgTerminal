@@ -7,9 +7,14 @@ import {
 } from "../domain/vaultPlatformUnlock";
 import {
   readVaultPlatformUnlockConfig,
+  setVaultPlatformSessionUnlocked,
   tryUnlockVaultWithPin,
   unlockVaultWithPlatform,
 } from "../application/state/vaultPlatformUnlockStore";
+import {
+  isWebAuthnAvailable,
+  unlockVaultWithWebAuthn,
+} from "../application/state/vaultWebAuthnClient";
 import { magiesTerminalBridge } from "@/infrastructure/services/magiesTerminalBridge";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -27,6 +32,7 @@ export const PlatformVaultUnlockOverlay: React.FC<PlatformVaultUnlockOverlayProp
   const { t } = useI18n();
   const [config, setConfig] = useState<VaultPlatformUnlockConfig>(() => readVaultPlatformUnlockConfig());
   const [platformAvailable, setPlatformAvailable] = useState(false);
+  const [webauthnAvailable, setWebauthnAvailable] = useState(false);
   const [pin, setPin] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -37,6 +43,9 @@ export const PlatformVaultUnlockOverlay: React.FC<PlatformVaultUnlockOverlayProp
     setError(null);
     void magiesTerminalBridge.get()?.platformAuthStatus?.().then((status) => {
       setPlatformAvailable(Boolean(status?.available));
+    });
+    void magiesTerminalBridge.get()?.vaultUnlockStatus?.().then((status) => {
+      setWebauthnAvailable(Boolean(status?.hasWebAuthn) && isWebAuthnAvailable());
     });
   }, [open]);
 
@@ -55,6 +64,22 @@ export const PlatformVaultUnlockOverlay: React.FC<PlatformVaultUnlockOverlayProp
         setError(t("vault.unlock.platformFailed"));
         return;
       }
+      await finishUnlock();
+    } finally {
+      setBusy(false);
+    }
+  }, [finishUnlock, t]);
+
+  const handleWebAuthn = useCallback(async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      const ok = await unlockVaultWithWebAuthn();
+      if (!ok) {
+        setError(t("vault.unlock.webauthnFailed") || "Passkey unlock failed");
+        return;
+      }
+      setVaultPlatformSessionUnlocked(true);
       await finishUnlock();
     } finally {
       setBusy(false);
@@ -114,9 +139,25 @@ export const PlatformVaultUnlockOverlay: React.FC<PlatformVaultUnlockOverlayProp
           </Button>
         )}
 
+        {webauthnAvailable && (
+          <Button
+            className="w-full"
+            variant={platformAvailable ? "secondary" : "default"}
+            disabled={busy}
+            onClick={() => void handleWebAuthn()}
+          >
+            {busy ? (
+              <Loader2 size={16} className="mr-2 animate-spin" />
+            ) : (
+              <Fingerprint size={16} className="mr-2" />
+            )}
+            {t("vault.unlock.useWebAuthn") || "Unlock with passkey"}
+          </Button>
+        )}
+
         {pinEnabled && (
           <div className="space-y-2">
-            {platformAvailable && (
+            {(platformAvailable || webauthnAvailable) && (
               <div className="text-center text-xs text-muted-foreground">{t("vault.unlock.orPin")}</div>
             )}
             <Input
