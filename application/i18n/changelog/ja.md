@@ -1,6 +1,22 @@
 # 更新履歴
 
 
+## [0.5.4] - 2026-07-18
+
+### セキュリティ
+- **Vault ロック境界**：PIN 無効化/変更、WebAuthn 登録/削除は解除済みまたは現 PIN 必須；PIN 試行レート制限
+- **SSH 診断/ヘルス**：ホスト鍵 unknown/changed 時は認証前に中止し、中間者へパスワードを送らない
+- **セッションフォロー**：招待 token による AES-GCM E2E 密封と opaque リレー；偽の wss/ws TLS を拒否
+- **認証情報 IPC**：vault 解除と暗号化/復号ハンドラで sender を検証
+- **一時ディレクトリ / RDP / ディープリンク / ログ / AI 添付**：0700 と symlink 安全、RDP 失敗時の即時 cmdkey 削除、Telnet/JMS 確認、kbd-int 応答ログ禁止、添付サイズ上限
+
+### 修正
+- ヘルスチェックの keyboard-interactive 対応；更新ダイアログのスクロール
+- AI の添付のみ送信；SFTP/ポート転送が verifyHostKeys を正しく渡せる
+
+### エンジニアリング
+- `npm run typecheck` を追加；vault/WebAuthn/更新/SFTP 関連の本番型エラーを一括修正
+
 ## [0.5.3] - 2026-07-18
 
 ### 修正

@@ -1,6 +1,22 @@
 # Changelog
 
 
+## [0.5.4] - 2026-07-18
+
+### Security
+- **Vault unlock boundary**: disable/change PIN and WebAuthn enroll/clear require unlock or current PIN; PIN attempt rate limiting
+- **SSH diagnostics/health**: abort before auth when host key is unknown/changed so passwords are never offered to a MITM
+- **Session follow**: AES-GCM E2E sealing of LAN/WAN app frames with invite token; opaque relay forward; reject fake wss/ws TLS
+- **Credential IPC**: validate sender on vault unlock and encrypt/decrypt handlers
+- **Temp dir / RDP / deep links / logs / AI attachments**: 0700+symlink-safe temp dir, immediate cmdkey cleanup on RDP launch failure, Telnet/JMS confirm, no kbd-int response logging, attachment size caps
+
+### Fixes
+- Health probes support keyboard-interactive password auth; changelog dialog scrolls
+- AI can send attachment-only messages; SFTP/port-forward honor verifyHostKeys typing
+
+### Engineering
+- Add `npm run typecheck`; fix a first batch of production type errors (vault/WebAuthn/update/SFTP)
+
 ## [0.5.3] - 2026-07-18
 
 ### Fixes

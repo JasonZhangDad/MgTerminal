@@ -1,6 +1,22 @@
 # Changelog
 
 
+## [0.5.4] - 2026-07-18
+
+### 安全
+- **Vault 解锁边界**：禁用/改 PIN/注册或清除 WebAuthn 需已解锁或验证当前 PIN；PIN 错误限速
+- **SSH 诊断/健康检查**：主机密钥 unknown/changed 时在认证前中止，避免向中间人发送密码
+- **会话跟随**：LAN/WAN 应用帧用邀请 token 做 AES-GCM 端到端密封；relay 透明转发；拒绝伪 wss/ws TLS
+- **凭据 IPC**：vault 解锁与加解密接口校验调用方 sender
+- **临时目录 / RDP / 深链 / 日志 / AI 附件**：0700 与 symlink 防护、RDP 失败立即清理 cmdkey、Telnet/JMS 确认、不再记录 kbd-int 响应、附件大小上限
+
+### 修复
+- 健康检查支持 keyboard-interactive 密码探测；更新内容弹窗可滚动
+- AI 可仅凭附件发送；SFTP/端口转发可正确传入 verifyHostKeys
+
+### 工程
+- 新增 `npm run typecheck`；修复一批 vault/WebAuthn/更新/SFTP 相关生产类型错误
+
 ## [0.5.3] - 2026-07-18
 
 ### 修复

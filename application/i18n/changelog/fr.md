@@ -1,6 +1,22 @@
 # Journal des modifications
 
 
+## [0.5.4] - 2026-07-18
+
+### Sécurité
+- **Frontière de déverrouillage Vault** : désactivation/changement de PIN et WebAuthn exigent le déverrouillage ou le PIN actuel ; limitation des essais
+- **Diagnostics SSH / santé** : arrêt avant auth si clé hôte unknown/changed pour ne jamais envoyer le mot de passe à un MITM
+- **Suivi de session** : scellage AES-GCM E2E avec le jeton d’invitation ; relay opaque ; rejet du faux wss/ws TLS
+- **IPC des identifiants** : validation du sender pour le déverrouillage vault et encrypt/decrypt
+- **Temp / RDP / deep links / journaux / pièces jointes IA** : 0700+symlink-safe, nettoyage cmdkey immédiat si RDP échoue, confirmation Telnet/JMS, pas de log des réponses kbd-int, plafonds de taille des pièces jointes
+
+### Corrections
+- Health keyboard-interactive ; défilement des notes de version
+- Envoi IA pièces jointes seules ; SFTP/port-forward honorent verifyHostKeys
+
+### Ingénierie
+- Ajout de `npm run typecheck` ; premier lot d’erreurs de type production (vault/WebAuthn/update/SFTP)
+
 ## [0.5.3] - 2026-07-18
 
 ### Corrections

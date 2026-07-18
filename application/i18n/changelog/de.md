@@ -1,6 +1,22 @@
 # Änderungsprotokoll
 
 
+## [0.5.4] - 2026-07-18
+
+### Sicherheit
+- **Vault-Entsperrgrenze**: Deaktivieren/PIN ändern und WebAuthn erfordern Freischaltung oder aktuelle PIN; PIN-Ratenlimit
+- **SSH-Diagnose/Health**: Abbruch vor Auth bei unknown/changed Host-Key, damit Passwörter nicht an MITM gehen
+- **Session-Follow**: AES-GCM-E2E mit Invite-Token; opaker Relay; kein gefälschtes wss/ws-TLS
+- **Credential-IPC**: Sender-Prüfung bei Vault-Unlock und Encrypt/Decrypt
+- **Temp / RDP / Deeplinks / Logs / AI-Anhänge**: 0700+symlink-sicher, sofortige cmdkey-Bereinigung bei RDP-Startfehler, Telnet/JMS-Bestätigung, keine kbd-int-Antwortlogs, Anhangsgrößenlimits
+
+### Korrekturen
+- Health-Keyboard-Interactive; scrollbare Versionshinweise
+- AI nur-Anhänge senden; SFTP/Portforward übergeben verifyHostKeys korrekt
+
+### Engineering
+- `npm run typecheck` hinzugefügt; erste Charge Produktions-Typfehler (Vault/WebAuthn/Update/SFTP) behoben
+
 ## [0.5.3] - 2026-07-18
 
 ### Korrekturen

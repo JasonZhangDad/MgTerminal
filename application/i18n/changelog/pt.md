@@ -1,6 +1,22 @@
 # Registro de alterações
 
 
+## [0.5.4] - 2026-07-18
+
+### Segurança
+- **Limite de desbloqueio do Vault**: desativar/alterar PIN e WebAuthn exigem desbloqueio ou PIN atual; limite de tentativas
+- **Diagnóstico/saúde SSH**: abortar antes da autenticação se a chave do host for unknown/changed para não enviar senha a um MITM
+- **Acompanhamento de sessão**: selagem AES-GCM E2E com token de convite; relay opaco; rejeição de wss/ws falsos
+- **IPC de credenciais**: validar o sender no desbloqueio do vault e em encrypt/decrypt
+- **Temp / RDP / deep links / logs / anexos de IA**: 0700+symlink-safe, limpeza imediata de cmdkey se o RDP falhar, confirmação Telnet/JMS, sem logs de respostas kbd-int, limites de tamanho de anexos
+
+### Correções
+- Health com keyboard-interactive; notas com scroll
+- Envio de IA só com anexos; SFTP/port-forward honram verifyHostKeys
+
+### Engenharia
+- Adicionar `npm run typecheck`; primeiro lote de erros de tipo de produção (vault/WebAuthn/update/SFTP)
+
 ## [0.5.3] - 2026-07-18
 
 ### Correções

@@ -1,6 +1,22 @@
 # 변경 로그
 
 
+## [0.5.4] - 2026-07-18
+
+### 보안
+- **Vault 잠금 경계**: PIN 비활성/변경, WebAuthn 등록/삭제 시 잠금 해제 또는 현재 PIN 필요; PIN 시도 제한
+- **SSH 진단/헬스**: 호스트 키 unknown/changed 시 인증 전 중단하여 중간자에게 비밀번호를 보내지 않음
+- **세션 팔로우**: 초대 토큰 AES-GCM E2E 봉인 및 opaque 릴레이; 가짜 wss/ws TLS 거부
+- **자격 증명 IPC**: vault 잠금 해제 및 암복호화 핸들러에서 sender 검증
+- **임시 디렉터리 / RDP / 딥링크 / 로그 / AI 첨부**: 0700+symlink 안전, RDP 실패 시 즉시 cmdkey 정리, Telnet/JMS 확인, kbd-int 응답 로그 금지, 첨부 크기 상한
+
+### 수정
+- 헬스 검사 keyboard-interactive 지원; 변경 로그 스크롤
+- AI 첨부만 전송; SFTP/포트포워딩 verifyHostKeys 전달
+
+### 엔지니어링
+- `npm run typecheck` 추가; vault/WebAuthn/업데이트/SFTP 관련 프로덕션 타입 오류 일괄 수정
+
 ## [0.5.3] - 2026-07-18
 
 ### 수정

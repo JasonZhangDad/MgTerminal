@@ -1,6 +1,22 @@
 # Журнал изменений
 
 
+## [0.5.4] - 2026-07-18
+
+### Безопасность
+- **Граница разблокировки Vault**: отключение/смена PIN и WebAuthn требуют разблокировки или текущего PIN; ограничение попыток
+- **SSH-диагностика/health**: остановка до auth при unknown/changed ключе хоста, чтобы пароль не уходил MITM
+- **Следование за сессией**: AES-GCM E2E с invite-токеном; opaque relay; отказ от ложного wss/ws TLS
+- **IPC учётных данных**: проверка sender для разблокировки vault и encrypt/decrypt
+- **Temp / RDP / deep links / логи / вложения ИИ**: 0700+symlink-safe, немедленная очистка cmdkey при сбое RDP, подтверждение Telnet/JMS, без логов kbd-int ответов, лимиты размера вложений
+
+### Исправления
+- Health с keyboard-interactive; прокрутка changelog
+- Отправка ИИ только с вложениями; SFTP/port-forward корректно передают verifyHostKeys
+
+### Инженерия
+- Добавлен `npm run typecheck`; первая порция производственных type-ошибок (vault/WebAuthn/update/SFTP)
+
 ## [0.5.3] - 2026-07-18
 
 ### Исправления
