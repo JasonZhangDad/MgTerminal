@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.5.5] - 2026-07-18
+
+### Fixes
+- **False "Update Failed" toasts**: check-phase feed errors are no longer treated as download failures; clear in-flight check state after every IPC check
+- **Windows arm64 update channel**: use `latest-arm64.yml` so arm64 clients do not pull x64 installers
+- **More reliable update check/download path**: dual-source feed + UI state machine alignment reduces false errors from concurrent checks
+
 ## [0.5.4] - 2026-07-18
 
 ### Security

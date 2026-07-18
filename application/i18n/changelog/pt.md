@@ -1,6 +1,13 @@
 # Registro de alterações
 
 
+## [0.5.5] - 2026-07-18
+
+### Correções
+- **Toasts falsos de «Falha na atualização»**: erros da fase de verificação deixam de ser tratados como falha de download; estado in-flight limpo após cada verificação IPC
+- **Canal de atualização Windows arm64**: usar `latest-arm64.yml` para não baixar instaladores x64
+- **Caminho de verificação/download mais confiável**: dual-feed e máquina de estados da UI reduzem erros falsos por verificações concorrentes
+
 ## [0.5.4] - 2026-07-18
 
 ### Segurança

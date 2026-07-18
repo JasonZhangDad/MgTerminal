@@ -1,6 +1,13 @@
 # Registro de cambios
 
 
+## [0.5.5] - 2026-07-18
+
+### Correcciones
+- **Toasts falsos de «Error en la actualización»**: los errores de la fase de comprobación ya no se tratan como fallos de descarga; se limpia el estado in-flight tras cada comprobación IPC
+- **Canal de actualización Windows arm64**: usar `latest-arm64.yml` para no descargar instaladores x64
+- **Ruta de comprobación/descarga más fiable**: dual-feed y máquina de estados de UI reducen errores falsos por comprobaciones concurrentes
+
 ## [0.5.4] - 2026-07-18
 
 ### Seguridad

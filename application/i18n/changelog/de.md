@@ -1,6 +1,13 @@
 # Änderungsprotokoll
 
 
+## [0.5.5] - 2026-07-18
+
+### Korrekturen
+- **Falsche „Update fehlgeschlagen“-Meldungen**: Check-Phasen-Fehler gelten nicht mehr als Download-Fehler; In-Flight-Status nach jedem IPC-Check zurücksetzen
+- **Windows-arm64-Update-Kanal**: `latest-arm64.yml` nutzen, damit keine x64-Installer geladen werden
+- **Zuverlässigerer Update-Pfad**: Dual-Feed und UI-Zustandsmaschine reduzieren Fehler durch parallele Checks
+
 ## [0.5.4] - 2026-07-18
 
 ### Sicherheit

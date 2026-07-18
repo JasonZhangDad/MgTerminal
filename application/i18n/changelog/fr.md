@@ -1,6 +1,13 @@
 # Journal des modifications
 
 
+## [0.5.5] - 2026-07-18
+
+### Corrections
+- **Faux toasts « Échec de la mise à jour »** : les erreurs de phase de vérification ne sont plus traitées comme des échecs de téléchargement ; état in-flight nettoyé après chaque contrôle IPC
+- **Canal de mise à jour Windows arm64** : utiliser `latest-arm64.yml` pour ne pas télécharger les installateurs x64
+- **Chemin de contrôle/téléchargement plus fiable** : dual-feed et machine d’état UI pour moins de fausses erreurs en contrôles concurrents
+
 ## [0.5.4] - 2026-07-18
 
 ### Sécurité
