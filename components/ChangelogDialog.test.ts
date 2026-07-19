@@ -23,3 +23,10 @@ test('changelog dialog header uses changeCount for latest version stats', () => 
   assert.match(source, /settings\.application\.whatsNew\.changeCount/);
   assert.match(source, /settings\.application\.whatsNew\.inLatest/);
 });
+
+test('changelog dialog uses a lighter overlay so the window behind (left nav) stays legible', () => {
+  // The default dialog overlay (bg-background/70 backdrop-blur-[3px]) dims the
+  // Settings window so heavily the left nav is unreadable while What's New is
+  // open. Override just this dialog's overlay to keep the background visible.
+  assert.match(source, /overlayClassName="[^"]*bg-background\/40[^"]*"/);
+});
