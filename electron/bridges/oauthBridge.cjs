@@ -25,7 +25,7 @@ const escapeHtml = (value) =>
 
 const renderOAuthPage = ({ title, message, detail, status, autoClose }) => {
   const accent =
-    status === "success" ? "200 100% 61%" : status === "error" ? "0 70% 50%" : "38 92% 50%";
+    status === "success" ? "24 95% 56%" : status === "error" ? "0 70% 50%" : "38 92% 50%";
   const safeTitle = escapeHtml(title);
   const safeMessage = escapeHtml(message);
   const safeDetail = detail ? escapeHtml(detail) : "";
@@ -51,24 +51,24 @@ const renderOAuthPage = ({ title, message, detail, status, autoClose }) => {
   <style>
     :root {
       color-scheme: dark;
-      --background: 220 28% 8%;
-      --foreground: 210 40% 95%;
-      --card: 220 22% 12%;
-      --muted: 220 10% 70%;
-      --border: 220 22% 18%;
+      --background: 24 14% 8%;
+      --foreground: 36 28% 90%;
+      --card: 24 12% 11%;
+      --muted: 30 14% 64%;
+      --border: 26 12% 20%;
       --accent: ${accent};
-      --radius: 0.65rem;
-      --ring: 200 100% 61%;
+      --radius: 0.375rem;
+      --ring: 24 95% 56%;
     }
     @media (prefers-color-scheme: light) {
       :root {
         color-scheme: light;
-        --background: 216 33% 96%;
-        --foreground: 222 47% 12%;
+        --background: 28 30% 97%;
+        --foreground: 24 18% 12%;
         --card: 0 0% 100%;
-        --muted: 220 10% 45%;
-        --border: 220 16% 82%;
-        --ring: 208 100% 50%;
+        --muted: 24 12% 38%;
+        --border: 28 18% 86%;
+        --ring: 16 90% 44%;
       }
     }
     * { box-sizing: border-box; }
