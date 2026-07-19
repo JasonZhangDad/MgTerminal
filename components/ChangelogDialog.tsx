@@ -260,7 +260,10 @@ export default function ChangelogDialog({ open, onOpenChange }: ChangelogDialogP
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[min(88vh,720px)] w-[min(100vw-2rem,40rem)] max-w-2xl flex-col gap-0 overflow-hidden p-0 sm:rounded-xl">
+      <DialogContent
+        overlayClassName="bg-background/40 backdrop-blur-[1px]"
+        className="flex max-h-[min(88vh,720px)] w-[min(100vw-2rem,40rem)] max-w-2xl flex-col gap-0 overflow-hidden p-0 sm:rounded-xl"
+      >
         <DialogHeader className="shrink-0 space-y-1 border-b border-border/60 px-6 py-5 pr-12 text-left">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-border/60 bg-muted/40">
