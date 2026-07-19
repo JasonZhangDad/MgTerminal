@@ -6,7 +6,7 @@
 
 <p align="center">
   <strong>🔥 AI-Powered SSH Client, SFTP Browser & Terminal Manager 🚀</strong><br/>
-  <a href="https://github.com/JasonZhangDad/MgTerminal"><strong>github.com/JasonZhangDad/MgTerminal</strong></a>
+  <a href="https://shell.magies.top"><strong>shell.magies.top</strong></a>
 </p>
 
 <p align="center">
@@ -15,7 +15,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/JasonZhangDad/MgTerminal/releases/latest"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/JasonZhangDad/MgTerminal?style=for-the-badge&logo=github&label=Release"></a>
+  <a href="https://shell.magies.top"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/JasonZhangDad/MgTerminal-releases?style=for-the-badge&logo=github&label=Release"></a>
   &nbsp;
   <a href="#"><img alt="Platform" src="https://img.shields.io/badge/Platform-macOS%20%7C%20Windows%20%7C%20Linux-blue?style=for-the-badge&logo=electron"></a>
   &nbsp;
@@ -23,8 +23,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/JasonZhangDad/MgTerminal/releases/latest">
-    <img src="https://img.shields.io/github/v/release/JasonZhangDad/MgTerminal?style=for-the-badge&logo=github&label=Download%20Latest&color=success" alt="Download Latest Release">
+  <a href="https://shell.magies.top">
+    <img src="https://img.shields.io/github/v/release/JasonZhangDad/MgTerminal-releases?style=for-the-badge&logo=github&label=Download%20Latest&color=success" alt="Download Latest Release">
   </a>
 </p>
 
@@ -162,7 +162,7 @@ MagiesTerminal automatically detects and displays OS icons for connected hosts:
 
 ### Download
 
-Download the latest release for your platform from [GitHub Releases](https://github.com/JasonZhangDad/MgTerminal/releases/latest).
+Download the latest release for your platform from the [official site](https://shell.magies.top).
 
 | OS | Support |
 | :--- | :--- |
@@ -170,7 +170,7 @@ Download the latest release for your platform from [GitHub Releases](https://git
 | **Windows** | x64 / arm64 |
 | **Linux** | x64 / arm64 |
 
-Or browse all releases at [GitHub Releases](https://github.com/JasonZhangDad/MgTerminal/releases).
+Or browse all releases at [GitHub Releases](https://github.com/JasonZhangDad/MgTerminal-releases/releases).
 
 > **macOS Users:** Releases are not code-signed or notarized. On first launch, Gatekeeper will warn — right-click the app and choose **Open**, or run `xattr -dr com.apple.quarantine /Applications/MagiesTerminal.app`. In-app auto-updates install via bundle replacement and do not re-trigger this warning.
 
