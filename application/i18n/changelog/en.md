@@ -1,6 +1,11 @@
 # Changelog
 
 
+## [0.5.14] - 2026-07-20
+
+### Improvements
+- **AI icons & component system redesign**: agent/provider badges use gradient plates with inset highlights; tool-call cards show category icon plates (terminal/SFTP/vault/…); stronger approval strip and status chips; vault/terminal artifact cards share the new card chrome; slash picker and export menu are iconized
+
 ## [0.5.13] - 2026-07-20
 
 ### Improvements

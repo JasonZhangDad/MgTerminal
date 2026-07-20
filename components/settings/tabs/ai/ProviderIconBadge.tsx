@@ -24,9 +24,9 @@ type Props =
   | (BaseProps & { provider: ProviderLike; providerId?: undefined });
 
 const BADGE_DIMENSIONS = {
-  xs: "w-4 h-4",
-  sm: "w-5 h-5",
-  md: "w-8 h-8",
+  xs: "w-5 h-5 rounded-md",
+  sm: "w-6 h-6 rounded-lg",
+  md: "w-8 h-8 rounded-xl",
 } as const;
 
 const IMG_DIMENSIONS = {
@@ -48,7 +48,7 @@ export const ProviderIconBadge: React.FC<Props> = (props) => {
   // Branch 1: user-uploaded data URL — render verbatim, no filter, neutral bg.
   if (props.provider?.iconDataUrl) {
     return (
-      <div className={cn("rounded-md flex items-center justify-center shrink-0 overflow-hidden bg-zinc-900/40", dim)}>
+      <div className={cn("magiesTerminal-ai-icon-plate flex items-center justify-center shrink-0 overflow-hidden border-border/50 bg-zinc-900/40", dim)}>
         <img
           src={props.provider.iconDataUrl}
           alt=""
@@ -66,7 +66,7 @@ export const ProviderIconBadge: React.FC<Props> = (props) => {
     const builtin = BUILTIN_PROVIDER_ICON_BY_ID[iconId];
     if (builtin) {
       return (
-        <div className={cn("rounded-md flex items-center justify-center shrink-0 overflow-hidden", dim, builtin.bgColor)}>
+        <div className={cn("magiesTerminal-ai-icon-plate flex items-center justify-center shrink-0 overflow-hidden border-transparent", dim, builtin.bgColor)}>
           <img
             src={builtin.path}
             alt=""
@@ -84,7 +84,7 @@ export const ProviderIconBadge: React.FC<Props> = (props) => {
     props.providerId ?? (props.provider ? (props.provider.providerId as SettingsIconId) : undefined);
   if (fallbackId && fallbackId in SETTINGS_ICON_PATHS) {
     return (
-      <div className={cn("rounded-md flex items-center justify-center shrink-0 overflow-hidden", dim, SETTINGS_ICON_COLORS[fallbackId])}>
+      <div className={cn("magiesTerminal-ai-icon-plate flex items-center justify-center shrink-0 overflow-hidden border-transparent", dim, SETTINGS_ICON_COLORS[fallbackId])}>
         <img
           src={SETTINGS_ICON_PATHS[fallbackId]}
           alt=""

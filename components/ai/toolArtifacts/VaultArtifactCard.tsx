@@ -164,7 +164,7 @@ export const VaultArtifactCard: React.FC<VaultArtifactCardProps> = ({
     <>
       <VaultArtifactIcon artifact={artifact} toolName={toolName} />
       <div className="min-w-0 flex-1 text-left">
-        <div className="truncate text-[12px] font-medium text-foreground/85">
+        <div className="truncate text-[12.5px] font-semibold text-foreground/90">
           {presentation.title}
         </div>
         {presentation.subtitle && (
@@ -174,7 +174,9 @@ export const VaultArtifactCard: React.FC<VaultArtifactCardProps> = ({
         )}
       </div>
       {canNavigate && (
-        <ChevronRight size={12} className="shrink-0 text-muted-foreground/40" />
+        <span className="magiesTerminal-ai-icon-plate h-6 w-6 rounded-md border-border/45 bg-muted/30 text-muted-foreground/55">
+          <ChevronRight size={12} />
+        </span>
       )}
     </>
   );
@@ -184,7 +186,7 @@ export const VaultArtifactCard: React.FC<VaultArtifactCardProps> = ({
       <div
         className={cn(
           presentation.clickable
-            ? 'flex w-full items-center gap-2.5 rounded-md border border-border/25 bg-muted/10 px-2.5 py-2 text-left'
+            ? 'magiesTerminal-ai-card flex w-full items-center gap-3 px-3 py-2.5 text-left'
             : 'flex items-center gap-2 px-1 py-0.5',
           className,
           'cursor-default',
@@ -200,8 +202,7 @@ export const VaultArtifactCard: React.FC<VaultArtifactCardProps> = ({
       type="button"
       onClick={handleClick}
       className={cn(
-        'flex w-full items-center gap-2.5 rounded-md border border-border/25 bg-muted/10 px-2.5 py-2',
-        'text-left transition-colors hover:bg-muted/20',
+        'magiesTerminal-ai-card magiesTerminal-ai-card--interactive flex w-full items-center gap-3 px-3 py-2.5 text-left',
         className,
       )}
     >

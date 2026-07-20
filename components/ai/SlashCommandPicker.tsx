@@ -3,6 +3,7 @@ import React from 'react';
 import type { AIQuickMessage, SlashCommandItem, UserSkillSlashOption } from '../../infrastructure/ai/quickMessages';
 import { getSlashCommandItemId } from '../../infrastructure/ai/quickMessages';
 import { ScrollArea } from '../ui/scroll-area';
+import { cn } from '../../lib/utils';
 
 export interface SlashCommandPickerProps {
   listboxId: string;
@@ -56,19 +57,22 @@ export const SlashCommandPicker: React.FC<SlashCommandPickerProps> = ({
       style={style}
     >
       <ScrollArea className="max-h-[280px]">
-        <div className="p-1">
+        <div className="p-1.5">
           {slashCommandItems.length === 0 ? (
-            <div className="px-3 py-4 text-center space-y-1">
-              <p className="text-[12px] text-muted-foreground/70">{noResultsLabel}</p>
+            <div className="px-3 py-5 text-center space-y-1.5">
+              <div className="magiesTerminal-ai-icon-plate mx-auto mb-2 h-9 w-9 rounded-xl border-border/50 bg-muted/40 text-muted-foreground/60">
+                <MessageSquare size={16} />
+              </div>
+              <p className="text-[12px] font-medium text-muted-foreground/75">{noResultsLabel}</p>
               {emptyHintLabel ? (
-                <p className="text-[11px] text-muted-foreground/45 leading-relaxed">{emptyHintLabel}</p>
+                <p className="text-[11px] text-muted-foreground/50 leading-relaxed">{emptyHintLabel}</p>
               ) : null}
             </div>
           ) : (
             <>
               {quickMessages.length > 0 ? (
                 <>
-                  <div className="px-2 py-1 text-[10px] text-muted-foreground/40 tracking-wide">
+                  <div className="px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/50">
                     {quickMessagesSectionLabel}
                   </div>
                   {quickMessages.map((message) => {
@@ -85,15 +89,25 @@ export const SlashCommandPicker: React.FC<SlashCommandPickerProps> = ({
                         aria-selected={isActive}
                         onMouseEnter={() => onActiveIndexChange(idx)}
                         onClick={() => onSelectQuickMessage(message)}
-                        className={`w-full rounded-md px-2 py-1.5 text-left transition-colors cursor-pointer ${isActive ? 'bg-muted/40' : 'hover:bg-muted/30'}`}
+                        className={cn(
+                          'w-full rounded-xl px-2 py-2 text-left transition-colors cursor-pointer',
+                          isActive ? 'bg-primary/12 ring-1 ring-primary/20' : 'hover:bg-muted/35',
+                        )}
                       >
-                        <div className="flex items-center gap-2 text-[12px] min-w-0">
-                          <MessageSquare size={12} className="text-muted-foreground/55 shrink-0" />
-                          <span className="text-foreground/90 truncate">{message.name}</span>
-                          <span className="text-muted-foreground/45 font-mono shrink-0">/{message.slug}</span>
+                        <div className="flex items-center gap-2.5 text-[12.5px] min-w-0">
+                          <span className={cn(
+                            'magiesTerminal-ai-icon-plate h-7 w-7 rounded-lg border',
+                            isActive
+                              ? 'border-primary/30 bg-primary/15 text-primary'
+                              : 'border-border/50 bg-muted/40 text-muted-foreground/70',
+                          )}>
+                            <MessageSquare size={13} />
+                          </span>
+                          <span className="text-foreground/90 font-medium truncate">{message.name}</span>
+                          <span className="text-muted-foreground/50 font-mono shrink-0 text-[11px]">/{message.slug}</span>
                         </div>
                         {(message.description || message.content) ? (
-                          <div className="pl-5 text-[10px] leading-4.5 text-muted-foreground/62 line-clamp-2">
+                          <div className="pl-9.5 pt-0.5 text-[10.5px] leading-4.5 text-muted-foreground/62 line-clamp-2">
                             {message.description || message.content}
                           </div>
                         ) : null}
@@ -102,33 +116,45 @@ export const SlashCommandPicker: React.FC<SlashCommandPickerProps> = ({
                   })}
                 </>
               ) : null}
+
               {userSkills.length > 0 ? (
                 <>
-                  <div className="px-2 py-1 text-[10px] text-muted-foreground/40 tracking-wide">
+                  <div className="px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/50">
                     {userSkillsSectionLabel}
                   </div>
                   {userSkills.map((skill) => {
                     const idx = slashCommandItems.findIndex(
-                      (item) => item.kind === 'skill' && item.skill.id === skill.id,
+                      (item) => item.kind === 'userSkill' && item.skill.slug === skill.slug,
                     );
                     const isActive = idx === activeMenuIndex;
                     return (
                       <button
-                        id={`${listboxId}-${skill.id}`}
-                        key={skill.id}
+                        id={`${listboxId}-skill-${skill.slug}`}
+                        key={skill.slug}
                         type="button"
                         role="option"
                         aria-selected={isActive}
                         onMouseEnter={() => onActiveIndexChange(idx)}
                         onClick={() => onSelectSkill(skill)}
-                        className={`w-full rounded-md px-2 py-1.5 text-left transition-colors cursor-pointer ${isActive ? 'bg-muted/40' : 'hover:bg-muted/30'}`}
+                        className={cn(
+                          'w-full rounded-xl px-2 py-2 text-left transition-colors cursor-pointer',
+                          isActive ? 'bg-primary/12 ring-1 ring-primary/20' : 'hover:bg-muted/35',
+                        )}
                       >
-                        <div className="flex items-center gap-2 text-[12px]">
-                          <Package size={12} className="text-muted-foreground/55 shrink-0" />
-                          <span className="text-foreground/90">/{skill.slug}</span>
+                        <div className="flex items-center gap-2.5 text-[12.5px] min-w-0">
+                          <span className={cn(
+                            'magiesTerminal-ai-icon-plate h-7 w-7 rounded-lg border',
+                            isActive
+                              ? 'border-primary/30 bg-primary/15 text-primary'
+                              : 'border-border/50 bg-muted/40 text-muted-foreground/70',
+                          )}>
+                            <Package size={13} />
+                          </span>
+                          <span className="text-foreground/90 font-medium truncate">{skill.name}</span>
+                          <span className="text-muted-foreground/50 font-mono shrink-0 text-[11px]">/{skill.slug}</span>
                         </div>
                         {skill.description ? (
-                          <div className="pl-5 text-[10px] leading-4.5 text-muted-foreground/62 line-clamp-2">
+                          <div className="pl-9.5 pt-0.5 text-[10.5px] leading-4.5 text-muted-foreground/62 line-clamp-2">
                             {skill.description}
                           </div>
                         ) : null}

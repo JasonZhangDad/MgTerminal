@@ -89,13 +89,13 @@ const ThinkingBlock: React.FC<ThinkingBlockProps> = ({
       >
         <span
           className={cn(
-            'inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-md border',
+            'magiesTerminal-ai-icon-plate h-6 w-6 shrink-0 rounded-md border',
             isStreaming
-              ? 'border-violet-500/30 bg-violet-500/15 text-violet-400'
-              : 'border-border/50 bg-muted/40 text-muted-foreground/70',
+              ? 'border-violet-500/35 bg-gradient-to-br from-violet-500/20 to-violet-500/8 text-violet-400'
+              : 'border-border/50 bg-muted/40 text-muted-foreground/75',
           )}
         >
-          <Brain size={11} />
+          <Brain size={12} />
         </span>
         <ChevronRight
           size={12}

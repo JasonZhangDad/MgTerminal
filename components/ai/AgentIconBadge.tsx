@@ -9,6 +9,29 @@ import {
 
 export type { AgentIconKey, AgentIconSource };
 
+const SIZE_CONFIG = {
+  xs: {
+    badge: 'h-5 w-5 rounded-md',
+    image: 'h-3 w-3',
+    plain: 'h-3.5 w-3.5',
+  },
+  sm: {
+    badge: 'h-7 w-7 rounded-lg',
+    image: 'h-3.5 w-3.5',
+    plain: 'h-3.5 w-3.5',
+  },
+  md: {
+    badge: 'h-8 w-8 rounded-xl',
+    image: 'h-4 w-4',
+    plain: 'h-4 w-4',
+  },
+  lg: {
+    badge: 'h-10 w-10 rounded-xl',
+    image: 'h-5 w-5',
+    plain: 'h-5 w-5',
+  },
+} as const;
+
 export const AgentIconBadge: React.FC<{
   agent: AgentIconSource | 'add-more';
   size?: 'xs' | 'sm' | 'md' | 'lg';
@@ -17,28 +40,13 @@ export const AgentIconBadge: React.FC<{
 }> = ({ agent, size = 'md', variant = 'badge', className }) => {
   const iconKey = resolveAgentIconKey(agent);
   const visual = AGENT_ICON_VISUALS[iconKey];
-  const badgeSize =
-    size === 'xs'
-      ? 'h-4 w-4 rounded-sm'
-      : size === 'sm'
-        ? 'h-7 w-7 rounded-lg'
-        : size === 'lg'
-          ? 'h-10 w-10 rounded-xl'
-          : 'h-8 w-8 rounded-lg';
-  const imageSize =
-    size === 'xs'
-      ? 'h-3.5 w-3.5'
-      : size === 'sm'
-        ? 'h-3.5 w-3.5'
-        : size === 'lg'
-          ? 'h-5 w-5'
-          : 'h-4 w-4';
+  const dims = SIZE_CONFIG[size];
 
   if (variant === 'plain') {
     return (
       <div
         aria-hidden="true"
-        className={cn('shrink-0', imageSize, className)}
+        className={cn('shrink-0', dims.plain, className)}
         style={{
           maskImage: `url(${visual.src})`,
           WebkitMaskImage: `url(${visual.src})`,
@@ -58,8 +66,8 @@ export const AgentIconBadge: React.FC<{
     <div
       data-agent-badge=""
       className={cn(
-        'flex shrink-0 items-center justify-center overflow-hidden border',
-        badgeSize,
+        'magiesTerminal-ai-icon-plate flex shrink-0 items-center justify-center overflow-hidden border',
+        dims.badge,
         visual.badgeClassName,
         className,
       )}
@@ -69,7 +77,7 @@ export const AgentIconBadge: React.FC<{
         alt=""
         aria-hidden="true"
         draggable={false}
-        className={cn(imageSize, visual.imageClassName)}
+        className={cn(dims.image, visual.imageClassName)}
       />
     </div>
   );

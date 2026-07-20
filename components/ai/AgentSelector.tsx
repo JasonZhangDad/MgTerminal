@@ -69,7 +69,7 @@ const AgentMenuRow: React.FC<{
         isActive && 'bg-primary text-primary-foreground shadow-[0_4px_12px_-4px_hsl(var(--primary)/0.5)] hover:bg-primary/92',
       )}
     >
-      <AgentIconBadge agent={agent} size="sm" variant="plain" className={cn('opacity-95', isActive && 'brightness-110')} />
+      <AgentIconBadge agent={agent} size="sm" variant="badge" className={cn(isActive && 'ring-1 ring-primary-foreground/30')} />
       <div className="min-w-0 flex-1">
         <span className="block truncate font-semibold">{agent.name}</span>
         {subtitle && (
@@ -99,7 +99,7 @@ const DiscoveredAgentRow: React.FC<{
 
   return (
     <div className="mx-1.5 flex h-11 w-[calc(100%-0.75rem)] items-center gap-3 rounded-xl px-2.5 text-[13px]">
-      <AgentIconBadge agent={agentLike} size="sm" variant="plain" className="opacity-90" />
+      <AgentIconBadge agent={agentLike} size="sm" variant="badge" />
       <div className="min-w-0 flex-1">
         <span className="block truncate font-medium text-foreground/88">{agent.name}</span>
         <span className="block truncate font-mono text-[10.5px] text-muted-foreground/45">
@@ -217,8 +217,7 @@ const AgentSelector: React.FC<AgentSelectorProps> = ({
           <AgentIconBadge
             agent={currentAgent}
             size="xs"
-            variant="plain"
-            className="opacity-95"
+            variant="badge"
           />
           <span className="min-w-0 flex-1 truncate text-[13px] font-semibold text-foreground">
             {currentAgent.name}
