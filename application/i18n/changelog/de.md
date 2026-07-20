@@ -1,6 +1,11 @@
 # Änderungsprotokoll
 
 
+## [0.5.12] - 2026-07-20
+
+### Verbesserungen
+- **Deutlich sichtbares UI-Redesign**: Vault-Seitenleiste mit solidem Primary-Pill für den aktiven Eintrag; Host-Grid-Karten mit Primary-Kante, Anheben und Glow beim Hover; stärkerer Kontrast zwischen Bühne und Sidebar; Einstellungsnavigation mit solidem Primary; Vault/SFTP-Tabs mit Primary-Unterlinie; Abschnittsüberschriften als kompakte Großbuchstaben mit Icon-Chips
+
 ## [0.5.11] - 2026-07-20
 
 ### Verbesserungen

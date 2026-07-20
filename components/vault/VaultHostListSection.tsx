@@ -183,11 +183,11 @@ export function VaultHostListSection({ ctx }: { ctx: VaultHostListSectionContext
           }}
         >
                 {viewMode !== "tree" && (
-                  <section className="space-y-2 pt-2">
+                  <section className="space-y-2.5 pt-3">
                     <div className="flex items-center gap-2 text-sm font-semibold">
                       <button
                         className={cn(
-                          "text-primary hover:underline transition-colors duration-150 rounded px-1 -mx-1",
+                          "inline-flex items-center rounded-lg bg-primary/10 px-2 py-0.5 text-primary hover:bg-primary/15 transition-colors duration-150",
                           getDropTargetClasses({ kind: "root" }),
                         )}
                         onClick={() => setSelectedGroupPath(null)}
@@ -250,18 +250,20 @@ export function VaultHostListSection({ ctx }: { ctx: VaultHostListSectionContext
                 )}
                   {/* Pinned hosts section - only at root level */}
                   {viewMode !== "tree" && !selectedGroupPath && pinnedHosts.length > 0 && (
-                    <section className="space-y-2 mb-4">
-                      <h3 className="text-sm font-semibold text-muted-foreground inline-flex items-center gap-1.5">
-                        <Pin size={14} className="shrink-0 -translate-y-[1px]" />
+                    <section className="space-y-2.5 mb-5">
+                      <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground inline-flex items-center gap-1.5">
+                        <span className="inline-flex h-5 w-5 items-center justify-center rounded-md bg-amber-500/15 text-amber-500">
+                          <Pin size={12} className="shrink-0" />
+                        </span>
                         {t("vault.hosts.pinned")}
                       </h3>
                       <div className={cn(
                         viewMode === "grid"
                           ? cn(
-                            "grid gap-3",
+                            "grid gap-3.5",
                             !hasHostsSidePanel && "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
                           )
-                          : "flex flex-col gap-0",
+                          : "flex flex-col gap-1",
                       )}
                       style={viewMode === "grid" ? splitViewGridStyle : undefined}>
                         {pinnedHosts.map((host) => {
@@ -355,18 +357,20 @@ export function VaultHostListSection({ ctx }: { ctx: VaultHostListSectionContext
                   )}
                   {/* Recently Connected section - only at root level, toggleable */}
                   {viewMode !== "tree" && !selectedGroupPath && showRecentHosts && recentHosts.length > 0 && (
-                    <section className="space-y-2 mb-4">
-                      <h3 className="text-sm font-semibold text-muted-foreground inline-flex items-center gap-1.5">
-                        <Clock size={14} className="shrink-0 -translate-y-[1px]" />
+                    <section className="space-y-2.5 mb-5">
+                      <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground inline-flex items-center gap-1.5">
+                        <span className="inline-flex h-5 w-5 items-center justify-center rounded-md bg-primary/12 text-primary">
+                          <Clock size={12} className="shrink-0" />
+                        </span>
                         {t("vault.hosts.recentlyConnected")}
                       </h3>
                       <div className={cn(
                         viewMode === "grid"
                           ? cn(
-                            "grid gap-3",
+                            "grid gap-3.5",
                             !hasHostsSidePanel && "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
                           )
-                          : "flex flex-col gap-0",
+                          : "flex flex-col gap-1",
                       )}
                       style={viewMode === "grid" ? splitViewGridStyle : undefined}>
                         {recentHosts.map((host) => {
@@ -455,7 +459,7 @@ export function VaultHostListSection({ ctx }: { ctx: VaultHostListSectionContext
                   )}
                   {viewMode !== "tree" && displayedGroups.length > 0 && (
                     <div className="flex items-center justify-between">
-                      <h3 className="text-sm font-semibold text-muted-foreground">
+                      <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                         {t("vault.groups.title")}
                       </h3>
                       <div className="text-xs text-muted-foreground">
@@ -469,10 +473,10 @@ export function VaultHostListSection({ ctx }: { ctx: VaultHostListSectionContext
                         displayedGroups.length === 0 ? "hidden" : "",
                         viewMode === "grid"
                           ? cn(
-                            "grid gap-3",
+                            "grid gap-3.5",
                             !hasHostsSidePanel && "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
                           )
-                          : "flex flex-col gap-0",
+                          : "flex flex-col gap-1",
                       )}
                       style={viewMode === "grid" ? splitViewGridStyle : undefined}
                       onDragOver={(e) => {
@@ -676,10 +680,10 @@ export function VaultHostListSection({ ctx }: { ctx: VaultHostListSectionContext
                               className={cn(
                                 viewMode === "grid"
                                   ? cn(
-                                    "grid gap-3",
+                                    "grid gap-3.5",
                                     !hasHostsSidePanel && "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
                                   )
-                                  : "flex flex-col gap-0",
+                                  : "flex flex-col gap-1",
                               )}
                               style={viewMode === "grid" ? splitViewGridStyle : undefined}
                             >
@@ -826,10 +830,10 @@ export function VaultHostListSection({ ctx }: { ctx: VaultHostListSectionContext
                       className={cn(
                         viewMode === "grid"
                           ? cn(
-                            "grid gap-3",
+                            "grid gap-3.5",
                             !hasHostsSidePanel && "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
                           )
-                          : "flex flex-col gap-0",
+                          : "flex flex-col gap-1",
                       )}
                       style={viewMode === "grid" ? splitViewGridStyle : undefined}
                     >

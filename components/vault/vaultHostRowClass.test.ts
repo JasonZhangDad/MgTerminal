@@ -13,8 +13,8 @@ describe("getVaultHostRowClassName", () => {
 
   it("marks selected list rows with primary wash and leading edge", () => {
     const className = getVaultHostRowClassName({ viewMode: "list", isSelected: true });
-    assert.match(className, /bg-primary\/10/);
-    assert.match(className, /inset_2px_0_0_0_hsl/);
+    assert.match(className, /bg-primary\/12/);
+    assert.match(className, /inset_3px_0_0_0_hsl/);
     assert.doesNotMatch(className, /hover:bg-secondary/);
   });
 

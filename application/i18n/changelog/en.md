@@ -1,6 +1,11 @@
 # Changelog
 
 
+## [0.5.12] - 2026-07-20
+
+### Improvements
+- **Clearly visible UI redesign**: vault sidebar uses a solid primary pill for the active item; host grid cards gain a primary edge bar, lift, and glow on hover; stronger stage/sidebar contrast; settings nav uses solid primary selection; top Vault/SFTP tabs show a primary underline; section titles use compact uppercase labels with icon chips
+
 ## [0.5.11] - 2026-07-20
 
 ### Improvements

@@ -351,7 +351,8 @@ export const RootTopTab: React.FC<RootTopTabProps> = memo(({ tabId, label, icon,
     // straight from a hover would otherwise leave a stuck highlight, so reset
     // it here before activating.
     if (suppressActiveBg) {
-      e.currentTarget.style.backgroundColor = 'transparent';
+      e.currentTarget.style.backgroundColor =
+        'color-mix(in srgb, var(--top-tabs-accent, hsl(var(--primary))) 12%, transparent)';
     }
     activeTabStore.setActiveTabId(tabId);
   }, [tabId, suppressActiveBg]);
@@ -363,14 +364,17 @@ export const RootTopTab: React.FC<RootTopTabProps> = memo(({ tabId, label, icon,
       data-state={isActive ? 'active' : 'inactive'}
       onClick={handleClick}
       className={cn(
-        "magiesTerminal-tab relative h-7 overflow-hidden text-xs font-semibold cursor-pointer flex items-center app-no-drag transition-[padding,gap] duration-300 ease-out",
+        "magiesTerminal-tab relative h-7 overflow-hidden text-xs font-semibold cursor-pointer flex items-center app-no-drag transition-[padding,gap,background-color,color] duration-300 ease-out",
         compact ? "px-2 gap-0" : "px-3 gap-2",
+        isActive && "after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full after:bg-[var(--top-tabs-accent,hsl(var(--primary)))]",
         className,
       )}
       style={{
         backgroundColor: isActive && !suppressActiveBg
           ? 'var(--top-tabs-active-bg, hsl(var(--background)))'
-          : 'transparent',
+          : isActive && suppressActiveBg
+            ? 'color-mix(in srgb, var(--top-tabs-accent, hsl(var(--primary))) 12%, transparent)'
+            : 'transparent',
         color: isActive
           ? 'var(--top-tabs-fg, hsl(var(--foreground)))'
           : 'var(--top-tabs-muted, hsl(var(--muted-foreground)))',
@@ -385,6 +389,8 @@ export const RootTopTab: React.FC<RootTopTabProps> = memo(({ tabId, label, icon,
         if (!isActive) {
           e.currentTarget.style.backgroundColor = 'transparent';
           e.currentTarget.style.color = 'var(--top-tabs-muted, hsl(var(--muted-foreground)))';
+        } else if (suppressActiveBg) {
+          e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--top-tabs-accent, hsl(var(--primary))) 12%, transparent)';
         }
       }}
     >
