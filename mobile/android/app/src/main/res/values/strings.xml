@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">MagiesTerminal</string>
+    <string name="title_activity_main">MagiesTerminal</string>
+    <string name="package_name">top.magies.terminal</string>
+    <string name="custom_url_scheme">top.magies.terminal</string>
+</resources>
