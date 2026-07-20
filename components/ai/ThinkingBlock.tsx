@@ -74,10 +74,10 @@ const ThinkingBlock: React.FC<ThinkingBlockProps> = ({
   return (
     <div
       className={cn(
-        'rounded-2xl border transition-colors shadow-sm',
+        'rounded-xl transition-colors',
         isStreaming
-          ? 'border-violet-500/30 bg-gradient-to-br from-violet-500/[0.1] to-violet-500/[0.03] shadow-violet-500/10'
-          : 'border-border/45 bg-muted/20',
+          ? 'bg-muted/30'
+          : 'bg-transparent',
       )}
     >
       <button
@@ -85,7 +85,7 @@ const ThinkingBlock: React.FC<ThinkingBlockProps> = ({
         onClick={toggle}
         aria-expanded={isExpanded}
         aria-controls="thinking-block-content"
-        className="group flex w-full items-center gap-2 px-3 py-2 text-left cursor-pointer rounded-2xl hover:bg-black/[0.02] dark:hover:bg-white/[0.03] transition-colors"
+        className="group flex w-full items-center gap-2 px-1.5 py-1.5 text-left cursor-pointer rounded-xl hover:bg-muted/40 transition-colors"
       >
         <span
           className={cn(

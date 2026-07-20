@@ -1212,86 +1212,63 @@ html[data-theme-transition] *::after {
 }
 
 /* Streamdown table overrides */
-/* ── AI chat panel visual system ── */
+/* ── AI chat panel — Claude-inspired layout ── */
 .magiesTerminal-ai-panel {
   position: relative;
   isolation: isolate;
+  /* Clean canvas; soft warm wash only, no grid noise */
   background:
-    radial-gradient(ellipse 90% 45% at 0% 0%, hsl(var(--primary) / 0.1), transparent 55%),
-    radial-gradient(ellipse 60% 40% at 100% 100%, hsl(var(--accent) / 0.06), transparent 50%),
-    linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--secondary) / 0.28) 100%);
-}
-
-.magiesTerminal-ai-panel::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  opacity: 0.3;
-  background-image:
-    linear-gradient(hsl(var(--border) / 0.14) 1px, transparent 1px),
-    linear-gradient(90deg, hsl(var(--border) / 0.14) 1px, transparent 1px);
-  background-size: 36px 36px;
-  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black, transparent 75%);
-  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black, transparent 75%);
+    radial-gradient(ellipse 70% 40% at 50% 0%, hsl(var(--primary) / 0.05), transparent 60%),
+    hsl(var(--background));
 }
 
 .magiesTerminal-ai-header {
-  background:
-    linear-gradient(180deg, hsl(var(--card) / 0.75) 0%, hsl(var(--card) / 0.35) 100%);
-  border-bottom: 1px solid hsl(var(--border) / 0.5);
-  backdrop-filter: blur(12px) saturate(1.15);
-  -webkit-backdrop-filter: blur(12px) saturate(1.15);
-  box-shadow: 0 1px 0 hsl(0 0% 100% / 0.03);
+  background: hsl(var(--background) / 0.88);
+  border-bottom: 1px solid hsl(var(--border) / 0.35);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .magiesTerminal-ai-composer {
-  background:
-    linear-gradient(180deg, hsl(var(--card) / 0.92) 0%, hsl(var(--background) / 0.96) 100%);
-  border: 1px solid hsl(var(--border) / 0.65);
-  border-radius: 1.25rem;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border) / 0.55);
+  border-radius: 1.5rem;
   box-shadow:
-    0 1px 2px hsl(var(--foreground) / 0.04),
-    0 12px 32px -14px hsl(var(--foreground) / 0.16),
-    0 0 0 1px hsl(var(--primary) / 0.04),
-    inset 0 1px 0 hsl(0 0% 100% / 0.05);
+    0 2px 8px hsl(var(--foreground) / 0.04),
+    0 18px 40px -20px hsl(var(--foreground) / 0.14);
   overflow: hidden;
   transition: border-color 160ms ease, box-shadow 160ms ease;
 }
 
 .magiesTerminal-ai-composer:focus-within {
-  border-color: hsl(var(--primary) / 0.45);
+  border-color: hsl(var(--border) / 0.85);
   box-shadow:
-    0 1px 2px hsl(var(--foreground) / 0.04),
-    0 16px 40px -14px hsl(var(--primary) / 0.22),
-    0 0 0 3px hsl(var(--primary) / 0.1),
-    inset 0 1px 0 hsl(0 0% 100% / 0.06);
+    0 2px 8px hsl(var(--foreground) / 0.05),
+    0 20px 48px -18px hsl(var(--foreground) / 0.18),
+    0 0 0 1px hsl(var(--primary) / 0.12);
 }
 
 .dark .magiesTerminal-ai-composer {
+  background: hsl(var(--secondary) / 0.55);
+  border-color: hsl(var(--border) / 0.5);
   box-shadow:
-    0 1px 2px hsl(0 0% 0% / 0.3),
-    0 16px 40px -14px hsl(0 0% 0% / 0.55),
-    0 0 0 1px hsl(var(--primary) / 0.08),
-    inset 0 1px 0 hsl(0 0% 100% / 0.04);
+    0 2px 8px hsl(0 0% 0% / 0.25),
+    0 20px 48px -20px hsl(0 0% 0% / 0.55);
 }
 
 .dark .magiesTerminal-ai-composer:focus-within {
+  border-color: hsl(var(--border) / 0.75);
   box-shadow:
-    0 1px 2px hsl(0 0% 0% / 0.3),
-    0 18px 44px -12px hsl(var(--primary) / 0.35),
-    0 0 0 3px hsl(var(--primary) / 0.14),
-    inset 0 1px 0 hsl(0 0% 100% / 0.05);
+    0 2px 8px hsl(0 0% 0% / 0.3),
+    0 22px 52px -18px hsl(0 0% 0% / 0.6),
+    0 0 0 1px hsl(var(--primary) / 0.18);
 }
 
 .magiesTerminal-ai-empty-orb {
   background:
-    radial-gradient(circle at 30% 25%, hsl(var(--primary) / 0.28), transparent 55%),
-    linear-gradient(145deg, hsl(var(--primary) / 0.16) 0%, hsl(var(--muted) / 0.5) 100%);
-  box-shadow:
-    0 8px 28px -8px hsl(var(--primary) / 0.4),
-    inset 0 1px 0 hsl(0 0% 100% / 0.12);
+    radial-gradient(circle at 35% 30%, hsl(var(--primary) / 0.22), transparent 58%),
+    hsl(var(--muted) / 0.55);
+  box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.08);
 }
 
 /* Shared AI component chrome */

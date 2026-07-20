@@ -522,20 +522,18 @@ const ChatInput: React.FC<ChatInputProps> = ({
     : (selectedThinking ? 'max-w-[148px]' : 'max-w-[82px]');
   const hasModelPicker = hasProviderSwitcher || (modelPresets.length > 0 && !!onModelSelect);
   const popoverMaxWidth = hasProviderSwitcher ? PROVIDER_PICKER_MAX_WIDTH : MODEL_PICKER_MAX_WIDTH;
-  // Shared toolbar chip: bordered pill with soft fill so model/permission
-  // controls read as interactive controls, not plain text labels.
+  // Claude-like chips: quiet, no heavy borders
   const chipClassName = [
-    'inline-flex h-7 items-center gap-1.5 rounded-full border border-border/50',
-    'bg-background/70 px-2.5 text-[11px] font-medium text-foreground/82',
-    'shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_1px_2px_hsl(var(--foreground)/0.04)]',
-    'transition-colors hover:border-primary/30 hover:bg-primary/[0.07] hover:text-foreground',
+    'inline-flex h-7 items-center gap-1.5 rounded-full border border-transparent',
+    'bg-muted/40 px-2.5 text-[11.5px] font-medium text-foreground/75',
+    'transition-colors hover:bg-muted/70 hover:text-foreground',
   ].join(' ');
   const selectedSkillChipClassName =
-    'inline-flex h-7 items-center gap-1.5 rounded-full border border-primary/30 bg-primary/12 pl-2.5 pr-1.5 text-[11px] font-medium text-foreground/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]';
+    'inline-flex h-7 items-center gap-1.5 rounded-full border border-transparent bg-primary/10 pl-2.5 pr-1.5 text-[11.5px] font-medium text-foreground/88';
   const iconButtonClassName = [
-    'inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full',
-    'border border-border/40 bg-background/50 text-foreground/70',
-    'hover:border-primary/30 hover:bg-primary/[0.08] hover:text-foreground',
+    'inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full',
+    'border border-transparent text-muted-foreground/70',
+    'hover:bg-muted/60 hover:text-foreground',
     'transition-colors',
   ].join(' ');
   const menuShellClassName =
@@ -546,7 +544,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
     'px-3.5 pt-1.5 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/50';
 
   return (
-    <div className="shrink-0 px-3.5 pb-3.5 pt-1.5">
+    <div className="mx-auto w-full max-w-[44rem] shrink-0 px-4 pb-4 pt-1">
       <div ref={inputShellRef} className="magiesTerminal-ai-composer relative">
       <PromptInput onSubmit={handleSubmit} className="block">
         {/* File attachment chips */}

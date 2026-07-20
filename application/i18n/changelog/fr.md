@@ -1,6 +1,11 @@
 # Journal des modifications
 
 
+## [0.5.18] - 2026-07-20
+
+### Améliorations
+- **Mise en page chat IA style Claude** : colonne de lecture centrée (~44rem) avec typo plus grande ; bulles utilisateur douces et prose assistant sans cadre ; en-tête minimal et compositeur arrondi ; bouton d’envoi circulaire foreground/background ; état vide, récents, thinking et outils plus discrets
+
 ## [0.5.17] - 2026-07-20
 
 ### Améliorations
