@@ -21,7 +21,8 @@ export type ConversationContentProps = ComponentProps<typeof StickToBottom.Conte
 export const ConversationContent = ({ className, ...props }: ConversationContentProps) => (
   <StickToBottom.Content
     className={cn(
-      'flex min-w-0 max-w-full flex-col gap-7 overflow-x-hidden px-3.5 py-5 sm:px-4',
+      // Claude-like reading column: generous vertical rhythm, soft side padding
+      'mx-auto flex w-full min-w-0 max-w-[44rem] flex-col gap-8 overflow-x-hidden px-4 py-6 sm:px-5',
       className,
     )}
     {...props}
@@ -41,11 +42,10 @@ export const ConversationScrollButton = ({ className, ...props }: React.ButtonHT
     <button
       type="button"
       className={cn(
-        'absolute bottom-3 left-1/2 -translate-x-1/2 z-10',
-        'h-8 w-8 rounded-full border border-border/50 bg-card/95 backdrop-blur-md',
-        'flex items-center justify-center',
-        'text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer',
-        'shadow-[0_6px_18px_-6px_hsl(var(--foreground)/0.25)] ring-1 ring-inset ring-white/[0.04]',
+        'absolute bottom-4 left-1/2 z-10 -translate-x-1/2',
+        'flex h-8 w-8 items-center justify-center rounded-full',
+        'border border-border/45 bg-background/95 text-muted-foreground backdrop-blur-md',
+        'shadow-md transition-colors hover:bg-muted hover:text-foreground cursor-pointer',
         className,
       )}
       onClick={handleClick}

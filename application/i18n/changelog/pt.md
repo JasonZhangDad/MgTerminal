@@ -1,6 +1,11 @@
 # Registro de alterações
 
 
+## [0.5.18] - 2026-07-20
+
+### Melhorias
+- **Layout de chat IA no estilo Claude**: coluna de leitura central (~44rem) com tipografia maior; bolhas suaves do usuário e prosa do assistente sem borda; cabeçalho mínimo e compositor arredondado; botão de envio circular foreground/background; vazio, recentes, thinking e ferramentas mais discretos
+
 ## [0.5.17] - 2026-07-20
 
 ### Melhorias

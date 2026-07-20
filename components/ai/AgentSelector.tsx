@@ -208,10 +208,10 @@ const AgentSelector: React.FC<AgentSelectorProps> = ({
         <button
           type="button"
           className={cn(
-            'group flex h-8 min-w-0 max-w-[220px] items-center gap-2 rounded-xl border border-border/50 bg-background/70 px-2.5 text-left',
-            'shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_1px_2px_hsl(var(--foreground)/0.04)] transition-colors',
-            'hover:border-primary/30 hover:bg-primary/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25',
-            open && 'border-primary/40 bg-primary/[0.1] shadow-[0_0_0_1px_hsl(var(--primary)/0.12)]',
+            'group flex h-8 min-w-0 max-w-[220px] items-center gap-2 rounded-full border border-transparent bg-transparent px-2 text-left',
+            'transition-colors hover:bg-muted/55',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
+            open && 'bg-muted/60',
           )}
         >
           <AgentIconBadge

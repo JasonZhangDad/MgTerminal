@@ -31,12 +31,12 @@ export const InputGroupTextarea = forwardRef<HTMLTextAreaElement, InputGroupText
       className={cn(
         // 13px / 1.55 line-height keeps CJK + Latin descenders fully visible.
         // Fixed 20px line-height was clipping 中文 and j/g/y in several UI fonts.
-        'w-full resize-none bg-transparent text-[13.5px] text-foreground/92 selection:bg-primary/25',
-        'placeholder:text-muted-foreground/55 placeholder:font-normal placeholder:text-[13.5px]',
+        'w-full resize-none bg-transparent text-[15px] text-foreground/92 selection:bg-primary/20',
+        'placeholder:text-muted-foreground/50 placeholder:font-normal placeholder:text-[15px]',
         'focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed',
-        // Extra right padding for the expand control; generous vertical padding.
-        'box-border px-4 pr-10 pt-3.5 pb-3 leading-[1.55]',
-        'field-sizing-content min-h-[88px] max-h-56 overflow-y-auto',
+        // Claude-like roomy textarea
+        'box-border px-4 pr-10 pt-3.5 pb-2.5 leading-[1.55]',
+        'field-sizing-content min-h-[72px] max-h-56 overflow-y-auto',
         className,
       )}
       {...props}
@@ -55,8 +55,8 @@ export const InputGroupAddon = forwardRef<HTMLDivElement, InputGroupAddonProps>(
       ref={ref}
       className={cn(
         'flex items-center gap-1 px-3 py-2',
-        align === 'block-start' && 'border-b border-border/35 bg-muted/10',
-        align === 'block-end' && 'border-t border-border/40 bg-muted/[0.14]',
+        align === 'block-start' && 'border-b border-border/25 bg-transparent',
+        align === 'block-end' && 'border-t border-border/25 bg-transparent',
         className,
       )}
       {...props}

@@ -1,6 +1,11 @@
 # Änderungsprotokoll
 
 
+## [0.5.18] - 2026-07-20
+
+### Verbesserungen
+- **Claude-ähnliches AI-Chat-Layout**: zentrierte Lesespalte (~44rem) mit größerer Schrift und Zeilenhöhe; weiche Nutzerblasen und rahmenlose Assistenten-Prosa; minimaler Header und runder Composer; Senden als Vordergrund/Hintergrund-Kreis; ruhigerer Leerzustand, Verlauf, Thinking und Tool-Gruppen
+
 ## [0.5.17] - 2026-07-20
 
 ### Verbesserungen

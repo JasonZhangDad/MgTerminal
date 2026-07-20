@@ -1,6 +1,11 @@
 # Changelog
 
 
+## [0.5.18] - 2026-07-20
+
+### Improvements
+- **Claude-like AI chat layout**: centered reading column (~44rem) with larger type and line-height; soft user bubbles and borderless assistant prose; minimal header and rounded composer; send button as foreground/background circle; quieter empty state, recents, thinking blocks, and tool groups
+
 ## [0.5.17] - 2026-07-20
 
 ### Improvements
