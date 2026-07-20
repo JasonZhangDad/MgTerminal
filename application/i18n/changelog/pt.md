@@ -1,6 +1,11 @@
 # Registro de alterações
 
 
+## [0.5.12] - 2026-07-20
+
+### Melhorias
+- **Redesign de UI claramente visível**: barra lateral do vault com pílula primary sólida no item ativo; cartões de hosts com barra primary, elevação e brilho no hover; maior contraste palco/sidebar; navegação de configurações em primary sólido; abas Vault/SFTP com sublinhado primary; títulos de seção em maiúsculas compactas com chips de ícone
+
 ## [0.5.11] - 2026-07-20
 
 ### Melhorias

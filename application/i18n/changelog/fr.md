@@ -1,6 +1,11 @@
 # Journal des modifications
 
 
+## [0.5.12] - 2026-07-20
+
+### Améliorations
+- **Refonte UI clairement visible** : barre latérale vault avec pastille primary solide pour l'élément actif ; cartes grille d'hôtes avec barre primary, soulèvement et lueur au survol ; contraste scène/sidebar renforcé ; navigation des paramètres en primary solide ; onglets Vault/SFTP avec soulignement primary ; titres de section en petites capitales avec pastilles d'icône
+
 ## [0.5.11] - 2026-07-20
 
 ### Améliorations

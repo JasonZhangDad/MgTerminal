@@ -62,7 +62,7 @@ class AITabErrorBoundary extends React.Component<
 type SettingsState = ReturnType<typeof useSettingsState>;
 
 const settingsTabTriggerClassName =
-    "w-full justify-start gap-2 px-3 py-2.5 text-sm rounded-lg transition-[color,background-color,box-shadow] duration-150 overflow-hidden text-muted-foreground hover:bg-muted/55 hover:text-foreground data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary/14 data-[state=active]:to-primary/6 data-[state=active]:text-foreground data-[state=active]:shadow-[inset_2px_0_0_0_hsl(var(--primary))] data-[state=active]:ring-1 data-[state=active]:ring-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background";
+    "w-full justify-start gap-2 px-3 py-2.5 text-sm rounded-xl transition-[color,background-color,box-shadow] duration-150 overflow-hidden text-muted-foreground hover:bg-muted/55 hover:text-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-[0_6px_16px_-6px_hsl(var(--primary)/0.55)] data-[state=active]:font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background";
 const settingsTabIconClassName = "shrink-0";
 const settingsTabLabelClassName = "min-w-0 truncate";
 

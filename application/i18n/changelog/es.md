@@ -1,6 +1,11 @@
 # Registro de cambios
 
 
+## [0.5.12] - 2026-07-20
+
+### Mejoras
+- **Rediseño de UI claramente visible**: la barra lateral del vault usa una pastilla primary sólida para el elemento activo; las tarjetas de hosts ganan barra primary, elevación y resplandor al pasar el cursor; mayor contraste escena/barra lateral; navegación de ajustes en primary sólido; pestañas Vault/SFTP con subrayado primary; títulos de sección en mayúsculas compactas con chips de icono
+
 ## [0.5.11] - 2026-07-20
 
 ### Mejoras

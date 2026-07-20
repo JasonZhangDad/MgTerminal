@@ -860,10 +860,11 @@ const TopTabsInner: React.FC<TopTabsProps> = ({
     <div
       data-top-tabs-root
       data-section="top-tabs"
-      className="relative w-full bg-gradient-to-b from-secondary/95 to-secondary/80 app-drag after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-px after:origin-bottom after:[transform:scaleY(.5)] after:bg-border/45 after:content-[''] backdrop-blur-[1px]"
+      className="relative w-full app-drag after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-px after:origin-bottom after:[transform:scaleY(.5)] after:bg-border/50 after:content-['']"
       style={{
         ...dragRegionNoSelect,
-        backgroundColor: 'var(--top-tabs-bg, hsl(var(--secondary)))',
+        background:
+          'linear-gradient(180deg, color-mix(in srgb, var(--top-tabs-bg, hsl(var(--secondary))) 100%, transparent) 0%, color-mix(in srgb, var(--top-tabs-bg, hsl(var(--secondary))) 88%, hsl(var(--muted))) 100%)',
         color: 'var(--top-tabs-fg, hsl(var(--foreground)))',
       }}
       onDoubleClick={handleTitleBarDoubleClick}

@@ -84,10 +84,9 @@ export function VaultViewLayout({ ctx }: { ctx: VaultViewLayoutContext }) {
     }
   }, [isHostPanelOpen]);
 
-  const vaultNavActiveClass =
-    "magiesTerminal-nav-active border-border/30 hover:bg-primary/15";
+  const vaultNavActiveClass = "magiesTerminal-nav-active font-semibold";
   const vaultNavIdleClass =
-    "text-muted-foreground hover:text-foreground hover:bg-foreground/[0.04]";
+    "text-muted-foreground hover:text-foreground hover:bg-foreground/[0.06] rounded-xl";
 
   return (
     <div ref={rootRef} className="absolute inset-0 min-h-0 flex magiesTerminal-vault-stage" data-section="vault-view">
@@ -125,13 +124,13 @@ export function VaultViewLayout({ ctx }: { ctx: VaultViewLayoutContext }) {
             </Tooltip>
           </div>
 
-          <div className={cn("space-y-1", sidebarCollapsed ? "px-1.5" : "px-2.5")}>
+          <div className={cn("space-y-1.5", sidebarCollapsed ? "px-1.5" : "px-2.5")}>
             <Tooltip>
               <TooltipTrigger asChild>
                 <RippleButton
                   variant={currentSection === "hosts" ? "secondary" : "ghost"}
                   className={cn(
-                    "w-full h-10",
+                    "w-full h-10 rounded-xl",
                     sidebarCollapsed ? "justify-center p-0" : "justify-start gap-3",
                     currentSection === "hosts" ? vaultNavActiveClass : vaultNavIdleClass,
                   )}
@@ -151,7 +150,7 @@ export function VaultViewLayout({ ctx }: { ctx: VaultViewLayoutContext }) {
                 <RippleButton
                   variant={currentSection === "keys" ? "secondary" : "ghost"}
                   className={cn(
-                    "w-full h-10",
+                    "w-full h-10 rounded-xl",
                     sidebarCollapsed ? "justify-center p-0" : "justify-start gap-3",
                     currentSection === "keys" ? vaultNavActiveClass : vaultNavIdleClass,
                   )}
@@ -170,7 +169,7 @@ export function VaultViewLayout({ ctx }: { ctx: VaultViewLayoutContext }) {
                 <RippleButton
                   variant={currentSection === "proxies" ? "secondary" : "ghost"}
                   className={cn(
-                    "w-full h-10",
+                    "w-full h-10 rounded-xl",
                     sidebarCollapsed ? "justify-center p-0" : "justify-start gap-3",
                     currentSection === "proxies" ? vaultNavActiveClass : vaultNavIdleClass,
                   )}
@@ -189,7 +188,7 @@ export function VaultViewLayout({ ctx }: { ctx: VaultViewLayoutContext }) {
                 <RippleButton
                   variant={currentSection === "port" ? "secondary" : "ghost"}
                   className={cn(
-                    "w-full h-10",
+                    "w-full h-10 rounded-xl",
                     sidebarCollapsed ? "justify-center p-0" : "justify-start gap-3",
                     currentSection === "port" ? vaultNavActiveClass : vaultNavIdleClass,
                   )}
@@ -206,7 +205,7 @@ export function VaultViewLayout({ ctx }: { ctx: VaultViewLayoutContext }) {
                 <RippleButton
                   variant={currentSection === "snippets" ? "secondary" : "ghost"}
                   className={cn(
-                    "w-full h-10",
+                    "w-full h-10 rounded-xl",
                     sidebarCollapsed ? "justify-center p-0" : "justify-start gap-3",
                     currentSection === "snippets" ? vaultNavActiveClass : vaultNavIdleClass,
                   )}
@@ -225,7 +224,7 @@ export function VaultViewLayout({ ctx }: { ctx: VaultViewLayoutContext }) {
                 <RippleButton
                   variant={currentSection === "notes" ? "secondary" : "ghost"}
                   className={cn(
-                    "w-full h-10",
+                    "w-full h-10 rounded-xl",
                     sidebarCollapsed ? "justify-center p-0" : "justify-start gap-3",
                     currentSection === "notes" ? vaultNavActiveClass : vaultNavIdleClass,
                   )}
@@ -244,7 +243,7 @@ export function VaultViewLayout({ ctx }: { ctx: VaultViewLayoutContext }) {
                 <RippleButton
                   variant={currentSection === "knownhosts" ? "secondary" : "ghost"}
                   className={cn(
-                    "w-full h-10",
+                    "w-full h-10 rounded-xl",
                     sidebarCollapsed ? "justify-center p-0" : "justify-start gap-3",
                     currentSection === "knownhosts" ? vaultNavActiveClass : vaultNavIdleClass,
                   )}
@@ -261,7 +260,7 @@ export function VaultViewLayout({ ctx }: { ctx: VaultViewLayoutContext }) {
                 <RippleButton
                   variant={currentSection === "logs" ? "secondary" : "ghost"}
                   className={cn(
-                    "w-full h-10",
+                    "w-full h-10 rounded-xl",
                     sidebarCollapsed ? "justify-center p-0" : "justify-start gap-3",
                     currentSection === "logs" ? vaultNavActiveClass : vaultNavIdleClass,
                   )}

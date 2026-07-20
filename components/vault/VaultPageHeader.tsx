@@ -19,7 +19,7 @@ export function VaultPageHeader({
   return (
     <header
       className={cn(
-        "relative shrink-0 bg-gradient-to-b from-background/98 to-background/90 backdrop-blur-[2px] app-drag after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-px after:origin-bottom after:[transform:scaleY(.5)] after:bg-border/45 after:content-['']",
+        "relative shrink-0 bg-gradient-to-b from-card/40 via-background/95 to-background app-drag after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-px after:origin-bottom after:[transform:scaleY(.5)] after:bg-border/55 after:content-['']",
         className,
       )}
       data-section={dataSection}
