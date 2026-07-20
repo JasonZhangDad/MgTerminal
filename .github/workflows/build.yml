@@ -898,6 +898,7 @@ jobs:
             artifacts/*.zip
             artifacts/*.exe
             artifacts/*.msi
+            artifacts/*.apk
             artifacts/*.yml
             artifacts/*.blockmap
           generate_release_notes: false
@@ -922,6 +923,7 @@ jobs:
             artifacts/*.zip
             artifacts/*.exe
             artifacts/*.msi
+            artifacts/*.apk
             artifacts/*.yml
             artifacts/*.blockmap
           generate_release_notes: false

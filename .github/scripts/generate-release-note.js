@@ -76,6 +76,9 @@ const files = {
       x64: `MagiesTerminal-${version}-linux-x64.pacman`,
       arm64: `MagiesTerminal-${version}-linux-aarch64.pacman`
     }
+  },
+  android: {
+    apk: `MagiesTerminal-${version}-android.apk`
   }
 };
 
@@ -96,6 +99,9 @@ const badges = {
     rpm_arm64: `[![RpmPackage arm64](https://img.shields.io/badge/RpmPackage-arm64-CC0000?style=flat-square&logo=redhat)](${baseUrl}/${files.linux.rpm.arm64})`,
     pacman_x64: `[![ArchPackage x64](https://img.shields.io/badge/ArchPackage-x64-1793D1?style=flat-square&logo=archlinux)](${baseUrl}/${files.linux.pacman.x64})`,
     pacman_arm64: `[![ArchPackage arm64](https://img.shields.io/badge/ArchPackage-arm64-1793D1?style=flat-square&logo=archlinux)](${baseUrl}/${files.linux.pacman.arm64})`
+  },
+  android: {
+    apk: `[![Android APK](https://img.shields.io/badge/APK-Android-3DDC84?style=flat-square&logo=android)](${baseUrl}/${files.android.apk})`
   }
 };
 
@@ -107,6 +113,7 @@ const content = `
 | **Windows** | ${badges.win.setup_x64} |
 | **macOS** | ${badges.mac.apple_silicon} ${badges.mac.intel} |
 | **Linux** | ${badges.linux.appimage_x64} ${badges.linux.deb_x64} ${badges.linux.rpm_x64} ${badges.linux.pacman_x64} <br> ${badges.linux.appimage_arm64} ${badges.linux.deb_arm64} ${badges.linux.rpm_arm64} ${badges.linux.pacman_arm64} |
+| **Android** | ${badges.android.apk} (companion APK · sideload, no store required) |
 `;
 
 fs.writeFileSync('release_notes.md', content);
