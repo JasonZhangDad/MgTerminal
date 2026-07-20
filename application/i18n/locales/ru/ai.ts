@@ -54,7 +54,7 @@ export const ruAiMessages: Messages = {
 
   // AI Codex
   'ai.codex': 'Codex',
-  'ai.codex.title': 'Codex CLI',
+  'ai.codex.title': 'ChatGPT (Codex)',
   'ai.codex.description': 'Подключение OpenAI Codex. Здесь можно войти через ChatGPT или включить API-ключ OpenAI-совместимого провайдера и пользовательский endpoint в настройках.',
   'ai.codex.detecting': 'Обнаружение...',
   'ai.codex.notFound': 'Не найден',

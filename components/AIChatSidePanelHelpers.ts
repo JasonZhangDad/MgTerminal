@@ -110,10 +110,39 @@ export function modelPresetsContainId(presets: AgentModelPreset[], modelId: stri
 
 export function shouldLoadSdkRuntimeModels(agent?: ExternalAgentConfig): boolean {
   const sdkBackend = getExternalAgentSdkBackend(agent);
+  // Prefer live catalogs from each SDK/CLI when available. Codex lists via
+  // OpenAI-compatible `/models` when an API key is present; otherwise the UI
+  // keeps curated fallback presets.
   return sdkBackend === 'claude'
     || sdkBackend === 'copilot'
+    || sdkBackend === 'cursor'
     || sdkBackend === 'codebuddy'
-    || sdkBackend === 'opencode';
+    || sdkBackend === 'opencode'
+    || sdkBackend === 'codex';
+}
+
+/**
+ * Prefer live agent model catalogs; enrich with static thinkingLevels / names
+ * from curated fallbacks when the runtime entry omits them.
+ */
+export function mergeRuntimeAgentModelPresets(
+  runtime: AgentModelPreset[] | undefined,
+  fallback: AgentModelPreset[],
+): AgentModelPreset[] {
+  if (!runtime?.length) return fallback;
+  const fallbackById = new Map(fallback.map((preset) => [preset.id, preset]));
+  return runtime.map((preset) => {
+    const base = fallbackById.get(preset.id);
+    if (!base) return preset;
+    const description = preset.description ?? base.description;
+    const thinkingLevels = preset.thinkingLevels?.length ? preset.thinkingLevels : base.thinkingLevels;
+    return {
+      id: preset.id,
+      name: preset.name || base.name,
+      ...(description ? { description } : {}),
+      ...(thinkingLevels?.length ? { thinkingLevels } : {}),
+    };
+  });
 }
 
 export function shouldAdoptSdkCurrentModel(

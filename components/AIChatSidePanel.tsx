@@ -58,6 +58,7 @@ import {
   buildSdkRuntimeModelCacheKey,
   sdkRuntimeModelCache,
   generateId,
+  mergeRuntimeAgentModelPresets,
   normalizeSdkRuntimeModelPresets,
   shouldAdoptSdkCurrentModel,
   shouldLoadSdkRuntimeModels,
@@ -863,16 +864,18 @@ const AIChatSidePanelActive: React.FC<AIChatSidePanelProps> = ({
 
   const agentModelPresets = useMemo(() => {
     const runtimePresets = runtimeAgentModelPresets[currentAgentId];
+    const fallbackPresets = getAgentModelPresets(currentAgentConfig?.command);
     if (hasCodexCustomConfig) {
-      if (runtimePresets) {
-        return runtimePresets;
+      if (runtimePresets?.length) {
+        return mergeRuntimeAgentModelPresets(runtimePresets, fallbackPresets);
       }
       if (codexConfigModel) {
         return [{ id: codexConfigModel, name: codexConfigModel }];
       }
       return [];
     }
-    return runtimePresets ?? getAgentModelPresets(currentAgentConfig?.command);
+    // Live SDK/API catalog when available; otherwise curated fallbacks.
+    return mergeRuntimeAgentModelPresets(runtimePresets, fallbackPresets);
   }, [currentAgentConfig?.command, currentAgentId, runtimeAgentModelPresets, hasCodexCustomConfig, codexConfigModel]);
 
   const selectedAgentModel = useMemo(() => {

@@ -52,7 +52,17 @@ export function inferCodingCliProviderFromTitleSignals(title: string): CodingCli
   if (titleIncludesPhrase(raw, 'codex') || titleIncludesPhrase(raw, 'chatgpt')) return 'codex';
   if (titleIncludesPhrase(raw, 'github copilot') || titleIncludesPhrase(raw, 'copilot')) return 'copilot';
   if (titleIncludesPhrase(raw, 'codebuddy')) return 'codebuddy';
-  if (titleIncludesPhrase(raw, 'gemini')) return 'gemini';
+  // Antigravity is Google's Gemini agent CLI — treat as Gemini.
+  if (
+    titleIncludesPhrase(raw, 'gemini')
+    || titleIncludesPhrase(raw, 'antigravity')
+    || titleIncludesPhrase(raw, 'agy')
+  ) {
+    return 'gemini';
+  }
+  if (titleIncludesPhrase(raw, 'grok build') || titleIncludesPhrase(raw, 'grok') || titleIncludesPhrase(raw, 'xai')) {
+    return 'grok';
+  }
   if (titleIncludesPhrase(raw, 'moonshot') || titleIncludesPhrase(raw, 'kimi')) return 'kimi';
   if (titleIncludesPhrase(raw, 'factory droid') || titleIncludesPhrase(raw, 'factory ai')) return 'droid';
   if (titleIncludesPhrase(raw, 'droid')) return 'droid';

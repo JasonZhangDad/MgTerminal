@@ -47,7 +47,7 @@ test("buildModelSuggestions uses provider presets before fetched model discovery
   );
 });
 
-test("buildModelSuggestions merges fetched and preset models without duplicates", () => {
+test("buildModelSuggestions prefers live catalog then fills missing presets", () => {
   assert.deepEqual(
     buildModelSuggestions({
       presetModels: ["kimi-k2.6", "moonshot-v1-128k"],
@@ -58,6 +58,7 @@ test("buildModelSuggestions merges fetched and preset models without duplicates"
       hasFetched: true,
       value: "",
     }).map((model) => model.id),
-    ["kimi-k2.6", "moonshot-v1-128k", "moonshot-v1-8k"],
+    // Live first: kimi + 8k from API, then preset-only moonshot-v1-128k
+    ["kimi-k2.6", "moonshot-v1-8k", "moonshot-v1-128k"],
   );
 });

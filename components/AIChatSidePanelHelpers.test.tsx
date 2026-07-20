@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 
 import {
   createSdkRuntimeModelCache,
+  mergeRuntimeAgentModelPresets,
   modelPresetsContainId,
   normalizeSdkRuntimeModelPresets,
   shouldAdoptSdkCurrentModel,
@@ -33,10 +34,29 @@ test('shouldLoadSdkRuntimeModels includes SDK agents with model catalogs', () =>
 
   assert.equal(shouldLoadSdkRuntimeModels(agent('claude')), true);
   assert.equal(shouldLoadSdkRuntimeModels(agent('copilot')), true);
+  assert.equal(shouldLoadSdkRuntimeModels(agent('cursor')), true);
   assert.equal(shouldLoadSdkRuntimeModels(agent('codebuddy')), true);
   assert.equal(shouldLoadSdkRuntimeModels(agent('opencode')), true);
-  assert.equal(shouldLoadSdkRuntimeModels(agent('codex')), false);
+  assert.equal(shouldLoadSdkRuntimeModels(agent('codex')), true);
   assert.equal(shouldLoadSdkRuntimeModels(undefined), false);
+});
+
+test('mergeRuntimeAgentModelPresets prefers live catalog and keeps fallback thinking levels', () => {
+  const fallback: AgentModelPreset[] = [
+    { id: 'gpt-5.6-sol', name: 'GPT-5.6 Sol', thinkingLevels: ['low', 'high'] },
+    { id: 'gpt-5.5', name: 'GPT-5.5', thinkingLevels: ['low', 'high'] },
+  ];
+  assert.deepEqual(mergeRuntimeAgentModelPresets(undefined, fallback), fallback);
+  assert.deepEqual(
+    mergeRuntimeAgentModelPresets(
+      [{ id: 'gpt-5.6-sol', name: 'Sol from API' }, { id: 'gpt-5.6-luna', name: 'Luna' }],
+      fallback,
+    ),
+    [
+      { id: 'gpt-5.6-sol', name: 'Sol from API', thinkingLevels: ['low', 'high'] },
+      { id: 'gpt-5.6-luna', name: 'Luna' },
+    ],
+  );
 });
 
 test('shouldAdoptSdkCurrentModel keeps SDK defaults when no runtime list is returned', () => {

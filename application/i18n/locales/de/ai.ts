@@ -60,7 +60,7 @@ export const deAiMessages: Messages = {
 
   // AI Codex
   'ai.codex': 'Codex',
-  'ai.codex.title': 'Codex CLI',
+  'ai.codex.title': 'ChatGPT (Codex)',
   'ai.codex.description': 'OpenAI Codex verbinden. Hier mit ChatGPT anmelden, oder in den Einstellungen einen OpenAI-kompatiblen Anbieter-API-Schlüssel und benutzerdefinierten Endpunkt aktivieren.',
   'ai.codex.detecting': 'Erkennen...',
   'ai.codex.notFound': 'Nicht gefunden',

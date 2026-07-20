@@ -17,7 +17,7 @@ test("resolveProviderStyle falls back to providerId for google", () => {
 });
 
 test("resolveProviderStyle treats every other providerId as the OpenAI-compatible family", () => {
-  for (const providerId of ["openai", "ollama", "openrouter", "qwen", "deepseek", "kimi", "zhipu", "doubao", "mimo", "custom"] as const) {
+  for (const providerId of ["openai", "ollama", "openrouter", "xai", "qwen", "deepseek", "kimi", "zhipu", "doubao", "mimo", "custom"] as const) {
     assert.equal(resolveProviderStyle({ providerId }), "openai", `expected openai for ${providerId}`);
   }
 });
@@ -29,6 +29,7 @@ test("domestic provider presets include editable OpenAI-compatible base URLs", (
   assert.equal(PROVIDER_PRESETS.zhipu.defaultBaseURL, "https://open.bigmodel.cn/api/paas/v4");
   assert.equal(PROVIDER_PRESETS.doubao.defaultBaseURL, "https://ark.cn-beijing.volces.com/api/v3");
   assert.equal(PROVIDER_PRESETS.mimo.defaultBaseURL, "https://api.xiaomimimo.com/v1");
+  assert.equal(PROVIDER_PRESETS.xai.defaultBaseURL, "https://api.x.ai/v1");
 });
 
 test("openrouter keeps dynamic model discovery instead of a static preset list", () => {
@@ -37,7 +38,11 @@ test("openrouter keeps dynamic model discovery instead of a static preset list",
   assert.equal(PROVIDER_PRESETS.openrouter.defaultModels, undefined);
 });
 
-test("domestic provider presets expose provider-specific model suggestions", () => {
+test("provider presets expose provider-specific model suggestions", () => {
+  assert.ok(PROVIDER_PRESETS.openai.defaultModels?.includes("gpt-5.6-sol"));
+  assert.ok(PROVIDER_PRESETS.xai.defaultModels?.includes("grok-4.5"));
+  assert.ok(PROVIDER_PRESETS.xai.defaultModels?.includes("grok-build-0.1"));
+  assert.ok(PROVIDER_PRESETS.google.defaultModels?.includes("gemini-3.1-pro"));
   assert.equal(PROVIDER_PRESETS.qwen.defaultModels?.[0], "qwen3.7-plus");
   assert.ok(PROVIDER_PRESETS.qwen.defaultModels?.includes("qwen3.7-max"));
   assert.equal(PROVIDER_PRESETS.deepseek.defaultModels?.[0], "deepseek-v4-flash");

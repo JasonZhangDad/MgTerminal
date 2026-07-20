@@ -60,7 +60,7 @@ export const koAiMessages: Messages = {
 
   // AI Codex
   'ai.codex': 'Codex',
-  'ai.codex.title': 'Codex CLI',
+  'ai.codex.title': 'ChatGPT (Codex)',
   'ai.codex.description': 'OpenAI Codex를 연결합니다. 여기서 ChatGPT로 로그인하거나 설정에서 OpenAI 호환 공급자 API 키와 사용자 지정 엔드포인트를 사용하세요.',
   'ai.codex.detecting': '감지 중...',
   'ai.codex.notFound': '찾을 수 없음',

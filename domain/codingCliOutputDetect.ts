@@ -39,7 +39,14 @@ const OUTPUT_SIGNATURES: readonly OutputSignature[] = [
   },
   {
     id: 'gemini',
-    test: (text) => /Gemini CLI/i.test(text),
+    test: (text) =>
+      /Gemini CLI/i.test(text)
+      || /Antigravity(?:\s+CLI)?/i.test(text)
+      || /\bagy\b/i.test(text),
+  },
+  {
+    id: 'grok',
+    test: (text) => /Grok Build/i.test(text) || /(?:^|\s)Grok(?:\s+CLI)?(?:\s|$)/i.test(text),
   },
   {
     id: 'droid',

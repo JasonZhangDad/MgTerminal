@@ -305,6 +305,75 @@ async function runCodexTurn({
   }
 }
 
+/**
+ * Discover models for the Codex UI picker.
+ * codex-sdk has no catalog API, so when an OpenAI-compatible API key is
+ * available we list `/models` and keep chat/reasoning ids. Thinking levels
+ * for GPT-5 family are attached so the existing `<id>/<effort>` picker works.
+ * Returns [] when offline / no key — the renderer falls back to curated presets.
+ */
+const CODEX_CHAT_MODEL_RE = /^(gpt-|o[0-9]|chatgpt-|codex)/i;
+const CODEX_SKIP_MODEL_RE = /(embed|whisper|tts|dall-e|image|audio|realtime|transcribe|moderation|search)/i;
+const GPT5_THINKING_LEVELS = ["low", "medium", "high", "xhigh"];
+
+function isCodexChatModelId(id) {
+  const value = String(id || "").trim();
+  if (!value) return false;
+  if (CODEX_SKIP_MODEL_RE.test(value)) return false;
+  return CODEX_CHAT_MODEL_RE.test(value);
+}
+
+function mapOpenAiModelToCodexPreset(model) {
+  const id = String(model?.id || "").trim();
+  if (!isCodexChatModelId(id)) return null;
+  const name = typeof model?.name === "string" && model.name.trim() ? model.name.trim() : id;
+  const entry = { id, name };
+  if (/^gpt-5/i.test(id) || /^codex/i.test(id)) {
+    entry.thinkingLevels = [...GPT5_THINKING_LEVELS];
+  }
+  return entry;
+}
+
+async function listCodexModels({ apiKey, baseUrl, env, fetchImpl } = {}) {
+  const key = String(
+    apiKey
+    || env?.OPENAI_API_KEY
+    || env?.CODEX_API_KEY
+    || process.env.OPENAI_API_KEY
+    || process.env.CODEX_API_KEY
+    || "",
+  ).trim();
+  if (!key) return [];
+
+  const root = String(baseUrl || env?.OPENAI_BASE_URL || "https://api.openai.com/v1")
+    .trim()
+    .replace(/\/+$/, "");
+  const url = `${root}/models`;
+  const fetchFn = fetchImpl || globalThis.fetch;
+  if (typeof fetchFn !== "function") return [];
+
+  try {
+    const response = await fetchFn(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${key}`,
+        Accept: "application/json",
+      },
+    });
+    if (!response?.ok) return [];
+    const body = await response.json();
+    const raw = Array.isArray(body?.data) ? body.data : Array.isArray(body?.models) ? body.models : [];
+    const mapped = raw
+      .map((item) => mapOpenAiModelToCodexPreset(item))
+      .filter(Boolean);
+    // Newest-looking ids first (gpt-5.6 before gpt-5.1, etc.)
+    mapped.sort((a, b) => b.id.localeCompare(a.id, undefined, { numeric: true, sensitivity: "base" }));
+    return mapped;
+  } catch {
+    return [];
+  }
+}
+
 module.exports = {
   buildCodexConstructorOptions,
   buildCodexThreadOptions,
@@ -312,4 +381,7 @@ module.exports = {
   translateCodexEvent,
   runCodexTurn,
   toCodexMcpConfig,
+  isCodexChatModelId,
+  mapOpenAiModelToCodexPreset,
+  listCodexModels,
 };

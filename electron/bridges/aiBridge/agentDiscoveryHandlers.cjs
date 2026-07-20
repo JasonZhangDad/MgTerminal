@@ -75,8 +75,8 @@ function registerAgentDiscoveryHandlers(ctx) {
     const knownAgents = [
       { command: "claude", name: "Claude Code", icon: "claude",
         description: "Anthropic's agentic coding assistant", sdkBackend: "claude", args: [] },
-      { command: "codex", name: "Codex CLI", icon: "openai",
-        description: "OpenAI's coding agent", sdkBackend: "codex", args: [] },
+      { command: "codex", name: "ChatGPT", icon: "openai",
+        description: "ChatGPT coding agent (OpenAI Codex CLI)", sdkBackend: "codex", args: [] },
       { command: "copilot", name: "GitHub Copilot CLI", icon: "copilot",
         description: "GitHub's coding agent CLI", sdkBackend: "copilot", args: [] },
       { command: "cursor", name: "Cursor", icon: "cursor",

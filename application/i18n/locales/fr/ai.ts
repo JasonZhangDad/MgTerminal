@@ -59,7 +59,7 @@ export const frAiMessages: Messages = {
   'ai.providers.advancedParams.default': 'Défaut du fournisseur',
   // AI Codex
   'ai.codex': 'Codex',
-  'ai.codex.title': 'Codex CLI',
+  'ai.codex.title': 'ChatGPT (Codex)',
   'ai.codex.description': 'Connecter OpenAI Codex. Connectez-vous avec ChatGPT ici, ou activez une clé API de fournisseur compatible OpenAI et un point de terminaison personnalisé dans Paramètres.',
   'ai.codex.detecting': 'Détection...',
   'ai.codex.notFound': 'Introuvable',

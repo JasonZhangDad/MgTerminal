@@ -60,7 +60,7 @@ export const ptAiMessages: Messages = {
 
   // AI Codex
   'ai.codex': 'Codex',
-  'ai.codex.title': 'Codex CLI',
+  'ai.codex.title': 'ChatGPT (Codex)',
   'ai.codex.description': 'Conecte o OpenAI Codex. Entre com o ChatGPT aqui, ou habilite uma API key de provedor compatível com OpenAI e um endpoint personalizado em Configurações.',
   'ai.codex.detecting': 'Detectando...',
   'ai.codex.notFound': 'Não encontrado',

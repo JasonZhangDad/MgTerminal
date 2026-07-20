@@ -277,3 +277,48 @@ test("buildCodexThreadOptions splits <model>/<effort> into model + modelReasonin
   assert.equal(c.model, "openrouter/some-model");
   assert.equal(c.modelReasoningEffort, undefined);
 });
+
+const {
+  isCodexChatModelId,
+  mapOpenAiModelToCodexPreset,
+  listCodexModels,
+} = require("./codexDriver.cjs");
+
+test("isCodexChatModelId keeps chat/reasoning models", () => {
+  assert.equal(isCodexChatModelId("gpt-5.6-sol"), true);
+  assert.equal(isCodexChatModelId("o3"), true);
+  assert.equal(isCodexChatModelId("text-embedding-3-small"), false);
+  assert.equal(isCodexChatModelId("whisper-1"), false);
+});
+
+test("mapOpenAiModelToCodexPreset adds thinking levels for GPT-5 family", () => {
+  assert.deepEqual(mapOpenAiModelToCodexPreset({ id: "gpt-5.6-sol" }), {
+    id: "gpt-5.6-sol",
+    name: "gpt-5.6-sol",
+    thinkingLevels: ["low", "medium", "high", "xhigh"],
+  });
+  assert.equal(mapOpenAiModelToCodexPreset({ id: "whisper-1" }), null);
+});
+
+test("listCodexModels fetches OpenAI-compatible /models when keyed", async () => {
+  const models = await listCodexModels({
+    apiKey: "sk-test",
+    baseUrl: "https://api.openai.com/v1",
+    fetchImpl: async () => ({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: "gpt-5.6-sol" },
+          { id: "text-embedding-3-small" },
+          { id: "gpt-4o" },
+        ],
+      }),
+    }),
+  });
+  assert.deepEqual(models.map((m) => m.id), ["gpt-5.6-sol", "gpt-4o"]);
+  assert.ok(models[0].thinkingLevels?.includes("high"));
+});
+
+test("listCodexModels returns empty without key", async () => {
+  assert.deepEqual(await listCodexModels({}), []);
+});
