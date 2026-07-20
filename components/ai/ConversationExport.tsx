@@ -52,7 +52,7 @@ const ConversationExport: React.FC<ConversationExportProps> = ({
             <Button
               variant="ghost"
               size="icon"
-              className={className ?? 'h-7 w-7 rounded-md text-muted-foreground/70 hover:bg-accent/60 hover:text-foreground'}
+              className={className ?? 'h-7 w-7 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground'}
               disabled={!hasMessages}
             >
               <Download size={14} />
@@ -64,19 +64,21 @@ const ConversationExport: React.FC<ConversationExportProps> = ({
       <DropdownContent
         align="end"
         sideOffset={6}
-        className="w-40 rounded-xl border border-border/60 bg-popover p-1.5 text-popover-foreground shadow-lg supports-[backdrop-filter]:bg-popover/95 supports-[backdrop-filter]:backdrop-blur-sm"
+        className="w-44 rounded-2xl border border-border/50 bg-popover/96 p-1.5 text-popover-foreground shadow-[0_12px_36px_rgba(0,0,0,0.14)] backdrop-blur-md ring-1 ring-inset ring-white/[0.04]"
       >
-        <div className="px-2 py-1 text-[10px] font-medium uppercase tracking-[0.16em] text-muted-foreground/70">
+        <div className="px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/55">
           {t('ai.chat.exportAs')}
         </div>
         {EXPORT_OPTIONS.map(({ format, labelKey, icon: Icon }) => (
           <button
             key={format}
             onClick={() => handleExport(format)}
-            className="w-full flex items-center gap-2 px-2 py-1.5 text-[13px] rounded-lg transition-colors cursor-pointer hover:bg-accent hover:text-accent-foreground"
+            className="w-full flex items-center gap-2.5 px-2 py-2 text-[12.5px] rounded-xl transition-colors cursor-pointer hover:bg-primary/10 hover:text-foreground"
           >
-            <Icon size={13} className="shrink-0 text-muted-foreground" />
-            <span>{t(labelKey)}</span>
+            <span className="magiesTerminal-ai-icon-plate h-7 w-7 rounded-lg border-border/50 bg-muted/40 text-muted-foreground">
+              <Icon size={13} />
+            </span>
+            <span className="font-medium">{t(labelKey)}</span>
           </button>
         ))}
       </DropdownContent>

@@ -1,6 +1,11 @@
 # Registro de cambios
 
 
+## [0.5.14] - 2026-07-20
+
+### Mejoras
+- **Rediseño de iconos y componentes de IA**: insignias de agente/proveedor con degradado; tarjetas de herramientas con iconos de categoría; franja de aprobación y chips de estado reforzados; artefactos vault/terminal unificados; selector slash y menú de exportación iconizados
+
 ## [0.5.13] - 2026-07-20
 
 ### Mejoras

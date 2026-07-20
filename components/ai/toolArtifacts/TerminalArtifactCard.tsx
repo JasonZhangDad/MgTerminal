@@ -30,18 +30,21 @@ export const TerminalArtifactCard = React.forwardRef<HTMLDivElement, TerminalArt
 }, ref) => {
   if (artifact.kind === 'error') {
     return (
-      <div className={cn(
-        'flex w-full items-center gap-2.5 rounded-md border border-destructive/25 bg-destructive/5 px-2.5 py-2',
-        className,
-      )} ref={ref}>
-        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-destructive/10 text-destructive">
-          <AlertCircle size={15} />
+      <div
+        className={cn(
+          'magiesTerminal-ai-card flex w-full items-center gap-3 border-destructive/30 bg-gradient-to-br from-destructive/[0.08] to-transparent px-3 py-2.5',
+          className,
+        )}
+        ref={ref}
+      >
+        <div className="magiesTerminal-ai-icon-plate h-8 w-8 rounded-xl border-destructive/30 bg-destructive/12 text-destructive">
+          <AlertCircle size={16} />
         </div>
         <div className="min-w-0 flex-1 text-left">
-          <div className="truncate text-[12px] font-medium text-foreground/85">
+          <div className="truncate text-[12.5px] font-semibold text-foreground/90">
             Terminal read failed
           </div>
-          <div className="truncate text-[11px] text-muted-foreground/60">
+          <div className="truncate text-[11px] text-muted-foreground/65">
             {artifact.message}
           </div>
         </div>
@@ -52,18 +55,21 @@ export const TerminalArtifactCard = React.forwardRef<HTMLDivElement, TerminalArt
   const title = artifact.label || artifact.sessionId;
 
   return (
-    <div className={cn(
-      'flex w-full items-center gap-2.5 rounded-md border border-border/25 bg-muted/10 px-2.5 py-2',
-      className,
-    )} ref={ref}>
-      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-emerald-500/10 text-emerald-500">
-        <SquareTerminal size={15} />
+    <div
+      className={cn(
+        'magiesTerminal-ai-card flex w-full items-center gap-3 px-3 py-2.5',
+        className,
+      )}
+      ref={ref}
+    >
+      <div className="magiesTerminal-ai-icon-plate h-8 w-8 rounded-xl border-emerald-500/30 bg-gradient-to-br from-emerald-500/18 to-emerald-500/8 text-emerald-400">
+        <SquareTerminal size={16} />
       </div>
       <div className="min-w-0 flex-1 text-left">
-        <div className="truncate text-[12px] font-medium text-foreground/85">
+        <div className="truncate text-[12.5px] font-semibold text-foreground/90">
           {title}
         </div>
-        <div className="truncate text-[11px] text-muted-foreground/60">
+        <div className="truncate text-[11px] font-mono text-muted-foreground/60">
           {formatSubtitle(artifact)}
         </div>
       </div>

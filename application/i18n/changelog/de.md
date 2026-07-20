@@ -1,6 +1,11 @@
 # Änderungsprotokoll
 
 
+## [0.5.14] - 2026-07-20
+
+### Verbesserungen
+- **KI-Icons und Komponentensystem neu gestaltet**: Agent-/Provider-Badges mit Verlaufsplatten; Tool-Call-Karten mit Kategorie-Icons; stärkere Freigabeleiste und Status-Chips; Vault-/Terminal-Artefakte als einheitliche Karten; Slash-Picker und Exportmenü ikonisiert
+
 ## [0.5.13] - 2026-07-20
 
 ### Verbesserungen

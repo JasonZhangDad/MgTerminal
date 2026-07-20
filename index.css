@@ -1277,6 +1277,58 @@ html[data-theme-transition] *::after {
     inset 0 1px 0 hsl(0 0% 100% / 0.12);
 }
 
+/* Shared AI component chrome */
+.magiesTerminal-ai-icon-plate {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 0.625rem;
+  border: 1px solid hsl(var(--border) / 0.55);
+  box-shadow:
+    inset 0 1px 0 hsl(0 0% 100% / 0.06),
+    0 1px 2px hsl(var(--foreground) / 0.04);
+}
+
+.magiesTerminal-ai-icon-plate--lg {
+  border-radius: 0.75rem;
+}
+
+.magiesTerminal-ai-card {
+  border: 1px solid hsl(var(--border) / 0.55);
+  border-radius: 0.875rem;
+  background:
+    linear-gradient(165deg, hsl(var(--card) / 0.88) 0%, hsl(var(--muted) / 0.22) 100%);
+  box-shadow:
+    0 1px 2px hsl(var(--foreground) / 0.04),
+    0 8px 22px -12px hsl(var(--foreground) / 0.12),
+    inset 0 1px 0 hsl(0 0% 100% / 0.04);
+}
+
+.magiesTerminal-ai-card:hover {
+  border-color: hsl(var(--border) / 0.75);
+}
+
+.magiesTerminal-ai-card--interactive {
+  cursor: pointer;
+  transition: border-color 150ms ease, background-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+}
+
+.magiesTerminal-ai-card--interactive:hover {
+  border-color: hsl(var(--primary) / 0.35);
+  box-shadow:
+    0 2px 4px hsl(var(--foreground) / 0.05),
+    0 12px 28px -12px hsl(var(--primary) / 0.2),
+    0 0 0 1px hsl(var(--primary) / 0.08);
+  transform: translateY(-1px);
+}
+
+[data-agent-badge] {
+  box-shadow:
+    inset 0 1px 0 hsl(0 0% 100% / 0.08),
+    0 1px 2px hsl(var(--foreground) / 0.06);
+}
+
 .ai-chat-message-content[data-role="assistant"] [data-streamdown="table-wrapper"] {
   gap: 4px !important;
   padding: 4px 8px 8px !important;

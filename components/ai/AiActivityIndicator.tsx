@@ -79,10 +79,10 @@ export const AiActivityIndicator: React.FC<AiActivityIndicatorProps> = ({
       {showIcon && (
         <span
           className={cn(
-            'inline-flex shrink-0 items-center justify-center rounded-lg border',
+            'magiesTerminal-ai-icon-plate inline-flex shrink-0 items-center justify-center rounded-lg border',
             variant === 'thinking'
-              ? 'h-6 w-6 border-violet-500/30 bg-violet-500/15 text-violet-400'
-              : 'h-6 w-6 border-primary/25 bg-primary/10 text-primary',
+              ? 'h-6 w-6 border-violet-500/30 bg-gradient-to-br from-violet-500/20 to-violet-500/8 text-violet-400'
+              : 'h-6 w-6 border-primary/30 bg-gradient-to-br from-primary/18 to-primary/8 text-primary',
             variant === 'compact' && 'h-5 w-5 rounded-md',
           )}
         >

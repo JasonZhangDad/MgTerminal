@@ -47,33 +47,33 @@ export type VaultArtifactVisualKind =
   | 'scriptReference'
   | 'error';
 
-const ARTIFACT_ICON_SIZE = 18;
+const ARTIFACT_ICON_SIZE = 16;
 
 const VISUAL_STYLES: Record<VaultArtifactVisualKind, { wrapper: string; icon: string }> = {
-  noteCreate: { wrapper: 'bg-violet-500/12', icon: 'text-violet-400' },
-  noteUpdate: { wrapper: 'bg-violet-500/10', icon: 'text-violet-300/90' },
-  noteRead: { wrapper: 'bg-violet-500/10', icon: 'text-violet-300/80' },
-  noteList: { wrapper: 'bg-muted/30', icon: 'text-muted-foreground/70' },
-  host: { wrapper: 'bg-emerald-500/12', icon: 'text-emerald-400' },
-  hostCreate: { wrapper: 'bg-sky-500/12', icon: 'text-sky-400' },
-  hostImport: { wrapper: 'bg-amber-500/12', icon: 'text-amber-400' },
-  hostList: { wrapper: 'bg-muted/30', icon: 'text-muted-foreground/70' },
-  snippet: { wrapper: 'bg-sky-500/12', icon: 'text-sky-400' },
-  snippetCreate: { wrapper: 'bg-sky-500/12', icon: 'text-sky-400' },
-  snippetUpdate: { wrapper: 'bg-sky-500/10', icon: 'text-sky-300/90' },
-  snippetList: { wrapper: 'bg-muted/30', icon: 'text-muted-foreground/70' },
-  snippetRun: { wrapper: 'bg-sky-500/10', icon: 'text-sky-300/90' },
-  snippetDeleted: { wrapper: 'bg-muted/25', icon: 'text-muted-foreground/60' },
-  script: { wrapper: 'bg-violet-500/12', icon: 'text-violet-400' },
-  scriptCreate: { wrapper: 'bg-violet-500/12', icon: 'text-violet-400' },
-  scriptUpdate: { wrapper: 'bg-violet-500/10', icon: 'text-violet-300/90' },
-  scriptList: { wrapper: 'bg-muted/30', icon: 'text-muted-foreground/70' },
-  scriptRun: { wrapper: 'bg-violet-500/10', icon: 'text-violet-300/90' },
-  scriptDeleted: { wrapper: 'bg-muted/25', icon: 'text-muted-foreground/60' },
-  scriptRuns: { wrapper: 'bg-muted/30', icon: 'text-muted-foreground/70' },
-  scriptAction: { wrapper: 'bg-violet-500/10', icon: 'text-violet-300/90' },
-  scriptReference: { wrapper: 'bg-violet-500/10', icon: 'text-violet-300/90' },
-  error: { wrapper: 'bg-destructive/10', icon: 'text-destructive/80' },
+  noteCreate: { wrapper: 'border-violet-500/30 bg-gradient-to-br from-violet-500/20 to-violet-500/8', icon: 'text-violet-400' },
+  noteUpdate: { wrapper: 'border-violet-500/25 bg-gradient-to-br from-violet-500/16 to-violet-500/6', icon: 'text-violet-300' },
+  noteRead: { wrapper: 'border-violet-500/25 bg-gradient-to-br from-violet-500/14 to-violet-500/5', icon: 'text-violet-300/90' },
+  noteList: { wrapper: 'border-border/50 bg-muted/35', icon: 'text-muted-foreground/80' },
+  host: { wrapper: 'border-emerald-500/30 bg-gradient-to-br from-emerald-500/18 to-emerald-500/8', icon: 'text-emerald-400' },
+  hostCreate: { wrapper: 'border-sky-500/30 bg-gradient-to-br from-sky-500/18 to-sky-500/8', icon: 'text-sky-400' },
+  hostImport: { wrapper: 'border-amber-500/30 bg-gradient-to-br from-amber-500/18 to-amber-500/8', icon: 'text-amber-400' },
+  hostList: { wrapper: 'border-border/50 bg-muted/35', icon: 'text-muted-foreground/80' },
+  snippet: { wrapper: 'border-sky-500/30 bg-gradient-to-br from-sky-500/18 to-sky-500/8', icon: 'text-sky-400' },
+  snippetCreate: { wrapper: 'border-sky-500/30 bg-gradient-to-br from-sky-500/18 to-sky-500/8', icon: 'text-sky-400' },
+  snippetUpdate: { wrapper: 'border-sky-500/25 bg-gradient-to-br from-sky-500/14 to-sky-500/6', icon: 'text-sky-300' },
+  snippetList: { wrapper: 'border-border/50 bg-muted/35', icon: 'text-muted-foreground/80' },
+  snippetRun: { wrapper: 'border-sky-500/25 bg-gradient-to-br from-sky-500/14 to-sky-500/6', icon: 'text-sky-300' },
+  snippetDeleted: { wrapper: 'border-border/45 bg-muted/30', icon: 'text-muted-foreground/65' },
+  script: { wrapper: 'border-violet-500/30 bg-gradient-to-br from-violet-500/18 to-violet-500/8', icon: 'text-violet-400' },
+  scriptCreate: { wrapper: 'border-violet-500/30 bg-gradient-to-br from-violet-500/18 to-violet-500/8', icon: 'text-violet-400' },
+  scriptUpdate: { wrapper: 'border-violet-500/25 bg-gradient-to-br from-violet-500/14 to-violet-500/6', icon: 'text-violet-300' },
+  scriptList: { wrapper: 'border-border/50 bg-muted/35', icon: 'text-muted-foreground/80' },
+  scriptRun: { wrapper: 'border-violet-500/25 bg-gradient-to-br from-violet-500/14 to-violet-500/6', icon: 'text-violet-300' },
+  scriptDeleted: { wrapper: 'border-border/45 bg-muted/30', icon: 'text-muted-foreground/65' },
+  scriptRuns: { wrapper: 'border-border/50 bg-muted/35', icon: 'text-muted-foreground/80' },
+  scriptAction: { wrapper: 'border-violet-500/25 bg-gradient-to-br from-violet-500/14 to-violet-500/6', icon: 'text-violet-300' },
+  scriptReference: { wrapper: 'border-violet-500/25 bg-gradient-to-br from-violet-500/14 to-violet-500/6', icon: 'text-violet-300' },
+  error: { wrapper: 'border-destructive/30 bg-gradient-to-br from-destructive/15 to-destructive/5', icon: 'text-destructive' },
 };
 
 export function resolveVaultArtifactVisualKind(
@@ -190,7 +190,7 @@ export function VaultArtifactIcon({
   return (
     <span
       className={cn(
-        'flex h-8 w-8 shrink-0 items-center justify-center rounded-md',
+        'magiesTerminal-ai-icon-plate magiesTerminal-ai-icon-plate--lg flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border',
         styles.wrapper,
       )}
     >

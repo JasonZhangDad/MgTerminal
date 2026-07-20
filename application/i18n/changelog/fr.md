@@ -1,6 +1,11 @@
 # Journal des modifications
 
 
+## [0.5.14] - 2026-07-20
+
+### Améliorations
+- **Refonte des icônes et composants IA** : badges agent/fournisseur en dégradé ; cartes d'appels d'outils avec icônes de catégorie ; barre d'approbation et puces d'état renforcées ; cartes d'artefacts vault/terminal unifiées ; sélecteur slash et menu d'export iconisés
+
 ## [0.5.13] - 2026-07-20
 
 ### Améliorations

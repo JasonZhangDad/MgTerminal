@@ -45,10 +45,10 @@ export const Message = ({ className, from, children, ...props }: MessageProps) =
         >
           <span
             className={cn(
-              'inline-flex h-5 w-5 items-center justify-center rounded-lg border shadow-sm',
+              'magiesTerminal-ai-icon-plate inline-flex h-5 w-5 items-center justify-center rounded-md border',
               isUser
-                ? 'border-primary/30 bg-primary text-primary-foreground shadow-primary/20'
-                : 'border-border/50 bg-gradient-to-br from-muted to-muted/60 text-muted-foreground',
+                ? 'border-primary/35 bg-primary text-primary-foreground'
+                : 'border-border/50 bg-gradient-to-br from-muted to-muted/50 text-muted-foreground',
             )}
           >
             {isUser ? <User size={11} strokeWidth={2.25} /> : <Bot size={11} strokeWidth={2.25} />}
