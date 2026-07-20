@@ -133,7 +133,7 @@ export interface MagiesTerminalAiBridge {
 // Agent default configs for registration in externalAgents
 export const AGENT_DEFAULTS: Record<string, Omit<ExternalAgentConfig, "id" | "command" | "enabled">> = {
   codex: {
-    name: "Codex CLI",
+    name: "ChatGPT",
     args: ["exec", "--full-auto", "--json", "{prompt}"],
     icon: "openai",
     sdkBackend: "codex",
@@ -206,6 +206,7 @@ export const SETTINGS_ICON_PATHS: Record<SettingsIconId, string> = {
   google: "/ai/providers/google.svg",
   ollama: "/ai/providers/ollama.svg",
   openrouter: "/ai/providers/openrouter.svg",
+  xai: "/ai/providers/grok.svg",
   qwen: "/ai/providers/qwen.svg",
   deepseek: "/ai/providers/deepseek.svg",
   kimi: "/ai/providers/kimi.svg",
@@ -225,6 +226,7 @@ export const SETTINGS_ICON_COLORS: Record<SettingsIconId, string> = {
   google: "bg-blue-600",
   ollama: "bg-purple-600",
   openrouter: "bg-pink-600",
+  xai: "bg-zinc-900",
   qwen: "bg-[#615CED]",
   deepseek: "bg-[#4D6BFE]",
   kimi: "bg-zinc-800",
@@ -258,6 +260,7 @@ export const BUILTIN_PROVIDER_ICONS: BuiltinProviderIcon[] = [
   { id: "google", label: "Google", name: "Google", path: "/ai/providers/google.svg", bgColor: "bg-blue-600" },
   { id: "ollama", label: "Ollama", name: "Ollama", path: "/ai/providers/ollama.svg", bgColor: "bg-purple-600" },
   { id: "openrouter", label: "OpenRouter", name: "OpenRouter", path: "/ai/providers/openrouter.svg", bgColor: "bg-pink-600" },
+  { id: "xai", label: "xAI / Grok", name: "xAI (Grok)", path: "/ai/providers/grok.svg", bgColor: "bg-zinc-900" },
   { id: "deepseek", label: "DeepSeek", name: "DeepSeek", path: "/ai/providers/deepseek.svg", bgColor: "bg-[#4D6BFE]" },
   { id: "moonshot", label: "Moonshot", name: "Moonshot", path: "/ai/providers/moonshot.svg", bgColor: "bg-zinc-800" },
   { id: "kimi", label: "Kimi", name: "Kimi", path: "/ai/providers/kimi.svg", bgColor: "bg-zinc-800" },

@@ -903,7 +903,7 @@ const SettingsAITab: React.FC<SettingsAITabProps> = ({
         <TabsContent value="agents" className="m-0 space-y-6">
           <SettingsSection
             title={t('ai.codex')}
-            leading={<AgentIconBadge agent={{ id: "codex", icon: "openai", name: "Codex CLI" }} variant="plain" className="h-5 w-5 text-muted-foreground/90" />}
+            leading={<AgentIconBadge agent={{ id: "codex", icon: "openai", name: "ChatGPT" }} variant="plain" className="h-5 w-5 text-muted-foreground/90" />}
           >
             <CodexConnectionCard
               pathInfo={codexPathInfo}

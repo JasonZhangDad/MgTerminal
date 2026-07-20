@@ -58,7 +58,7 @@ export const zhTWAiMessages: Messages = {
 
   // AI Codex
   'ai.codex': 'Codex',
-  'ai.codex.title': 'Codex CLI',
+  'ai.codex.title': 'ChatGPT（Codex）',
   'ai.codex.description': '介接 OpenAI Codex。可以在這裡登入 ChatGPT，也可以在設定裡啟用相容 OpenAI 的 API Key 和自訂介面地址。',
   'ai.codex.detecting': '偵測中...',
   'ai.codex.notFound': '未找到',

@@ -5,6 +5,7 @@ export type CodingCliProviderId =
   | 'codex'
   | 'opencode'
   | 'gemini'
+  | 'grok'
   | 'kimi'
   | 'droid'
   | 'copilot'
@@ -37,10 +38,10 @@ export const CODING_CLI_PROVIDERS: readonly CodingCliProvider[] = [
   },
   {
     id: 'codex',
-    label: 'Codex CLI',
+    label: 'ChatGPT',
     command: 'codex',
-    titleHints: ['codex', 'chatgpt'],
-    iconKey: 'codex',
+    titleHints: ['chatgpt', 'codex'],
+    iconKey: 'openai',
   },
   {
     id: 'opencode',
@@ -53,8 +54,18 @@ export const CODING_CLI_PROVIDERS: readonly CodingCliProvider[] = [
     id: 'gemini',
     label: 'Gemini CLI',
     command: 'gemini',
-    titleHints: ['gemini'],
+    // Antigravity CLI (`agy`) is the Gemini coding agent successor — same product family.
+    aliases: ['agy', 'antigravity'],
+    titleHints: ['gemini', 'antigravity', 'agy'],
     iconKey: 'gemini',
+  },
+  {
+    id: 'grok',
+    label: 'Grok CLI',
+    command: 'grok',
+    aliases: ['xai'],
+    titleHints: ['grok', 'xai', 'grok build'],
+    iconKey: 'grok',
   },
   {
     id: 'kimi',

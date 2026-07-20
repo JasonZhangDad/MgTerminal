@@ -1,6 +1,14 @@
 # Changelog
 
 
+## [0.5.19] - 2026-07-20
+
+### 优化
+- **模型列表自动拉取与 UX**：提供商填入 API Key 后自动加载在线模型目录；加载中/失败提示与重试刷新；在线列表优先，离线预设兜底
+- **GPT-5.6 / Grok / Gemini 模型预设**：Codex/Cursor/OpenCode 与 OpenAI/xAI/Google 提供商默认模型更新
+- **xAI (Grok) 提供商**：新增 `api.x.ai` 快速接入
+- **ChatGPT 品牌**：原 Codex 代理显示名与图标改为 ChatGPT（OpenAI 标识）；各 Agent 图标按品牌解析
+
 ## [0.5.18] - 2026-07-20
 
 ### 优化

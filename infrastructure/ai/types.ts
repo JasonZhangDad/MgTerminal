@@ -8,6 +8,7 @@ export type AIProviderId =
   | 'google'
   | 'ollama'
   | 'openrouter'
+  | 'xai'
   | 'qwen'
   | 'deepseek'
   | 'kimi'
@@ -350,11 +351,51 @@ export interface ProviderPreset {
 
 // Provider presets for quick setup
 export const PROVIDER_PRESETS: Record<AIProviderId, ProviderPreset> = {
-  openai: { name: 'OpenAI', defaultBaseURL: 'https://api.openai.com/v1', modelsEndpoint: '/models' },
+  openai: {
+    name: 'OpenAI',
+    defaultBaseURL: 'https://api.openai.com/v1',
+    modelsEndpoint: '/models',
+    defaultModels: [
+      'gpt-5.6-sol',
+      'gpt-5.6-terra',
+      'gpt-5.6-luna',
+      'gpt-5.6',
+      'gpt-5.5',
+      'gpt-5.2',
+      'gpt-5.1',
+      'gpt-5',
+      'o4-mini',
+      'o3',
+      'gpt-4o',
+    ],
+  },
   anthropic: { name: 'Anthropic', defaultBaseURL: 'https://api.anthropic.com', modelsEndpoint: '/v1/models' },
-  google: { name: 'Google AI', defaultBaseURL: 'https://generativelanguage.googleapis.com/v1beta' },
+  google: {
+    name: 'Google AI',
+    defaultBaseURL: 'https://generativelanguage.googleapis.com/v1beta',
+    defaultModels: [
+      'gemini-3.1-pro',
+      'gemini-3.5-flash',
+      'gemini-2.5-pro',
+      'gemini-2.5-flash',
+      'gemini-2.0-flash',
+    ],
+  },
   ollama: { name: 'Ollama', defaultBaseURL: 'http://localhost:11434/v1', modelsEndpoint: '/models' },
   openrouter: { name: 'OpenRouter', defaultBaseURL: 'https://openrouter.ai/api/v1', modelsEndpoint: '/models' },
+  xai: {
+    name: 'xAI (Grok)',
+    defaultBaseURL: 'https://api.x.ai/v1',
+    modelsEndpoint: '/models',
+    defaultModels: [
+      'grok-4.5',
+      'grok-4.3',
+      'grok-4.20-0309-reasoning',
+      'grok-4.20-0309-non-reasoning',
+      'grok-build-0.1',
+      'grok-4.20-multi-agent-0309',
+    ],
+  },
   qwen: {
     name: 'Qwen',
     defaultBaseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
@@ -448,11 +489,14 @@ export const CLAUDE_MODEL_PRESETS: AgentModelPreset[] = [
   { id: 'haiku', name: 'Haiku 4.5', description: 'Fastest' },
 ];
 
-// Curated codex model list (codex-sdk has no enumeration API). Mirrors the
-// craft agent's `openai-codex` set. The codex driver splits "<id>/<effort>"
-// into model + modelReasoningEffort, so thinkingLevels work via codex-sdk.
+// Curated codex model list (codex-sdk has no enumeration API). The codex
+// driver splits "<id>/<effort>" into model + modelReasoningEffort.
 export const CODEX_MODEL_PRESETS: AgentModelPreset[] = [
-  { id: 'gpt-5.5', name: 'GPT-5.5', description: 'Latest', thinkingLevels: ['low', 'medium', 'high', 'xhigh'] },
+  { id: 'gpt-5.6-sol', name: 'GPT-5.6 Sol', description: 'Latest flagship', thinkingLevels: ['low', 'medium', 'high', 'xhigh'] },
+  { id: 'gpt-5.6-terra', name: 'GPT-5.6 Terra', description: 'Balanced', thinkingLevels: ['low', 'medium', 'high', 'xhigh'] },
+  { id: 'gpt-5.6-luna', name: 'GPT-5.6 Luna', description: 'Fast / cost', thinkingLevels: ['low', 'medium', 'high', 'xhigh'] },
+  { id: 'gpt-5.6', name: 'GPT-5.6', description: 'Alias → Sol', thinkingLevels: ['low', 'medium', 'high', 'xhigh'] },
+  { id: 'gpt-5.5', name: 'GPT-5.5', thinkingLevels: ['low', 'medium', 'high', 'xhigh'] },
   { id: 'gpt-5.2', name: 'GPT-5.2', thinkingLevels: ['low', 'medium', 'high', 'xhigh'] },
   { id: 'gpt-5.1', name: 'GPT-5.1', thinkingLevels: ['low', 'medium', 'high', 'xhigh'] },
   { id: 'gpt-5', name: 'GPT-5', thinkingLevels: ['low', 'medium', 'high', 'xhigh'] },
@@ -463,11 +507,19 @@ export const CODEX_MODEL_PRESETS: AgentModelPreset[] = [
 
 export const CURSOR_MODEL_PRESETS: AgentModelPreset[] = [
   { id: 'composer-2.5', name: 'Composer 2.5', description: 'Recommended' },
+  { id: 'gpt-5.6-sol', name: 'GPT-5.6 Sol' },
+  { id: 'gpt-5.6-terra', name: 'GPT-5.6 Terra' },
+  { id: 'gpt-5.6-luna', name: 'GPT-5.6 Luna' },
+  { id: 'gpt-5.6', name: 'GPT-5.6' },
   { id: 'gpt-5.5', name: 'GPT-5.5' },
   { id: 'gpt-5.2', name: 'GPT-5.2' },
   { id: 'gpt-5.1', name: 'GPT-5.1' },
   { id: 'claude-opus-4.6', name: 'Claude Opus 4.6' },
   { id: 'claude-sonnet-4.6', name: 'Claude Sonnet 4.6' },
+  { id: 'grok-4.5', name: 'Grok 4.5' },
+  { id: 'grok-build-0.1', name: 'Grok Build 0.1' },
+  { id: 'gemini-3.1-pro', name: 'Gemini 3.1 Pro' },
+  { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash' },
 ];
 
 // CodeBuddy's SDK model enumeration can be empty depending on CLI/account
@@ -488,11 +540,45 @@ export const CODEBUDDY_MODEL_PRESETS: AgentModelPreset[] = [
 ];
 
 export const OPENCODE_MODEL_PRESETS: AgentModelPreset[] = [
+  { id: 'openai/gpt-5.6-sol', name: 'OpenAI GPT-5.6 Sol' },
+  { id: 'openai/gpt-5.6-terra', name: 'OpenAI GPT-5.6 Terra' },
+  { id: 'openai/gpt-5.6-luna', name: 'OpenAI GPT-5.6 Luna' },
+  { id: 'openai/gpt-5.5', name: 'OpenAI GPT-5.5' },
   { id: 'openai/gpt-5.1', name: 'OpenAI GPT-5.1' },
   { id: 'anthropic/claude-sonnet-4-6', name: 'Claude Sonnet 4.6' },
+  { id: 'anthropic/claude-opus-4-6', name: 'Claude Opus 4.6' },
+  { id: 'xai/grok-4.5', name: 'xAI Grok 4.5' },
+  { id: 'xai/grok-build-0.1', name: 'xAI Grok Build 0.1' },
+  { id: 'google/gemini-3.1-pro', name: 'Gemini 3.1 Pro' },
+  { id: 'google/gemini-3.5-flash', name: 'Gemini 3.5 Flash' },
   { id: 'deepseek/deepseek-chat', name: 'DeepSeek Chat' },
-  { id: 'openrouter/openai/gpt-5.1', name: 'OpenRouter GPT-5.1' },
+  { id: 'openrouter/openai/gpt-5.6-sol', name: 'OpenRouter GPT-5.6 Sol' },
+  { id: 'openrouter/x-ai/grok-4.5', name: 'OpenRouter Grok 4.5' },
   { id: 'ollama/llama3.3', name: 'Ollama Llama 3.3' },
+];
+
+/** Gemini CLI / Google AI agent model fallbacks (includes Antigravity `agy` CLI). */
+export const GEMINI_MODEL_PRESETS: AgentModelPreset[] = [
+  { id: 'gemini-3.1-pro', name: 'Gemini 3.1 Pro', description: 'Recommended' },
+  { id: 'gemini-3.1-pro-high', name: 'Gemini 3.1 Pro (High)' },
+  { id: 'gemini-3.1-pro-low', name: 'Gemini 3.1 Pro (Low)' },
+  { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash', description: 'Everyday' },
+  { id: 'gemini-3.5-flash-high', name: 'Gemini 3.5 Flash (High)' },
+  { id: 'gemini-3.5-flash-medium', name: 'Gemini 3.5 Flash (Medium)' },
+  { id: 'gemini-3.5-flash-low', name: 'Gemini 3.5 Flash (Low)', description: 'Fastest' },
+  { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro' },
+  { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash' },
+  { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash' },
+];
+
+/** xAI Grok / Grok Build CLI model fallbacks. */
+export const GROK_MODEL_PRESETS: AgentModelPreset[] = [
+  { id: 'grok-4.5', name: 'Grok 4.5', description: 'Latest flagship' },
+  { id: 'grok-4.3', name: 'Grok 4.3' },
+  { id: 'grok-build-0.1', name: 'Grok Build 0.1', description: 'Coding' },
+  { id: 'grok-4.20-0309-reasoning', name: 'Grok 4.20 Reasoning' },
+  { id: 'grok-4.20-0309-non-reasoning', name: 'Grok 4.20' },
+  { id: 'grok-4.20-multi-agent-0309', name: 'Grok 4.20 Multi-Agent' },
 ];
 
 export function getAgentModelPresets(agentCommand?: string): AgentModelPreset[] {
@@ -502,11 +588,18 @@ export function getAgentModelPresets(agentCommand?: string): AgentModelPreset[] 
   // on "/" leaves the full path intact on Windows, which never matches the
   // preset prefixes below and yields an empty list (presets silently lost).
   const basename = agentCommand.split(/[\\/]/).pop()?.toLowerCase() ?? '';
-  if (basename.startsWith('claude')) return CLAUDE_MODEL_PRESETS;
-  if (basename.startsWith('codex')) return CODEX_MODEL_PRESETS;
-  if (basename.startsWith('cursor')) return CURSOR_MODEL_PRESETS;
-  if (basename.startsWith('codebuddy')) return CODEBUDDY_MODEL_PRESETS;
-  if (basename.startsWith('opencode')) return OPENCODE_MODEL_PRESETS;
+  // Strip Windows extensions so `agy.exe` / `grok.cmd` still match.
+  const name = basename.replace(/\.(exe|cmd|bat|ps1)$/i, '');
+  if (name.startsWith('claude')) return CLAUDE_MODEL_PRESETS;
+  if (name.startsWith('codex')) return CODEX_MODEL_PRESETS;
+  if (name.startsWith('cursor')) return CURSOR_MODEL_PRESETS;
+  if (name.startsWith('codebuddy')) return CODEBUDDY_MODEL_PRESETS;
+  if (name.startsWith('opencode')) return OPENCODE_MODEL_PRESETS;
+  // Antigravity CLI (`agy`) is Google's Gemini coding agent — same model set.
+  if (name.startsWith('gemini') || name.startsWith('agy') || name.startsWith('antigravity')) {
+    return GEMINI_MODEL_PRESETS;
+  }
+  if (name.startsWith('grok') || name === 'xai') return GROK_MODEL_PRESETS;
   return [];
 }
 

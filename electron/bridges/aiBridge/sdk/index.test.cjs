@@ -17,7 +17,7 @@ test("getDriver throws on unknown backend", () => {
   assert.throws(() => getDriver("gemini"), /No SDK driver registered for backend: gemini/);
 });
 
-test("SDK drivers expose listModels; codex returns [] (no catalog)", async () => {
+test("SDK drivers expose listModels; codex returns [] without API key", async () => {
   for (const key of ["claude", "codebuddy", "codex", "copilot", "cursor", "opencode"]) {
     assert.equal(typeof getDriver(key).listModels, "function", `${key} must expose listModels`);
   }

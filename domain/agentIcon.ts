@@ -15,6 +15,8 @@ export type AgentIconKey =
   | 'google'
   | 'ollama'
   | 'openrouter'
+  | 'grok'
+  | 'xai'
   | 'zed'
   | 'atom'
   | 'droid'
@@ -51,8 +53,9 @@ export const AGENT_ICON_VISUALS: Record<AgentIconKey, AgentIconVisual> = {
     badgeClassName: 'border-emerald-500/30 bg-gradient-to-br from-emerald-500/20 to-emerald-500/8',
     imageClassName: 'object-contain dark:brightness-0 dark:invert',
   },
+  // ChatGPT brand (OpenAI mark); command remains `codex` under the hood.
   codex: {
-    src: '/ai/agents/codex.svg',
+    src: '/ai/providers/openai.svg',
     badgeClassName: 'border-emerald-500/30 bg-gradient-to-br from-emerald-500/20 to-emerald-500/8',
     imageClassName: 'object-contain dark:brightness-0 dark:invert opacity-95',
   },
@@ -85,6 +88,16 @@ export const AGENT_ICON_VISUALS: Record<AgentIconKey, AgentIconVisual> = {
     src: '/ai/providers/openrouter.svg',
     badgeClassName: 'border-fuchsia-500/30 bg-gradient-to-br from-fuchsia-500/20 to-fuchsia-500/8',
     imageClassName: 'object-contain dark:brightness-0 dark:invert',
+  },
+  grok: {
+    src: '/ai/providers/grok.svg',
+    badgeClassName: 'border-zinc-500/35 bg-gradient-to-br from-zinc-800/80 to-zinc-600/30',
+    imageClassName: 'object-contain dark:brightness-0 dark:invert opacity-95',
+  },
+  xai: {
+    src: '/ai/providers/grok.svg',
+    badgeClassName: 'border-zinc-500/35 bg-gradient-to-br from-zinc-800/80 to-zinc-600/30',
+    imageClassName: 'object-contain dark:brightness-0 dark:invert opacity-95',
   },
   zed: {
     src: '/ai/agents/zed.svg',
@@ -140,6 +153,48 @@ export function normalizeAgentToken(value?: string): string {
   return (value ?? '').toLowerCase().replace(/[^a-z0-9]+/g, '');
 }
 
+/** Map stored/discovery icon slugs to a brand visual key. */
+const ICON_SLUG_ALIASES: Record<string, AgentIconKey> = {
+  chatgpt: 'openai',
+  openai: 'openai',
+  codex: 'openai',
+  claude: 'claude',
+  anthropic: 'anthropic',
+  copilot: 'copilot',
+  githubcopilot: 'copilot',
+  cursor: 'cursor',
+  codebuddy: 'codebuddy',
+  opencode: 'opencode',
+  gemini: 'gemini',
+  google: 'google',
+  antigravity: 'gemini',
+  agy: 'gemini',
+  grok: 'grok',
+  xai: 'grok',
+  kimi: 'kimi',
+  moonshot: 'kimi',
+  droid: 'droid',
+  factory: 'atom',
+  atom: 'atom',
+  zed: 'zed',
+  ollama: 'ollama',
+  openrouter: 'openrouter',
+  magiesterminal: 'magiesTerminal',
+  terminal: 'terminal',
+  plus: 'plus',
+};
+
+export function resolveIconSlug(icon?: string): AgentIconKey | undefined {
+  if (!icon?.trim()) return undefined;
+  const raw = icon.trim().toLowerCase();
+  const normalized = normalizeAgentToken(icon);
+  // Aliases first so historical "codex" stamps render as ChatGPT/OpenAI brand.
+  if (normalized && ICON_SLUG_ALIASES[normalized]) return ICON_SLUG_ALIASES[normalized];
+  if (ICON_SLUG_ALIASES[raw]) return ICON_SLUG_ALIASES[raw];
+  if (raw in AGENT_ICON_VISUALS) return raw as AgentIconKey;
+  return undefined;
+}
+
 export function resolveAgentIconKey(source: AgentIconSource | 'add-more'): AgentIconKey {
   if (source === 'add-more') {
     return 'plus';
@@ -149,6 +204,10 @@ export function resolveAgentIconKey(source: AgentIconSource | 'add-more'): Agent
     return 'magiesTerminal';
   }
 
+  // Prefer the explicit brand icon stamped on the agent config / discovery row.
+  const fromIcon = resolveIconSlug(source.icon);
+  if (fromIcon) return fromIcon;
+
   const commandCandidates = [source.command, source.name, source.id].filter(
     (value): value is string => Boolean(value?.trim()),
   );
@@ -157,7 +216,7 @@ export function resolveAgentIconKey(source: AgentIconSource | 'add-more'): Agent
     if (provider) return provider.iconKey;
   }
 
-  const titleCandidates = [source.name, source.id, source.icon].filter(
+  const titleCandidates = [source.name, source.id].filter(
     (value): value is string => Boolean(value?.trim()),
   );
   for (const title of titleCandidates) {
@@ -172,14 +231,15 @@ export function resolveAgentIconKey(source: AgentIconSource | 'add-more'): Agent
     normalizeAgentToken(source.id),
   ].filter(Boolean);
 
-  if (tokens.some((token) => token.includes('anthropic'))) {
-    return 'anthropic';
+  if (tokens.some((token) => token.includes('anthropic') || token.includes('claude'))) {
+    return tokenIncludes(tokens, 'anthropic') && !tokenIncludes(tokens, 'claude') ? 'anthropic' : 'claude';
   }
   if (
     tokens.some(
       (token) =>
         token.includes('openai') ||
-        token.includes('chatgpt'),
+        token.includes('chatgpt') ||
+        token.includes('codex'),
     )
   ) {
     return 'openai';
@@ -187,11 +247,37 @@ export function resolveAgentIconKey(source: AgentIconSource | 'add-more'): Agent
   if (
     tokens.some(
       (token) =>
-        token.includes('google') ||
+        token.includes('gemini') ||
+        token.includes('antigravity') ||
+        token.includes('agy') ||
         token.includes('googlegemini'),
     )
   ) {
+    return 'gemini';
+  }
+  if (tokens.some((token) => token.includes('google'))) {
     return 'google';
+  }
+  if (tokens.some((token) => token.includes('grok') || token === 'xai')) {
+    return 'grok';
+  }
+  if (tokens.some((token) => token.includes('copilot'))) {
+    return 'copilot';
+  }
+  if (tokens.some((token) => token.includes('cursor'))) {
+    return 'cursor';
+  }
+  if (tokens.some((token) => token.includes('codebuddy'))) {
+    return 'codebuddy';
+  }
+  if (tokens.some((token) => token.includes('opencode'))) {
+    return 'opencode';
+  }
+  if (tokens.some((token) => token.includes('kimi') || token.includes('moonshot'))) {
+    return 'kimi';
+  }
+  if (tokens.some((token) => token.includes('droid'))) {
+    return 'droid';
   }
   if (tokens.some((token) => token.includes('ollama'))) {
     return 'ollama';
@@ -207,6 +293,10 @@ export function resolveAgentIconKey(source: AgentIconSource | 'add-more'): Agent
   }
 
   return 'terminal';
+}
+
+function tokenIncludes(tokens: string[], needle: string): boolean {
+  return tokens.some((token) => token.includes(needle));
 }
 
 export function getAgentIconVisual(key: AgentIconKey): AgentIconVisual {

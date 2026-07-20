@@ -57,7 +57,7 @@ export const esAiMessages: Messages = {
   'ai.providers.advancedParams.maxTokens.placeholder': 'p.ej. 4096',
   'ai.providers.advancedParams.default': 'Proveedor predeterminado',
   'ai.codex': 'Códice',
-  'ai.codex.title': 'CLI del códice',
+  'ai.codex.title': 'ChatGPT (Codex)',
   'ai.codex.description': 'Conecte el códice OpenAI. Inicie sesión con ChatGPT aquí o habilite una clave API de proveedor compatible con OpenAI y un punto final personalizado en Configuración.',
   'ai.codex.detecting': 'Detector...',
   'ai.codex.notFound': 'Extraviado',

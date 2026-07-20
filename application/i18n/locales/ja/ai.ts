@@ -60,7 +60,7 @@ export const jaAiMessages: Messages = {
 
   // AI Codex
   'ai.codex': 'Codex',
-  'ai.codex.title': 'Codex CLI',
+  'ai.codex.title': 'ChatGPT (Codex)',
   'ai.codex.description': 'OpenAI Codex を接続します。ここで ChatGPT にサインインするか、設定で OpenAI 互換のプロバイダー API キーとカスタムエンドポイントを有効にしてください。',
   'ai.codex.detecting': '検出中...',
   'ai.codex.notFound': '見つかりません',

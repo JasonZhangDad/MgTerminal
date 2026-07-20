@@ -23,13 +23,20 @@ export function buildModelSuggestions({
   value: string;
 }): FetchedModel[] {
   const byId = new Map<string, FetchedModel>();
-  for (const modelId of presetModels ?? []) {
-    const id = modelId.trim();
-    if (id) byId.set(id, { id });
-  }
+  // Live catalog wins: after a successful /models fetch, list those first and
+  // only keep presets that the provider didn't return (offline fallbacks).
   if (hasFetched) {
     for (const model of fetchedModels) {
       byId.set(model.id, model);
+    }
+    for (const modelId of presetModels ?? []) {
+      const id = modelId.trim();
+      if (id && !byId.has(id)) byId.set(id, { id });
+    }
+  } else {
+    for (const modelId of presetModels ?? []) {
+      const id = modelId.trim();
+      if (id) byId.set(id, { id });
     }
   }
 
@@ -39,6 +46,32 @@ export function buildModelSuggestions({
   return allSuggestions.filter((m) =>
     m.id.toLowerCase().includes(q) || (m.name && m.name.toLowerCase().includes(q)),
   );
+}
+
+export type ModelCatalogSource = "idle" | "loading" | "live" | "presets" | "error";
+
+export function getModelCatalogSource({
+  canFetch,
+  isLoading,
+  hasFetched,
+  fetchCount,
+  hasPresetModels,
+  error,
+}: {
+  canFetch: boolean;
+  isLoading: boolean;
+  hasFetched: boolean;
+  fetchCount: number;
+  hasPresetModels: boolean;
+  error: string | null;
+}): ModelCatalogSource {
+  if (isLoading) return "loading";
+  if (error && !hasFetched) return "error";
+  if (hasFetched && fetchCount > 0) return "live";
+  if (hasPresetModels) return "presets";
+  if (error) return "error";
+  if (canFetch) return "idle";
+  return "idle";
 }
 
 export function getModelSuggestionsPresentation({
@@ -55,14 +88,14 @@ export function getModelSuggestionsPresentation({
   hasPresetModels: boolean;
 }): {
   showSuggestions: boolean;
-  emptyState: "loading" | "error" | "noMatches" | "loadPrompt" | null;
-  footerState: "loading" | "error" | null;
+  emptyState: "loading" | "error" | "noMatches" | "loadPrompt" | "needApiKey" | null;
+  footerState: "loading" | "error" | "live" | null;
 } {
   if (suggestionsLength > 0) {
     return {
       showSuggestions: true,
       emptyState: null,
-      footerState: isLoading ? "loading" : error ? "error" : null,
+      footerState: isLoading ? "loading" : error ? "error" : hasFetched ? "live" : null,
     };
   }
 
@@ -129,14 +162,26 @@ export const ModelSelector: React.FC<{
     setIsLoading(false);
   }, [discoveryKey]);
 
-  const fetchModels = useCallback(async () => {
+  const fetchModels = useCallback(async (options: { force?: boolean } = {}) => {
     if (!effectiveModelsEndpoint) return;
+    if (needsApiKey && !apiKey) {
+      setError(t('ai.providers.needApiKeyForModels'));
+      setHasFetched(false);
+      setModels([]);
+      return;
+    }
     const bridge = getFetchBridge();
-    if (!bridge?.aiFetch) return;
+    if (!bridge?.aiFetch) {
+      setError(t('ai.providers.modelsBridgeUnavailable'));
+      return;
+    }
     const requestKey = discoveryKey;
 
     setIsLoading(true);
     setError(null);
+    if (options.force) {
+      setHasFetched(false);
+    }
     try {
       // Temporarily allow the provider's host in the backend fetch allowlist
       // so model listing works for URLs not yet synced from the main window.
@@ -148,24 +193,43 @@ export const ModelSelector: React.FC<{
       const result = await bridge.aiFetch(url, "GET", headers, undefined, undefined, undefined, undefined, skipTLSVerify);
       if (!result.ok) {
         if (discoveryKeyRef.current !== requestKey) return;
-        setError(`Failed to fetch models (${result.error || "unknown error"})`);
+        setError(
+          t('ai.providers.fetchModelsFailed').replace(
+            '{detail}',
+            result.error || String(result.status || 'unknown'),
+          ),
+        );
         return;
       }
       const parsed = JSON.parse(result.data);
       const list = parseFetchedModels(parsed);
-      list.sort((a, b) => (a.name || a.id).localeCompare(b.name || b.id));
+      list.sort((a, b) => (a.name || a.id).localeCompare(b.name || b.id, undefined, { numeric: true }));
       if (discoveryKeyRef.current !== requestKey) return;
       setModels(list);
       setHasFetched(true);
+      if (list.length === 0) {
+        setError(t('ai.providers.emptyModelCatalog'));
+      }
     } catch (err) {
       if (discoveryKeyRef.current !== requestKey) return;
-      setError(err instanceof Error ? err.message : "Failed to parse response");
+      setError(
+        t('ai.providers.fetchModelsFailed').replace(
+          '{detail}',
+          err instanceof Error ? err.message : 'parse error',
+        ),
+      );
     } finally {
       if (discoveryKeyRef.current === requestKey) setIsLoading(false);
     }
-  }, [baseURL, effectiveModelsEndpoint, apiKey, resolvedStyle, skipTLSVerify, discoveryKey]);
+  }, [baseURL, effectiveModelsEndpoint, apiKey, resolvedStyle, skipTLSVerify, discoveryKey, needsApiKey, t]);
 
-  // Auto-fetch when dropdown first opens
+  // Auto-fetch latest models as soon as the provider can talk to /models.
+  useEffect(() => {
+    if (canFetch && !hasFetched && !isLoading) {
+      void fetchModels();
+    }
+  }, [canFetch, hasFetched, isLoading, fetchModels]);
+
   useEffect(() => {
     if (isOpen && canFetch && !hasFetched && !isLoading) {
       void fetchModels();
@@ -182,7 +246,7 @@ export const ModelSelector: React.FC<{
     });
   }, [models, presetModels, value, hasFetched]);
 
-  const showSuggestions = isOpen && canSuggest;
+  const showSuggestions = isOpen && (canSuggest || Boolean(error) || isLoading);
   const presentation = getModelSuggestionsPresentation({
     suggestionsLength: suggestions.length,
     isLoading,
@@ -190,9 +254,28 @@ export const ModelSelector: React.FC<{
     hasFetched,
     hasPresetModels,
   });
+  const catalogSource = getModelCatalogSource({
+    canFetch,
+    isLoading,
+    hasFetched,
+    fetchCount: models.length,
+    hasPresetModels,
+    error,
+  });
+
+  const statusHint = (() => {
+    if (catalogSource === "loading") return t('ai.providers.loadingModels');
+    if (catalogSource === "error") return error;
+    if (catalogSource === "live") {
+      return t('ai.providers.liveModelCount').replace('{count}', String(models.length));
+    }
+    if (catalogSource === "presets") return t('ai.providers.usingPresetModels');
+    if (needsApiKey && !apiKey) return t('ai.providers.needApiKeyForModels');
+    return null;
+  })();
 
   return (
-    <div className="relative">
+    <div className="relative space-y-1.5">
       <div className="flex items-center gap-2">
         <div className="relative flex-1">
           <input
@@ -200,9 +283,9 @@ export const ModelSelector: React.FC<{
             value={value}
             onChange={(e) => {
               onChange(e.target.value);
-              if (canSuggest && !isOpen) setIsOpen(true);
+              if ((canSuggest || canFetch) && !isOpen) setIsOpen(true);
             }}
-            onFocus={() => { if (canSuggest) setIsOpen(true); }}
+            onFocus={() => { if (canSuggest || canFetch || error) setIsOpen(true); }}
             onBlur={() => { setIsOpen(false); }}
             placeholder={placeholder ?? (canSuggest ? t('ai.providers.searchModel') : t('ai.providers.defaultModel.placeholder'))}
             className={cn(
@@ -210,7 +293,7 @@ export const ModelSelector: React.FC<{
               canSuggest && "pr-8",
             )}
           />
-          {canSuggest && (
+          {(canSuggest || canFetch) && (
             <button
               type="button"
               onMouseDown={(e) => { e.preventDefault(); setIsOpen(!isOpen); }}
@@ -220,14 +303,14 @@ export const ModelSelector: React.FC<{
             </button>
           )}
         </div>
-        {canFetch && (
+        {(canFetch || needsApiKey) && (
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => { setHasFetched(false); void fetchModels(); }}
-                disabled={isLoading}
+                onClick={() => { void fetchModels({ force: true }); }}
+                disabled={isLoading || (needsApiKey && !apiKey)}
                 className="shrink-0 px-2"
               >
                 <RefreshCw size={14} className={isLoading ? "animate-spin" : ""} />
@@ -238,19 +321,60 @@ export const ModelSelector: React.FC<{
         )}
       </div>
 
+      {statusHint && (
+        <div
+          className={cn(
+            "flex items-center gap-1.5 px-0.5 text-[11px] leading-snug",
+            catalogSource === "error" ? "text-destructive" : "text-muted-foreground/75",
+          )}
+        >
+          {catalogSource === "loading" && <RefreshCw size={11} className="animate-spin shrink-0" />}
+          <span className="truncate">{statusHint}</span>
+          {catalogSource === "error" && canFetch && (
+            <button
+              type="button"
+              className="shrink-0 font-medium text-primary hover:underline"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                void fetchModels({ force: true });
+              }}
+            >
+              {t('ai.providers.retryLoadModels')}
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Suggestions dropdown */}
       {showSuggestions && (
         <div className="absolute top-full left-0 right-0 mt-1 z-[101] rounded-md border border-border bg-popover shadow-md">
           <div className="max-h-60 overflow-y-auto">
             {!presentation.showSuggestions ? (
-              <div className="px-3 py-3 text-center text-xs text-muted-foreground">
+              <div className="px-3 py-3 text-center text-xs text-muted-foreground space-y-2">
                 {presentation.emptyState === "loading" ? (
                   <>
                     <RefreshCw size={14} className="animate-spin inline mr-1.5" />
                     {t('ai.providers.loadingModels')}
                   </>
                 ) : presentation.emptyState === "error" ? (
-                  <span className="text-destructive">{error}</span>
+                  <div className="space-y-2">
+                    <div className="text-destructive">{error}</div>
+                    {canFetch && (
+                      <button
+                        type="button"
+                        className="text-primary font-medium hover:underline"
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          void fetchModels({ force: true });
+                        }}
+                      >
+                        {t('ai.providers.retryLoadModels')}
+                      </button>
+                    )}
+                    {hasPresetModels && (
+                      <div className="text-muted-foreground/70">{t('ai.providers.usingPresetModels')}</div>
+                    )}
+                  </div>
                 ) : presentation.emptyState === "noMatches" ? (
                   t('ai.providers.noMatchingModels')
                 ) : (
@@ -287,6 +411,8 @@ export const ModelSelector: React.FC<{
                     <RefreshCw size={12} className="animate-spin inline mr-1" />
                     {t('ai.providers.loadingModels')}
                   </>
+                ) : presentation.footerState === "live" ? (
+                  t('ai.providers.liveModelCount').replace('{count}', String(models.length))
                 ) : (
                   error
                 )}
