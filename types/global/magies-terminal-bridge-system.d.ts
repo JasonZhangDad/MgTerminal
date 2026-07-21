@@ -108,6 +108,60 @@ declare global {
       error?: string;
       output?: string;
     }>;
+    listKubernetesNamespaces?(sessionId: string): Promise<{
+      success: boolean;
+      error?: string;
+      namespaces?: import("../../domain/systemManager/types").KubernetesNamespaceInfo[];
+    }>;
+    listKubernetesPods?(options: {
+      sessionId: string;
+      namespace?: string;
+    }): Promise<{
+      success: boolean;
+      error?: string;
+      pods?: import("../../domain/systemManager/types").KubernetesPodInfo[];
+    }>;
+    listKubernetesDeployments?(options: {
+      sessionId: string;
+      namespace?: string;
+    }): Promise<{
+      success: boolean;
+      error?: string;
+      deployments?: import("../../domain/systemManager/types").KubernetesDeploymentInfo[];
+    }>;
+    getKubernetesPodLogs?(options: {
+      sessionId: string;
+      namespace: string;
+      pod: string;
+      container?: string;
+      tailLines?: number;
+    }): Promise<{ success: boolean; error?: string; logs?: string }>;
+    describeKubernetesPod?(options: {
+      sessionId: string;
+      namespace: string;
+      pod: string;
+    }): Promise<{ success: boolean; error?: string; describe?: string }>;
+    getKubernetesCurrentContext?(sessionId: string): Promise<{
+      success: boolean;
+      error?: string;
+      context?: string | null;
+    }>;
+    listKubernetesContexts?(sessionId: string): Promise<{
+      success: boolean;
+      error?: string;
+      contexts?: import("../../domain/systemManager/types").KubernetesContextInfo[];
+    }>;
+    deleteKubernetesPod?(options: {
+      sessionId: string;
+      namespace: string;
+      pod: string;
+    }): Promise<{ success: boolean; error?: string; output?: string }>;
+    scaleKubernetesDeployment?(options: {
+      sessionId: string;
+      namespace?: string;
+      name: string;
+      replicas: number;
+    }): Promise<{ success: boolean; error?: string; output?: string }>;
     openTerminalPopup?(payload: import("../../domain/systemManager/types").TerminalPopupPayload): Promise<{
       success: boolean;
       error?: string;

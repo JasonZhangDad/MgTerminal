@@ -235,6 +235,8 @@ function createTelnetSessionApi(ctx) {
               format: options.sessionLog.format || "txt",
               timestampsEnabled: Boolean(options.sessionLog.timestampsEnabled),
               startTime: Date.now(),
+              cols: session.cols || cols,
+              rows: session.rows || rows,
             });
           }
     

@@ -359,8 +359,10 @@ export const zhCNCoreMessages: Messages = {
   'settings.sessionLogs.formatTxt': '纯文本 (.txt)',
   'settings.sessionLogs.formatRaw': '原始格式 (.log)',
   'settings.sessionLogs.formatHtml': 'HTML (.html)',
+  'settings.sessionLogs.formatCast': "Asciinema 录制 (.cast)",
   'settings.sessionLogs.timestamps': '添加时间戳',
   'settings.sessionLogs.timestampsDesc': '为纯文本和 HTML 日志的每一行添加本地时间。',
+  'settings.sessionLogs.timestampsCastNote': "Cast 录制已包含相对时间戳，行级时间戳不适用。",
   'settings.sessionLogs.hint': '会话日志用于记录终端输出，便于故障排查和审计。',
 
   // Settings > SSH Debug Logs
@@ -717,6 +719,10 @@ export const zhCNCoreMessages: Messages = {
   'vault.import.toast.noNewHosts': '从 {format} 没有导入到新的主机。',
   'vault.import.toast.summary': '已导入 {count} 个主机（跳过 {skipped}，重复 {duplicates}）。',
   'vault.import.toast.firstIssue': '首个问题：{issue}',
+  'vault.import.sshConfig.defaultPathHint': "默认 OpenSSH 配置路径",
+  'vault.import.sshConfig.pickFileTitle': "选择 SSH 配置文件",
+  'vault.import.sshConfig.useDefaultManaged': "使用 ~/.ssh/config（托管同步）",
+  'vault.import.sshConfig.useDefaultImportOnly': "使用 ~/.ssh/config（仅导入）",
   'vault.import.sshConfig.chooseMode': '选择如何导入你的 SSH config 文件。',
   'vault.import.sshConfig.modeQuestion': '你希望如何导入？',
   'vault.import.sshConfig.importOnly': '仅导入',

@@ -178,6 +178,81 @@ html.platform-win32 {
   animation: magiesTerminal-lazy-fade-in 160ms ease-out both;
 }
 
+/* System Manager live overview — subtle tech HUD accents */
+.system-monitor-surface {
+  background-image:
+    radial-gradient(ellipse 80% 40% at 50% -10%, color-mix(in oklab, var(--primary) 12%, transparent), transparent 70%);
+}
+
+.system-monitor-grid {
+  background-image:
+    linear-gradient(color-mix(in oklab, var(--border) 55%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in oklab, var(--border) 55%, transparent) 1px, transparent 1px);
+  background-size: 18px 18px;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.55), transparent 92%);
+}
+
+@keyframes system-monitor-pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.55;
+    transform: scale(0.85);
+  }
+}
+
+.system-monitor-pulse-dot {
+  animation: system-monitor-pulse-dot 1.6s ease-in-out infinite;
+}
+
+@keyframes system-monitor-tick {
+  0% {
+    opacity: 1;
+    transform: scale(1.4);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+
+.system-monitor-tick {
+  animation: system-monitor-tick 700ms ease-out both;
+}
+
+@keyframes system-monitor-bar-sheen {
+  0% {
+    opacity: 0;
+  }
+
+  40% {
+    opacity: 0.45;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateX(6px);
+  }
+}
+
+.system-monitor-bar-sheen {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+  animation: system-monitor-bar-sheen 1.2s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .system-monitor-pulse-dot,
+  .system-monitor-tick,
+  .system-monitor-bar-sheen {
+    animation: none;
+  }
+}
+
 .settings-window button:not(:disabled),
 .settings-window [role="button"]:not([aria-disabled="true"]),
 .settings-window [role="switch"]:not([aria-disabled="true"]),

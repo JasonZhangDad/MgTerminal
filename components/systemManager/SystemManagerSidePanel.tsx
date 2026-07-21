@@ -1,4 +1,4 @@
-import { Activity, Box, Gauge, LayoutList, Loader2, TerminalSquare } from 'lucide-react';
+import { Activity, Box, Gauge, LayoutList, Loader2, Network, TerminalSquare } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import React, { memo, useMemo, useState } from 'react';
 import { useI18n } from '../../application/i18n/I18nProvider';
@@ -11,6 +11,7 @@ import { buildSystemManagerTabs, shouldCollectServerStats } from '../../domain/s
 import type { Snippet, TerminalSession } from '../../types';
 import { cn } from '../../lib/utils';
 import { DockerManagerTab } from './DockerManagerTab';
+import { KubernetesManagerTab } from './KubernetesManagerTab';
 import { ProcessManagerTab } from './ProcessManagerTab';
 import { SystemOverviewTab } from './SystemOverviewTab';
 import { TmuxManagerTab } from './TmuxManagerTab';
@@ -84,6 +85,8 @@ export const SystemManagerSidePanel = memo(function SystemManagerSidePanel({
         refreshCapabilities().finally(() => { probingRef.current = false; });
       }
     } else if (resolvedTab === 'tmux' && capabilities?.hasTmux !== true) {
+      void refreshCapabilities();
+    } else if (resolvedTab === 'kubernetes' && capabilities?.hasKubectl !== true) {
       void refreshCapabilities();
     }
   }, [resolvedTab, capabilities, refreshCapabilities]);
@@ -164,10 +167,12 @@ export const SystemManagerSidePanel = memo(function SystemManagerSidePanel({
     { id: 'processes', icon: LayoutList, label: t('systemManager.tabs.processes') },
     { id: 'tmux', icon: TerminalSquare, label: t('systemManager.tabs.tmux') },
     { id: 'docker', icon: Box, label: t('systemManager.tabs.docker') },
+    { id: 'kubernetes', icon: Network, label: t('systemManager.tabs.kubernetes') },
   ];
 
   const tmuxReady = capabilities?.hasTmux === true;
   const dockerReady = capabilities?.hasDocker === true;
+  const k8sReady = capabilities?.hasKubectl === true;
   const tmuxPanelState = resolveCapabilityPanelState({
     isActive: resolvedTab === 'tmux',
     ready: tmuxReady,
@@ -176,6 +181,11 @@ export const SystemManagerSidePanel = memo(function SystemManagerSidePanel({
   const dockerPanelState = resolveCapabilityPanelState({
     isActive: resolvedTab === 'docker',
     ready: dockerReady,
+    capabilitiesKnown: capabilities !== undefined,
+  });
+  const k8sPanelState = resolveCapabilityPanelState({
+    isActive: resolvedTab === 'kubernetes',
+    ready: k8sReady,
     capabilitiesKnown: capabilities !== undefined,
   });
 
@@ -260,6 +270,24 @@ export const SystemManagerSidePanel = memo(function SystemManagerSidePanel({
               backend={backend}
               listRefreshIntervalSec={terminalSettings.systemManagerDockerListRefreshInterval}
               statsRefreshIntervalSec={terminalSettings.systemManagerDockerStatsRefreshInterval}
+            />
+          </div>
+        ) : null}
+        {k8sPanelState === 'unavailable' ? (
+          <div className="flex-1 min-h-0">
+            <SystemPanelEmpty icon={Network} message={t('systemManager.kubernetes.unavailable')} />
+          </div>
+        ) : k8sPanelState === 'checking' ? (
+          <div className="flex-1 min-h-0">
+            <SystemPanelChecking message={t('systemManager.common.checkingAvailability')} />
+          </div>
+        ) : k8sPanelState === 'ready' ? (
+          <div className={cn('flex-1 min-h-0 flex flex-col', resolvedTab !== 'kubernetes' && 'hidden')}>
+            <KubernetesManagerTab
+              sessionId={sessionId}
+              isVisible={isVisible && resolvedTab === 'kubernetes'}
+              backend={backend}
+              refreshIntervalSec={terminalSettings.systemManagerDockerListRefreshInterval}
             />
           </div>
         ) : null}

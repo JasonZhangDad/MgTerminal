@@ -214,8 +214,10 @@ export const zhTWCoreMessages: Messages = {
   'settings.sessionLogs.formatTxt': '純文字 (.txt)',
   'settings.sessionLogs.formatRaw': '原始格式 (.log)',
   'settings.sessionLogs.formatHtml': 'HTML (.html)',
+  'settings.sessionLogs.formatCast': "Asciinema 錄製 (.cast)",
   'settings.sessionLogs.timestamps': '新增時間戳',
   'settings.sessionLogs.timestampsDesc': '為純文字和 HTML 日誌的每一行新增本機時間。',
+  'settings.sessionLogs.timestampsCastNote': "Cast 錄製已包含相對時間戳，行級時間戳不適用。",
   'settings.sessionLogs.hint': '工作階段日誌用於記錄終端輸出，便於故障排查和審計。',
 
   // Settings > SSH Debug Logs
@@ -570,6 +572,10 @@ export const zhTWCoreMessages: Messages = {
   'vault.import.toast.noNewHosts': '從 {format} 沒有匯入到新的主機。',
   'vault.import.toast.summary': '已匯入 {count} 個主機（跳過 {skipped}，重複 {duplicates}）。',
   'vault.import.toast.firstIssue': '首個問題：{issue}',
+  'vault.import.sshConfig.defaultPathHint': "預設 OpenSSH 設定路徑",
+  'vault.import.sshConfig.pickFileTitle': "選擇 SSH 設定檔",
+  'vault.import.sshConfig.useDefaultManaged': "使用 ~/.ssh/config（託管同步）",
+  'vault.import.sshConfig.useDefaultImportOnly': "使用 ~/.ssh/config（僅匯入）",
   'vault.import.sshConfig.chooseMode': '選擇如何匯入你的 SSH config 檔案。',
   'vault.import.sshConfig.modeQuestion': '你希望如何匯入？',
   'vault.import.sshConfig.importOnly': '僅匯入',

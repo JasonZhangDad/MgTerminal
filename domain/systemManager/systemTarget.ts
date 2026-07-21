@@ -36,6 +36,20 @@ export function shouldShowDockerTab(
   return isDefiniteLinuxTarget(host, capabilities, session);
 }
 
+export function shouldShowKubernetesTab(
+  host: Host | null | undefined,
+  capabilities: SessionCapabilities | undefined,
+  session: TerminalSession | null | undefined,
+): boolean {
+  if (capabilities?.hasKubectl === true) return true;
+  // Probe first on Linux/macOS-like hosts; hide when probe says no kubectl.
+  if (capabilities !== undefined && capabilities.hasKubectl === false) return false;
+  if (isDefiniteLinuxTarget(host, capabilities, session)) return true;
+  if (capabilities?.targetOs === 'darwin') return true;
+  if (host?.os === 'macos') return true;
+  return false;
+}
+
 export function shouldCollectServerStats(
   host: Host | null | undefined,
   capabilities: SessionCapabilities | undefined,
@@ -58,5 +72,6 @@ export function buildSystemManagerTabs(
   const tabs: SystemManagerSubTab[] = ['overview', 'processes'];
   if (shouldShowTmuxTab(host, capabilities, session)) tabs.push('tmux');
   if (shouldShowDockerTab(host, capabilities, session)) tabs.push('docker');
+  if (shouldShowKubernetesTab(host, capabilities, session)) tabs.push('kubernetes');
   return tabs;
 }

@@ -216,7 +216,7 @@ export function useSettingsIpcSync({
       }
       if (
         key === STORAGE_KEY_SESSION_LOGS_FORMAT &&
-        (value === 'txt' || value === 'raw' || value === 'html')
+        (value === 'txt' || value === 'raw' || value === 'html' || value === 'cast')
       ) {
         setSessionLogsFormat((prev) => (prev === value ? prev : value));
       }

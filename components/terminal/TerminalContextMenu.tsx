@@ -51,6 +51,7 @@ export interface TerminalContextMenuProps {
   onClose?: () => void;
   onSelectWord?: () => void;
   onAddSelectionToAI?: () => void;
+  onExplainSelectionToAI?: () => void;
   onRename?: () => void;
   onDetach?: () => void;
 }
@@ -151,6 +152,7 @@ export const TerminalContextMenu: React.FC<TerminalContextMenuProps> = ({
   onClose,
   onSelectWord,
   onAddSelectionToAI,
+  onExplainSelectionToAI,
   onRename,
   onDetach,
 }) => {
@@ -272,6 +274,12 @@ export const TerminalContextMenu: React.FC<TerminalContextMenuProps> = ({
             <ContextMenuItem onClick={onAddSelectionToAI} disabled={!hasSelection}>
               <Sparkles size={14} className="mr-2" />
               {t('terminal.menu.addSelectionToAI')}
+            </ContextMenuItem>
+          )}
+          {onExplainSelectionToAI && (
+            <ContextMenuItem onClick={onExplainSelectionToAI} disabled={!hasSelection}>
+              <Sparkles size={14} className="mr-2" />
+              {t('terminal.menu.explainSelectionWithAI')}
             </ContextMenuItem>
           )}
           {onPasteSelection && (

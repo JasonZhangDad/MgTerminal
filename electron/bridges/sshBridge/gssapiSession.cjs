@@ -381,6 +381,8 @@ function createStartGssapiSessionApi(ctx) {
         format: options.sessionLog.format || "txt",
         timestampsEnabled: Boolean(options.sessionLog.timestampsEnabled),
         startTime: Date.now(),
+        cols: session.cols || cols || 80,
+        rows: session.rows || rows || 24,
       });
     }
     session._logStreamToken = logStreamToken;

@@ -89,6 +89,7 @@ export const terminalPropsAreEqual = (
   && prev.onSnippetExecutorChange === next.onSnippetExecutorChange
   && prev.onProgrammaticCommandLogRewriteChange === next.onProgrammaticCommandLogRewriteChange
   && prev.onAddSelectionToAI === next.onAddSelectionToAI
+  && prev.onOpenAI === next.onOpenAI
   && prev.onRename === next.onRename
   && prev.onDetach === next.onDetach
   && prev.onStartSessionDrag === next.onStartSessionDrag

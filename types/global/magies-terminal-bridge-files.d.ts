@@ -71,7 +71,7 @@ declare global {
       hostLabel: string;
       hostname: string;
       startTime: number;
-      format: 'txt' | 'raw' | 'html';
+      format: 'txt' | 'raw' | 'html' | 'cast';
     }): Promise<{ success: boolean; canceled?: boolean; filePath?: string }>;
     selectSessionLogsDir?(): Promise<{ success: boolean; canceled?: boolean; directory?: string }>;
     autoSaveSessionLog?(payload: {
@@ -80,7 +80,7 @@ declare global {
       hostname: string;
       hostId: string;
       startTime: number;
-      format: 'txt' | 'raw' | 'html';
+      format: 'txt' | 'raw' | 'html' | 'cast';
       directory: string;
     }): Promise<{ success: boolean; error?: string; filePath?: string }>;
     openSessionLogsDir?(directory: string): Promise<{ success: boolean; error?: string }>;

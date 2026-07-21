@@ -1,6 +1,19 @@
 # 更新日誌
 
 
+## [0.5.20] - 2026-07-21
+
+### 功能
+- **System Manager Kubernetes**：遠端 kubectl 管理 Pods/Deployments（列表、日誌、describe）；刪除 Pod / 伸縮 Deployment 需確認；MCP/CLI 同步暴露唯讀與受控寫工具
+- **本地 LLM 隱私加固**：Ollama/LM Studio 本地提供商路徑與審批稽核；密鑰不進入 LLM 上下文
+- **會話 Cast 錄製增強**：asciinema cast v2 記錄輸入事件；終端 resize 時寫入幾何標記並在啟動時記錄 cols/rows
+- **SFTP 衝突比較與真位元組續傳**：衝突對話框展示元資料對比；拖放上傳 resume 走 `startOffset` 追加，不再誤刪目標
+- **能力目錄擴展**：Kubernetes 域 catalog 註冊、準外掛 registration、CLI/MCP/側欄 tool specs 對齊
+
+### 優化
+- **System Overview 監控觀感**：資源條與概覽頁更貼近即時監控 HUD
+- **SSH config / Vault 匯入 UX**：匯入流程與提示文案完善
+
 ## [0.5.19] - 2026-07-20
 
 ### 優化

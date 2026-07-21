@@ -204,6 +204,33 @@ function createPreloadApi(ctx) {
   dockerImageAction: async (options) => {
     return ipcRenderer.invoke("magiesTerminal:system:dockerImageAction", options);
   },
+  listKubernetesNamespaces: async (sessionId) => {
+    return ipcRenderer.invoke("magiesTerminal:system:listKubernetesNamespaces", { sessionId });
+  },
+  listKubernetesPods: async (options) => {
+    return ipcRenderer.invoke("magiesTerminal:system:listKubernetesPods", options);
+  },
+  listKubernetesDeployments: async (options) => {
+    return ipcRenderer.invoke("magiesTerminal:system:listKubernetesDeployments", options);
+  },
+  getKubernetesPodLogs: async (options) => {
+    return ipcRenderer.invoke("magiesTerminal:system:getKubernetesPodLogs", options);
+  },
+  describeKubernetesPod: async (options) => {
+    return ipcRenderer.invoke("magiesTerminal:system:describeKubernetesPod", options);
+  },
+  getKubernetesCurrentContext: async (sessionId) => {
+    return ipcRenderer.invoke("magiesTerminal:system:getKubernetesCurrentContext", { sessionId });
+  },
+  listKubernetesContexts: async (sessionId) => {
+    return ipcRenderer.invoke("magiesTerminal:system:listKubernetesContexts", { sessionId });
+  },
+  deleteKubernetesPod: async (options) => {
+    return ipcRenderer.invoke("magiesTerminal:system:deleteKubernetesPod", options);
+  },
+  scaleKubernetesDeployment: async (options) => {
+    return ipcRenderer.invoke("magiesTerminal:system:scaleKubernetesDeployment", options);
+  },
   openTerminalPopup: async (payload) => {
     return ipcRenderer.invoke("magiesTerminal:window:openTerminalPopup", payload);
   },

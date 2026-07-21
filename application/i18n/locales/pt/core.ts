@@ -216,8 +216,10 @@ export const ptCoreMessages: Messages = {
   'settings.sessionLogs.formatTxt': 'Texto simples (.txt)',
   'settings.sessionLogs.formatRaw': 'Bruto com ANSI (.log)',
   'settings.sessionLogs.formatHtml': 'HTML (.html)',
+  'settings.sessionLogs.formatCast': "Cast Asciinema (.cast)",
   'settings.sessionLogs.timestamps': 'Adicionar carimbos de data/hora',
   'settings.sessionLogs.timestampsDesc': 'Prefixar cada linha nos logs de texto simples e HTML com a hora local.',
+  'settings.sessionLogs.timestampsCastNote': "Gravações cast já guardam tempos relativos; carimbos por linha não se aplicam.",
   'settings.sessionLogs.hint': 'Os logs de sessão capturam toda a saída do terminal para diagnóstico e auditoria.',
 
   // Settings > SSH Debug Logs

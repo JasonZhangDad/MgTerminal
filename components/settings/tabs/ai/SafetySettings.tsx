@@ -1,7 +1,12 @@
-import React, { useCallback, useState } from "react";
-import { Plus, X } from "lucide-react";
+import React, { useCallback, useEffect, useState } from "react";
+import { Plus, Trash2, X } from "lucide-react";
 import type { AIPermissionMode } from "../../../../infrastructure/ai/types";
 import { DEFAULT_COMMAND_BLOCKLIST, MAX_COMMAND_TIMEOUT_SECONDS } from "../../../../infrastructure/ai/types";
+import {
+  clearApprovalAudit,
+  readApprovalAudit,
+  type ApprovalAuditEntry,
+} from "../../../../infrastructure/ai/approvalAudit";
 import { useI18n } from "../../../../application/i18n/I18nProvider";
 import { Button } from "../../../ui/button";
 import { Select, SettingCard, SettingRow, SettingsSection } from "../../settings-ui";
@@ -27,6 +32,12 @@ export const SafetySettings: React.FC<{
 }) => {
   const { t } = useI18n();
   const [regexErrors, setRegexErrors] = useState<Record<number, string>>({});
+  const [approvalAudit, setApprovalAudit] = useState<ApprovalAuditEntry[]>(() => readApprovalAudit());
+
+  useEffect(() => {
+    // Refresh when the safety tab is mounted so recent approvals appear without restart.
+    setApprovalAudit(readApprovalAudit());
+  }, []);
 
   const validatePattern = useCallback((pattern: string, idx: number): boolean => {
     if (!pattern) {
@@ -190,6 +201,66 @@ export const SafetySettings: React.FC<{
           <Plus size={14} className="mr-1" />
           {t('ai.safety.blocklist.add')}
         </Button>
+      </SettingCard>
+
+      <SettingCard padded className="space-y-3">
+        <div className="flex items-center justify-between gap-2">
+          <div>
+            <p className="text-sm font-medium">{t('ai.safety.approvalAudit.title')}</p>
+            <p className="text-xs text-muted-foreground">
+              {t('ai.safety.approvalAudit.description')}
+            </p>
+          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="text-xs gap-1"
+            disabled={approvalAudit.length === 0}
+            onClick={() => {
+              clearApprovalAudit();
+              setApprovalAudit([]);
+            }}
+          >
+            <Trash2 size={12} />
+            {t('ai.safety.approvalAudit.clear')}
+          </Button>
+        </div>
+
+        {approvalAudit.length === 0 ? (
+          <p className="text-xs text-muted-foreground py-2">{t('ai.safety.approvalAudit.empty')}</p>
+        ) : (
+          <div className="max-h-48 space-y-1 overflow-y-auto rounded-md border border-border/50 bg-background/60 p-1.5">
+            {approvalAudit.slice(0, 30).map((entry) => (
+              <div
+                key={entry.id}
+                className="flex items-center justify-between gap-2 rounded px-2 py-1.5 text-[11px] hover:bg-muted/40"
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="truncate font-mono text-foreground">{entry.toolName}</div>
+                  <div className="truncate text-muted-foreground">
+                    {entry.capabilityId || '—'}
+                    {entry.chatSessionId ? ` · ${entry.chatSessionId.slice(0, 8)}` : ''}
+                  </div>
+                </div>
+                <div className="shrink-0 text-right">
+                  <div className="tabular-nums text-muted-foreground">
+                    {new Date(entry.at).toLocaleTimeString(undefined, { hour12: false })}
+                  </div>
+                  <div className="font-medium">
+                    {entry.phase === 'requested'
+                      ? t('ai.safety.approvalAudit.requested')
+                      : entry.outcome === 'approved'
+                        ? t('ai.safety.approvalAudit.approved')
+                        : entry.outcome === 'timeout'
+                          ? t('ai.safety.approvalAudit.timeout')
+                          : t('ai.safety.approvalAudit.denied')}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </SettingCard>
 
         <p className="text-xs text-muted-foreground">

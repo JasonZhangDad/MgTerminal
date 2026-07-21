@@ -456,6 +456,8 @@ function startLocalSession(event, payload) {
       format: payload.sessionLog.format || "txt",
       timestampsEnabled: Boolean(payload.sessionLog.timestampsEnabled),
       startTime: Date.now(),
+      cols: session.cols || payload.cols,
+      rows: session.rows || payload.rows,
     });
   }
 
@@ -698,6 +700,8 @@ async function startSerialSession(event, options) {
           serialEncoding: initialSerialEncoding,
           decoderRef: serialDecoderRef,
           webContentsId: event.sender.id,
+          cols: options.cols || 80,
+          rows: options.rows || 24,
         };
         sessions.set(sessionId, session);
         openTerminalOutputSession(sessionId, event.sender);
@@ -711,6 +715,8 @@ async function startSerialSession(event, options) {
             format: options.sessionLog.format || "txt",
             timestampsEnabled: Boolean(options.sessionLog.timestampsEnabled),
             startTime: Date.now(),
+            cols: session.cols,
+            rows: session.rows,
           });
         }
 
@@ -928,6 +934,10 @@ function writeToSessionNow(payload, data, logRewrite = payload.logRewrite) {
     // the transport's native string serialization keeps handling that case.
     sessionLogStreamManager.registerSudoAutofillInput(payload.sessionId, data);
     sessionLogStreamManager.registerProgrammaticCommandLogRewrite(payload.sessionId, logRewrite);
+    // Cast recordings capture keystrokes as asciinema "i" events (not for txt/raw/html).
+    if (typeof data === "string" && data.length > 0 && !payload.automated) {
+      sessionLogStreamManager.appendInputData?.(payload.sessionId, data);
+    }
     const inputData = session.type === 'telnet-native'
       ? telnetProtocol.normalizeNvtNewlines(data)
       : data;
@@ -1259,7 +1269,7 @@ function resizeSession(event, payload) {
   if (!session) return;
   if (Number.isFinite(payload.cols)) session.cols = payload.cols;
   if (Number.isFinite(payload.rows)) session.rows = payload.rows;
-  
+
   try {
     if (session.stream) {
       session.stream.setWindow(payload.rows, payload.cols, 0, 0);
@@ -1278,6 +1288,14 @@ function resizeSession(event, payload) {
     if (err.code !== 'EPIPE' && err.code !== 'ERR_STREAM_DESTROYED') {
       console.warn("Resize failed", err);
     }
+  }
+
+  if (Number.isFinite(payload.cols) || Number.isFinite(payload.rows)) {
+    sessionLogStreamManager.updateStreamGeometry?.(
+      payload.sessionId,
+      session.cols,
+      session.rows,
+    );
   }
 }
 

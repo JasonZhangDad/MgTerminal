@@ -215,7 +215,12 @@ export interface TerminalProps {
   sshDebugLogEnabled?: boolean;
   sudoAutofillPassword?: string;
   showSelectionAIAction?: boolean;
-  onAddSelectionToAI?: (sessionId: string, selection: string) => void;
+  onAddSelectionToAI?: (
+    sessionId: string,
+    selection: string,
+    options?: { draftIntent?: 'explain' },
+  ) => void;
+  onOpenAI?: () => void;
   /** Override display name for the pane title bar (customName || hostLabel) */
   sessionDisplayName?: string;
   /** Open rename dialog for this session */

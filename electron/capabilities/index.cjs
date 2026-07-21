@@ -10,6 +10,8 @@ const dispatch = require("./dispatch.cjs");
 const scope = require("./scope.cjs");
 const adapters = require("./adapters/index.cjs");
 const services = require("./services/index.cjs");
+const capabilityDefinition = require("./capabilityDefinition.cjs");
+const registration = require("./registration.cjs");
 
 module.exports = {
   ...constants,
@@ -22,4 +24,6 @@ module.exports = {
   ...scope,
   ...adapters,
   ...services,
+  ...capabilityDefinition,
+  ...registration,
 };

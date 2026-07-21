@@ -328,7 +328,7 @@ export const useSettingsState = (options: { enableSettingsSync?: boolean; enable
   });
   const [sessionLogsFormat, setSessionLogsFormat] = useState<SessionLogFormat>(() => {
     const stored = readStoredString(STORAGE_KEY_SESSION_LOGS_FORMAT);
-    if (stored === 'txt' || stored === 'raw' || stored === 'html') return stored;
+    if (stored === 'txt' || stored === 'raw' || stored === 'html' || stored === 'cast') return stored;
     return DEFAULT_SESSION_LOGS_FORMAT;
   });
   const [sessionLogsTimestampsEnabled, setSessionLogsTimestampsEnabled] = useState<boolean>(() => {

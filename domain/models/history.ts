@@ -65,7 +65,7 @@ export interface ConnectionLog {
 }
 
 // Session Logs Settings - for auto-saving terminal logs to local filesystem
-export type SessionLogFormat = 'txt' | 'raw' | 'html';
+export type SessionLogFormat = 'txt' | 'raw' | 'html' | 'cast';
 
 // Managed Source - external inventory that owns a host group.
 // - ssh_config: local OpenSSH config (pull + writeback of managed block)

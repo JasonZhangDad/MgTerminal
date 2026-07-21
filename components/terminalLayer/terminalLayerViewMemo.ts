@@ -360,6 +360,7 @@ const WORKSPACE_CTX_KEYS = [
   'handleSnippetExecutorChange',
   'handleProgrammaticCommandLogRewriteChange',
   'handleAddSelectionToAI',
+  'handleOpenAI',
   'activeResizers',
   'activeWorkspace',
   'composeBarThemeColors',

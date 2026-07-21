@@ -1317,7 +1317,11 @@ const TerminalLayerInner: React.FC<TerminalLayerProps> = ({
     openNotesPanelForSourceNote(intent.tabId, intent.noteId);
   }, [onOpenVaultNoteFromChat, openNotesPanelForSourceNote]);
 
-  const handleAddSelectionToAI = useCallback((sourceSessionId: string, selection: string) => {
+  const handleAddSelectionToAI = useCallback((
+    sourceSessionId: string,
+    selection: string,
+    options?: { draftIntent?: 'explain' },
+  ) => {
     const text = selection.trim();
     if (!text) return;
 
@@ -1333,6 +1337,7 @@ const TerminalLayerInner: React.FC<TerminalLayerProps> = ({
       requestId: crypto.randomUUID(),
       tabId,
       text,
+      draftIntent: options?.draftIntent,
     });
     handleSwitchSidePanelTab('ai');
   }, [handleSwitchSidePanelTab]);

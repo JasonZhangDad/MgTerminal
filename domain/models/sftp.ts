@@ -70,7 +70,7 @@ export interface TransferTask {
   verifyChecksum?: boolean;
 }
 
-export type FileConflictAction = 'stop' | 'skip' | 'replace' | 'duplicate' | 'merge';
+export type FileConflictAction = 'stop' | 'skip' | 'replace' | 'duplicate' | 'merge' | 'resume';
 
 export interface FileConflict {
   transferId: string;

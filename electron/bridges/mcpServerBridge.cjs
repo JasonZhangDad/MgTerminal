@@ -1099,6 +1099,7 @@ const dispatchCapabilityRpc = createCapabilityRpcDispatcher({
   isChatSessionCancelled,
   requestApprovalFromRenderer,
   USER_DENIED_MESSAGE,
+  getSessions: () => sessions,
 });
 
 /**

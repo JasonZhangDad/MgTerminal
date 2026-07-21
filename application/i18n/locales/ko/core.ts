@@ -216,8 +216,10 @@ export const koCoreMessages: Messages = {
   'settings.sessionLogs.formatTxt': '일반 텍스트(.txt)',
   'settings.sessionLogs.formatRaw': 'ANSI 포함 Raw(.log)',
   'settings.sessionLogs.formatHtml': 'HTML(.html)',
+  'settings.sessionLogs.formatCast': "Asciinema 캐스트 (.cast)",
   'settings.sessionLogs.timestamps': '타임스탬프 추가',
   'settings.sessionLogs.timestampsDesc': '일반 텍스트 및 HTML 로그의 각 줄 앞에 현지 시간을 붙입니다.',
+  'settings.sessionLogs.timestampsCastNote': "캐스트 녹화는 이미 상대 시각을 저장하므로 줄 타임스탬프는 적용되지 않습니다.",
   'settings.sessionLogs.hint': '세션 로그는 문제 해결 및 감사 목적으로 모든 터미널 출력을 캡처합니다.',
 
   // Settings > SSH Debug Logs

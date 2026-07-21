@@ -18,6 +18,8 @@ test("magies-terminal-tool-cli capabilities lists implemented commands without a
   assert.ok(payload.capabilities.some((entry) => entry.id === "terminal.execute"));
   assert.ok(payload.capabilities.some((entry) => entry.id === "vault.host.get"));
   assert.ok(payload.capabilities.some((entry) => entry.id === "portforward.rules.list"));
+  assert.ok(payload.capabilities.some((entry) => entry.id === "kubernetes.deployments.list"));
+  assert.ok(payload.capabilities.some((entry) => entry.id === "kubernetes.deployments.scale"));
 });
 
 test("magies-terminal-tool-cli capabilities runs from unpacked CLI runtime without app services", () => {

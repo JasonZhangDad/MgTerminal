@@ -13,6 +13,12 @@ const {
 } = require("./sessionLogsBridge.cjs");
 const { createTerminalTextRenderer } = require("./terminalLogSanitizer.cjs");
 const { createProgrammaticCommandLogRewriter } = require("./programmaticCommandLog.cjs");
+const {
+  buildAsciinemaCastHeader,
+  formatAsciinemaCastEventLine,
+  formatAsciinemaCastHeaderLine,
+  relativeCastTimeSeconds,
+} = require("./sessionCastFormat.cjs");
 
 // Active log streams keyed by sessionId
 const activeStreams = new Map();
@@ -141,7 +147,7 @@ function sanitizeSudoAutofillLogData(entry, dataChunk, { final = false } = {}) {
  * calls kill the new log file. See issue #916.
  *
  * @param {string} sessionId
- * @param {{ hostLabel: string, hostname: string, directory: string, format: string, startTime?: number, timestampsEnabled?: boolean, timestampProvider?: () => number }} opts
+ * @param {{ hostLabel: string, hostname: string, directory: string, format: string, startTime?: number, timestampsEnabled?: boolean, timestampProvider?: () => number, cols?: number, rows?: number }} opts
  * @returns {symbol|null} Token identifying this stream, or null if no
  *   stream was started (e.g. missing directory).
  */
@@ -165,11 +171,11 @@ function startStream(sessionId, opts) {
 
     const date = new Date(startTime || Date.now());
     const dateStr = toLocalISOString(date);
-    // Raw logs are written directly. Txt/html logs keep terminal parser state
-    // in memory and write the rendered file on each flush.
+    // Raw/cast logs stream to disk. Txt/html keep terminal parser state and snapshot.
+    const isCast = format === "cast";
     const isRaw = format === "raw";
     const isHtml = format === "html";
-    const ext = isRaw ? "log" : isHtml ? "html" : "txt";
+    const ext = isCast ? "cast" : isRaw ? "log" : isHtml ? "html" : "txt";
     const fileName = `${dateStr}.${ext}`;
     const filePath = path.join(hostDir, fileName);
 
@@ -181,6 +187,8 @@ function startStream(sessionId, opts) {
       startTime: startTime || Date.now(),
       timestampsEnabled: opts.timestampsEnabled,
       timestampProvider: opts.timestampProvider,
+      cols: opts.cols,
+      rows: opts.rows,
     });
   } catch (err) {
     console.error(`[SessionLogStream] Failed to start stream for ${sessionId}:`, err.message);
@@ -190,7 +198,8 @@ function startStream(sessionId, opts) {
 
 function createStreamEntry(sessionId, opts) {
   const { filePath, hostDir, format, hostLabel, startTime } = opts;
-  const isRaw = format === "raw";
+  const isCast = format === "cast";
+  const isRaw = format === "raw" || isCast;
   const isHtml = format === "html";
   const writeStream = isRaw
     ? fs.createWriteStream(filePath, { flags: "w", encoding: "utf8" })
@@ -213,13 +222,17 @@ function createStreamEntry(sessionId, opts) {
     hostDir,
     format,
     isRaw,
+    isCast,
     isHtml,
     renderer: isRaw ? null : createTerminalTextRenderer(),
-    renderedTimestampPrefixer: !isRaw && opts.timestampsEnabled
+    renderedTimestampPrefixer: !isRaw && !isCast && opts.timestampsEnabled
       ? createRenderedLineTimestampPrefixer({ timestampProvider: opts.timestampProvider })
       : null,
     hostLabel,
     startTime,
+    cols: opts.cols,
+    rows: opts.rows,
+    timestampProvider: opts.timestampProvider,
     buffer: "",
     programmaticCommandLogRewriter: createProgrammaticCommandLogRewriter(),
     sudoAutofillRewrites: [],
@@ -235,6 +248,16 @@ function createStreamEntry(sessionId, opts) {
     separateInitialLineBeforeLeadingCarriageReturn: false,
     pendingInitialLineLeadingCarriageReturn: false,
   };
+
+  if (isCast && writeStream) {
+    const header = buildAsciinemaCastHeader({
+      width: opts.cols,
+      height: opts.rows,
+      timestampMs: startTime,
+      title: hostLabel,
+    });
+    writeStream.write(formatAsciinemaCastHeaderLine(header));
+  }
 
   entry.flushTimer = setInterval(() => {
     flushBuffer(entry);
@@ -266,6 +289,8 @@ function startStreamToFile(sessionId, opts = {}) {
       timestampsEnabled: opts.timestampsEnabled,
       timestampProvider: opts.timestampProvider,
       stopRequiresToken: opts.stopRequiresToken,
+      cols: opts.cols,
+      rows: opts.rows,
     });
     if (typeof initialLine === "string" && initialLine.length > 0) {
       appendData(sessionId, initialLine);
@@ -291,7 +316,13 @@ function flushBuffer(entry) {
     const data = entry.buffer;
     entry.buffer = "";
 
-    if (entry.isRaw) {
+    if (entry.isCast) {
+      const now = typeof entry.timestampProvider === "function"
+        ? entry.timestampProvider()
+        : Date.now();
+      const relative = relativeCastTimeSeconds(entry.startTime, now);
+      entry.writeStream.write(formatAsciinemaCastEventLine(relative, "o", data));
+    } else if (entry.isRaw) {
       entry.writeStream.write(data);
     } else {
       entry.renderer.feed(data);
@@ -334,7 +365,7 @@ function renderSnapshotContent(entry, { finalize = false } = {}) {
 }
 
 function scheduleSnapshot(entry) {
-  if (!entry || entry.disabled || entry.isRaw || entry.closing) return;
+  if (!entry || entry.disabled || entry.isRaw || entry.isCast || entry.closing) return;
   if (!entry.snapshotDirty) return;
 
   if (entry.snapshotPromise) {
@@ -389,6 +420,67 @@ function appendData(sessionId, dataChunk) {
   }
 
   appendBufferedData(entry, dataChunk);
+}
+
+/**
+ * Record keystroke / input events for cast recordings (asciinema "i" events).
+ * No-op for non-cast formats and empty payloads.
+ * Passwords may appear if typed in the clear — same risk as raw PTY capture.
+ *
+ * @param {string} sessionId
+ * @param {string} dataChunk
+ */
+function appendInputData(sessionId, dataChunk) {
+  const entry = activeStreams.get(sessionId);
+  if (!entry || entry.disabled || !entry.isCast) return;
+  if (!dataChunk) return;
+
+  // Flush pending output first so input/output stay ordered in the cast file.
+  flushBuffer(entry);
+
+  try {
+    const now = typeof entry.timestampProvider === "function"
+      ? entry.timestampProvider()
+      : Date.now();
+    const relative = relativeCastTimeSeconds(entry.startTime, now);
+    entry.writeStream.write(formatAsciinemaCastEventLine(relative, "i", dataChunk));
+  } catch (err) {
+    console.error("[SessionLogStream] Input cast write error:", err.message);
+    entry.disabled = true;
+  }
+}
+
+/**
+ * Update terminal geometry on an active stream.
+ * Cast v2 headers are fixed at start; we keep live cols/rows for metadata and
+ * emit a lightweight OSC-style resize marker as an output event so replays can
+ * still see size changes over time.
+ *
+ * @param {string} sessionId
+ * @param {number} cols
+ * @param {number} rows
+ */
+function updateStreamGeometry(sessionId, cols, rows) {
+  const entry = activeStreams.get(sessionId);
+  if (!entry || entry.disabled) return;
+  const nextCols = Number.isFinite(cols) && cols > 0 ? Math.floor(cols) : entry.cols;
+  const nextRows = Number.isFinite(rows) && rows > 0 ? Math.floor(rows) : entry.rows;
+  if (nextCols === entry.cols && nextRows === entry.rows) return;
+  entry.cols = nextCols;
+  entry.rows = nextRows;
+  if (!entry.isCast || !entry.writeStream) return;
+  try {
+    flushBuffer(entry);
+    const now = typeof entry.timestampProvider === "function"
+      ? entry.timestampProvider()
+      : Date.now();
+    const relative = relativeCastTimeSeconds(entry.startTime, now);
+    // xterm window-ops style marker (rows;cols) for tooling that inspects output.
+    const marker = `\x1b[8;${nextRows || 24};${nextCols || 80}t`;
+    entry.writeStream.write(formatAsciinemaCastEventLine(relative, "o", marker));
+  } catch (err) {
+    console.error("[SessionLogStream] Geometry update error:", err.message);
+  }
 }
 
 function appendBufferedData(entry, dataChunk) {
@@ -496,6 +588,8 @@ module.exports = {
   startStream,
   startStreamToFile,
   appendData,
+  appendInputData,
+  updateStreamGeometry,
   registerSudoAutofillInput,
   registerProgrammaticCommandLogRewrite,
   stopStream,

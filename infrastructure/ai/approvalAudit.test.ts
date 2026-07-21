@@ -1,0 +1,62 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import {
+  appendApprovalAudit,
+  clearApprovalAudit,
+  MAX_APPROVAL_AUDIT_ENTRIES,
+  readApprovalAudit,
+  sanitizeApprovalAuditEntries,
+  writeApprovalAudit,
+} from './approvalAudit';
+
+const memory = new Map<string, string>();
+
+test.beforeEach(() => {
+  memory.clear();
+  // Minimal localStorage polyfill for unit tests (approvalAudit uses localStorageAdapter).
+  const store = {
+    get length() { return memory.size; },
+    clear() { memory.clear(); },
+    getItem(key: string) { return memory.has(key) ? memory.get(key)! : null; },
+    setItem(key: string, value: string) { memory.set(key, String(value)); },
+    removeItem(key: string) { memory.delete(key); },
+    key(index: number) { return [...memory.keys()][index] ?? null; },
+  };
+  (globalThis as { localStorage: Storage }).localStorage = store as Storage;
+});
+
+test('sanitizeApprovalAuditEntries drops malformed rows', () => {
+  const ok = {
+    id: 'a1',
+    at: 1,
+    phase: 'resolved' as const,
+    toolName: 'sftp_write',
+    outcome: 'denied' as const,
+  };
+  assert.deepEqual(sanitizeApprovalAuditEntries([ok, { id: 1 }, null, 'x']), [ok]);
+});
+
+test('appendApprovalAudit prepends and caps length', () => {
+  clearApprovalAudit();
+  for (let i = 0; i < MAX_APPROVAL_AUDIT_ENTRIES + 5; i += 1) {
+    appendApprovalAudit({
+      phase: 'resolved',
+      toolName: `tool_${i}`,
+      outcome: 'approved',
+    });
+  }
+  const entries = readApprovalAudit();
+  assert.equal(entries.length, MAX_APPROVAL_AUDIT_ENTRIES);
+  assert.equal(entries[0].toolName, `tool_${MAX_APPROVAL_AUDIT_ENTRIES + 4}`);
+});
+
+test('clearApprovalAudit empties storage', () => {
+  writeApprovalAudit([{
+    id: 'x',
+    at: Date.now(),
+    phase: 'requested',
+    toolName: 'terminal_execute',
+  }]);
+  clearApprovalAudit();
+  assert.deepEqual(readApprovalAudit(), []);
+});

@@ -81,6 +81,7 @@ function TerminalLayerWorkspaceSectionInner({ ctx }: { ctx: WorkspaceContext }) 
     handleSnippetExecutorChange,
     handleProgrammaticCommandLogRewriteChange,
     handleAddSelectionToAI,
+    handleOpenAI,
     activeResizers,
     activeWorkspace,
     composeBarThemeColors,
@@ -207,6 +208,7 @@ function TerminalLayerWorkspaceSectionInner({ ctx }: { ctx: WorkspaceContext }) 
           onSnippetExecutorChange={handleSnippetExecutorChange}
           onProgrammaticCommandLogRewriteChange={handleProgrammaticCommandLogRewriteChange}
           onAddSelectionToAI={handleAddSelectionToAI}
+          onOpenAI={handleOpenAI}
           onStartSessionRename={onStartSessionRename}
           onRemoveSessionFromWorkspace={onRemoveSessionFromWorkspace}
           onReorderTabs={onReorderTabs}

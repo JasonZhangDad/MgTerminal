@@ -341,6 +341,8 @@ function createMoshSessionApi(ctx) {
           format: options.sessionLog.format || "txt",
           timestampsEnabled: Boolean(options.sessionLog.timestampsEnabled),
           startTime: Date.now(),
+          cols: session.cols || cols,
+          rows: session.rows || rows,
         });
       }
       // Expose the token so swapToMoshClient can keep using it after the

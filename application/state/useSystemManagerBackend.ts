@@ -149,6 +149,100 @@ export function useSystemManagerBackend() {
     return bridge.dockerImageAction(options);
   }, []);
 
+  const listKubernetesNamespaces = useCallback(async (sessionId: string) => {
+    const bridge = magiesTerminalBridge.get();
+    if (!bridge?.listKubernetesNamespaces) {
+      return { success: false as const, error: 'listKubernetesNamespaces unavailable' };
+    }
+    return bridge.listKubernetesNamespaces(sessionId);
+  }, []);
+
+  const listKubernetesPods = useCallback(async (options: { sessionId: string; namespace?: string }) => {
+    const bridge = magiesTerminalBridge.get();
+    if (!bridge?.listKubernetesPods) {
+      return { success: false as const, error: 'listKubernetesPods unavailable' };
+    }
+    return bridge.listKubernetesPods(options);
+  }, []);
+
+  const listKubernetesDeployments = useCallback(async (options: {
+    sessionId: string;
+    namespace?: string;
+  }) => {
+    const bridge = magiesTerminalBridge.get();
+    if (!bridge?.listKubernetesDeployments) {
+      return { success: false as const, error: 'listKubernetesDeployments unavailable' };
+    }
+    return bridge.listKubernetesDeployments(options);
+  }, []);
+
+  const getKubernetesPodLogs = useCallback(async (options: {
+    sessionId: string;
+    namespace: string;
+    pod: string;
+    container?: string;
+    tailLines?: number;
+  }) => {
+    const bridge = magiesTerminalBridge.get();
+    if (!bridge?.getKubernetesPodLogs) {
+      return { success: false as const, error: 'getKubernetesPodLogs unavailable' };
+    }
+    return bridge.getKubernetesPodLogs(options);
+  }, []);
+
+  const describeKubernetesPod = useCallback(async (options: {
+    sessionId: string;
+    namespace: string;
+    pod: string;
+  }) => {
+    const bridge = magiesTerminalBridge.get();
+    if (!bridge?.describeKubernetesPod) {
+      return { success: false as const, error: 'describeKubernetesPod unavailable' };
+    }
+    return bridge.describeKubernetesPod(options);
+  }, []);
+
+  const getKubernetesCurrentContext = useCallback(async (sessionId: string) => {
+    const bridge = magiesTerminalBridge.get();
+    if (!bridge?.getKubernetesCurrentContext) {
+      return { success: false as const, error: 'getKubernetesCurrentContext unavailable' };
+    }
+    return bridge.getKubernetesCurrentContext(sessionId);
+  }, []);
+
+  const listKubernetesContexts = useCallback(async (sessionId: string) => {
+    const bridge = magiesTerminalBridge.get();
+    if (!bridge?.listKubernetesContexts) {
+      return { success: false as const, error: 'listKubernetesContexts unavailable' };
+    }
+    return bridge.listKubernetesContexts(sessionId);
+  }, []);
+
+  const deleteKubernetesPod = useCallback(async (options: {
+    sessionId: string;
+    namespace: string;
+    pod: string;
+  }) => {
+    const bridge = magiesTerminalBridge.get();
+    if (!bridge?.deleteKubernetesPod) {
+      return { success: false as const, error: 'deleteKubernetesPod unavailable' };
+    }
+    return bridge.deleteKubernetesPod(options);
+  }, []);
+
+  const scaleKubernetesDeployment = useCallback(async (options: {
+    sessionId: string;
+    namespace?: string;
+    name: string;
+    replicas: number;
+  }) => {
+    const bridge = magiesTerminalBridge.get();
+    if (!bridge?.scaleKubernetesDeployment) {
+      return { success: false as const, error: 'scaleKubernetesDeployment unavailable' };
+    }
+    return bridge.scaleKubernetesDeployment(options);
+  }, []);
+
   const openTerminalPopup = useCallback(async (
     payload: Parameters<NonNullable<MagiesTerminalBridge['openTerminalPopup']>>[0],
   ) => {
@@ -176,6 +270,15 @@ export function useSystemManagerBackend() {
     dockerImageInspect,
     dockerAction,
     dockerImageAction,
+    listKubernetesNamespaces,
+    listKubernetesPods,
+    listKubernetesDeployments,
+    getKubernetesPodLogs,
+    describeKubernetesPod,
+    getKubernetesCurrentContext,
+    listKubernetesContexts,
+    deleteKubernetesPod,
+    scaleKubernetesDeployment,
     openTerminalPopup,
   }), [
     probeSystemCapabilities,
@@ -194,6 +297,15 @@ export function useSystemManagerBackend() {
     dockerImageInspect,
     dockerAction,
     dockerImageAction,
+    listKubernetesNamespaces,
+    listKubernetesPods,
+    listKubernetesDeployments,
+    getKubernetesPodLogs,
+    describeKubernetesPod,
+    getKubernetesCurrentContext,
+    listKubernetesContexts,
+    deleteKubernetesPod,
+    scaleKubernetesDeployment,
     openTerminalPopup,
   ]);
 }
