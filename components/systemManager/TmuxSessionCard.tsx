@@ -38,6 +38,10 @@ type RenamePromptTarget =
   | { kind: 'session' }
   | { kind: 'window'; windowIndex: number; currentName: string };
 
+type KillConfirmTarget =
+  | { kind: 'session' }
+  | { kind: 'window'; windowIndex: number; currentName: string };
+
 interface PendingTarget {
   action: TmuxManageAction['action'];
   windowIndex?: number;
@@ -88,6 +92,7 @@ export const TmuxSessionCard = memo(function TmuxSessionCard({
   const [expanded, setExpanded] = useState(false);
   const [renamePrompt, setRenamePrompt] = useState<RenamePromptTarget | null>(null);
   const [detachConfirmOpen, setDetachConfirmOpen] = useState(false);
+  const [killConfirm, setKillConfirm] = useState<KillConfirmTarget | null>(null);
   const [newWindowOpen, setNewWindowOpen] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -206,11 +211,7 @@ export const TmuxSessionCard = memo(function TmuxSessionCard({
               destructive
               disabled={busy}
               loading={isPending('killSession')}
-              onClick={() => {
-                if (globalThis.confirm(t('systemManager.tmux.confirmKillSession', { name: session.name }))) {
-                  void runAction({ action: 'killSession', sessionName: session.name });
-                }
-              }}
+              onClick={() => setKillConfirm({ kind: 'session' })}
             >
               <Trash2 size={12} />
             </SystemPanelRoundButton>
@@ -282,17 +283,11 @@ export const TmuxSessionCard = memo(function TmuxSessionCard({
                   destructive
                   disabled={busy}
                   loading={isPending('killWindow', tmuxWindow.index)}
-                  onClick={() => {
-                    if (globalThis.confirm(t('systemManager.tmux.confirmKillWindow', {
-                      name: tmuxWindow.name || String(tmuxWindow.index),
-                    }))) {
-                      void runAction({
-                        action: 'killWindow',
-                        sessionName: session.name,
-                        windowIndex: tmuxWindow.index,
-                      });
-                    }
-                  }}
+                  onClick={() => setKillConfirm({
+                    kind: 'window',
+                    windowIndex: tmuxWindow.index,
+                    currentName: tmuxWindow.name || String(tmuxWindow.index),
+                  })}
                 >
                   <Trash2 size={11} />
                 </SystemPanelRoundButton>
@@ -319,6 +314,30 @@ export const TmuxSessionCard = memo(function TmuxSessionCard({
         onConfirm={() => {
           setDetachConfirmOpen(false);
           void runAction({ action: 'detachSession', sessionName: session.name });
+        }}
+      />
+
+      <SystemPanelConfirmDialog
+        open={killConfirm !== null}
+        title={killConfirm?.kind === 'window'
+          ? t('systemManager.tmux.killWindow')
+          : t('systemManager.tmux.killSession')}
+        message={killConfirm?.kind === 'window'
+          ? t('systemManager.tmux.confirmKillWindow', { name: killConfirm.currentName })
+          : t('systemManager.tmux.confirmKillSession', { name: session.name })}
+        confirmLabel={killConfirm?.kind === 'window'
+          ? t('systemManager.tmux.killWindow')
+          : t('systemManager.tmux.killSession')}
+        destructive
+        busy={busy}
+        onOpenChange={(open) => { if (!open) setKillConfirm(null); }}
+        onConfirm={() => {
+          const target = killConfirm;
+          setKillConfirm(null);
+          if (!target) return;
+          void runAction(target.kind === 'window'
+            ? { action: 'killWindow', sessionName: session.name, windowIndex: target.windowIndex }
+            : { action: 'killSession', sessionName: session.name });
         }}
       />
 
