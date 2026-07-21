@@ -78,12 +78,12 @@ Placement rules (`resolveAgentKinds` in `toolSurfaces.cjs`):
 | MagiesTerminal (sidebar) tools | `npm run generate:capability-tools` → `infrastructure/ai/harness/generated/magiesTerminalToolSpecs.json` | Sidebar agent tool set. CI verifies JSON drift. |
 | Global agent tools | same script → `globalAgentToolSpecs.json` | Prepared for future global agent runtime; shared RPC tools only today. |
 | MCP stdio | `electron/capabilities/codegen/mcpToolRegistry.cjs` → `electron/mcp/magies-terminal-mcp-server.cjs` | Registry-driven; external agents. Harness tools are **not** on MCP. |
-| CLI | `electron/cli/magies-terminal-tool-cli.cjs` + `electron/capabilities/adapters/cliAdapter.cjs` | **30** catalog commands; exec/sftp/session remain special-case; vault/portforward/snippets use catalog fallback dispatch |
-| RPC dispatch | `electron/bridges/mcpServerBridge.cjs` + `capabilityRpcDispatch.cjs` | `magiesTerminal/*` builtin handlers via `buildBuiltinRpcHandlerRegistry` (catalog-aligned); `public/*`, `vault/*`, `portforward/*` → services |
+| CLI | `electron/cli/magies-terminal-tool-cli.cjs` + `electron/capabilities/adapters/cliAdapter.cjs` | Catalog-driven commands (vault/portforward/snippets/scripts/kubernetes + …); exec/sftp/session remain special-case; see `capabilities --json` for the live list |
+| RPC dispatch | `electron/bridges/mcpServerBridge.cjs` + `capabilityRpcDispatch.cjs` | `magiesTerminal/*` builtin handlers via `buildBuiltinRpcHandlerRegistry` (catalog-aligned); `public/*`, `vault/*`, `portforward/*`, `kubernetes/*` → services |
 | Vault bridge | `electron/bridges/aiBridge/vaultAgentBridge.cjs` + `infrastructure/ai/vaultAgentBridgeClient.ts` | Renderer vault state; **never** returns password/privateKey |
 | AI context | `buildAITerminalSessionInfo` + `useTerminalAiContexts` | Per-session `hostChain` + `activePortForwards`; mirrored in `getContext` and MagiesTerminal system prompt |
 
-**Policy:** SFTP writes/transfers, `portforward_start`, and `host_notes_set` require confirm-mode approval. Observer mode blocks writes.
+**Policy:** SFTP writes/transfers, `portforward_start`, `host_notes_set`, `kubernetes_pods_delete`, and `kubernetes_deployments_scale` require confirm-mode approval. Observer mode blocks writes.
 
 **Handles:** `ToolOutputStore` persists across turns per chat session; cleared on chat session delete. Large `sftp.read` results spill to `tool_output_read`.
 
@@ -94,6 +94,42 @@ Placement rules (`resolveAgentKinds` in `toolSurfaces.cjs`):
 2) **New stateful behavior**: Wrap it in a hook under `application/state/`; keep external I/O behind adapters.  
 3) **New integrations**: Create adapters under `infrastructure/services/` (or `persistence/`); expose typed functions.  
 4) **UI changes**: Consume hook outputs/handlers; do not bypass state hooks for persistence or domain logic.
+
+### Capability catalog extensions (first-party only)
+
+The capability catalog is the single source of truth for agent/MCP/CLI tools
+(`electron/capabilities/`). Prefer adding entries under `catalog/*.cjs` and
+running `npm run generate:capability-tools`.
+
+For **runtime first-party extensions** (quasi-plugin, not third-party plugins):
+
+```js
+const { registerCapabilityExtension, defineCapability } = require('./electron/capabilities');
+
+const defined = defineCapability({
+  id: 'kubernetes.example.extension',
+  domain: 'kubernetes',
+  status: 'implemented',
+  description: 'Example first-party kubernetes extension (prefer catalog/*.cjs for permanent tools).',
+  policy: { write: false },
+  surfaces: {
+    public: { rpcMethod: 'public/kubernetes/example', mcpTool: 'kubernetes_example' },
+    global: { rpcMethod: 'kubernetes/example' },
+  },
+});
+if (defined.ok) registerCapabilityExtension(defined.capability, { source: 'system-manager' });
+```
+
+**Kubernetes surfaces (implemented):** namespaces/pods/deployments list, pod logs/describe/delete, deployment scale.
+- UI: System Manager → Kubernetes (Pods | Deployments + scale dialog)
+- MCP: `kubernetes_*` public tools
+- CLI: `magies-terminal-tool-cli kubernetes …` (e.g. `kubernetes deployments list --session <id> --json`)
+
+Rules:
+- Domains must be first-party (`meta`, `session`, `terminal`, `sftp`, `vault`, `portforward`, `harness`, `attachment`, `kubernetes`, `system`).
+- `write: true` requires confirm-mode approval unless on the tiny allowlist (`terminal.stop` only today).
+- No dynamic loading of unsigned packages. Promote stable extensions into `catalog/*.cjs` + codegen.
+- Vault tool results must never include passwords/private keys (see `vaultAgentBridge` sanitize).
 
 ## Data & Storage
 - Persisted keys: see `storageKeys.ts`. Use `localStorageAdapter` for all reads/writes.

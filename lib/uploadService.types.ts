@@ -77,6 +77,8 @@ export interface UploadBridge {
       sourceSftpId?: string;
       targetSftpId?: string;
       totalBytes?: number;
+      /** Resume partial transfer from this byte offset (append streams). */
+      startOffset?: number;
     },
     onProgress?: (transferred: number, total: number, speed: number) => void,
     onComplete?: () => void,
@@ -110,5 +112,5 @@ export interface UploadConfig {
     existingModified: number;
     newModified: number;
     applyToAllCount: number;
-  }) => Promise<'stop' | 'skip' | 'replace' | 'duplicate' | 'merge'>;
+  }) => Promise<'stop' | 'skip' | 'replace' | 'duplicate' | 'merge' | 'resume'>;
 }

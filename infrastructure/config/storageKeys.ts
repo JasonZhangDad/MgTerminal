@@ -192,6 +192,8 @@ export const STORAGE_KEY_AI_WEB_SEARCH = 'magiesTerminal_ai_web_search_v1';
 export const STORAGE_KEY_AI_QUICK_MESSAGES = 'magiesTerminal_ai_quick_messages_v1';
 /** Confirm-mode permission grant memory (capability + session/command patterns). */
 export const STORAGE_KEY_AI_PERMISSION_GRANTS = 'magiesTerminal_ai_permission_grants_v1';
+/** Ring buffer of recent tool-approval request/resolve events (no args/secrets). */
+export const STORAGE_KEY_AI_APPROVAL_AUDIT = 'magiesTerminal_ai_approval_audit_v1';
 export const STORAGE_KEY_AI_SHOW_TERMINAL_SELECTION_ACTION = 'magiesTerminal_ai_show_terminal_selection_action_v1';
 /** External MCP: whether the user last enabled the public catalog MCP endpoint. */
 export const STORAGE_KEY_AI_EXTERNAL_MCP_ENABLED = 'magiesTerminal_ai_external_mcp_enabled_v1';

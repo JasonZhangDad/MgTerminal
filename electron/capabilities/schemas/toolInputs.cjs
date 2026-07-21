@@ -21,6 +21,40 @@ const TOOL_INPUT_FIELDS = Object.freeze({
     jobId: { type: "string", description: "The background job ID returned by terminal_start." },
   },
   "session.environment": {},
+  "kubernetes.namespaces.list": {
+    sessionId: { type: "string", description: "Terminal session ID with kubectl access (from get_environment / context)." },
+  },
+  "kubernetes.pods.list": {
+    sessionId: { type: "string", description: "Terminal session ID with kubectl access." },
+    namespace: { type: "string", optional: true, description: "Namespace filter. Omit for all namespaces." },
+  },
+  "kubernetes.deployments.list": {
+    sessionId: { type: "string", description: "Terminal session ID with kubectl access." },
+    namespace: { type: "string", optional: true, description: "Namespace filter. Omit for all namespaces." },
+  },
+  "kubernetes.pods.logs": {
+    sessionId: { type: "string", description: "Terminal session ID with kubectl access." },
+    namespace: { type: "string", description: "Pod namespace." },
+    pod: { type: "string", description: "Pod name." },
+    container: { type: "string", optional: true, description: "Container name when the pod has multiple containers." },
+    tailLines: { type: "number", optional: true, description: "Tail line count (default 200, max 2000)." },
+  },
+  "kubernetes.pods.describe": {
+    sessionId: { type: "string", description: "Terminal session ID with kubectl access." },
+    namespace: { type: "string", description: "Pod namespace." },
+    pod: { type: "string", description: "Pod name." },
+  },
+  "kubernetes.pods.delete": {
+    sessionId: { type: "string", description: "Terminal session ID with kubectl access." },
+    namespace: { type: "string", description: "Pod namespace." },
+    pod: { type: "string", description: "Pod name to delete." },
+  },
+  "kubernetes.deployments.scale": {
+    sessionId: { type: "string", description: "Terminal session ID with kubectl access." },
+    namespace: { type: "string", optional: true, description: "Deployment namespace (default: default)." },
+    name: { type: "string", description: "Deployment name." },
+    replicas: { type: "number", description: "Desired replica count (0–1000)." },
+  },
   "attachment.list": {},
   "attachment.read": {
     filePath: { type: "string", optional: true, description: "Exact local attachment path." },

@@ -622,9 +622,9 @@ export function createBridgeFetchForSDK(
  *
  * The URL fallback fires regardless of style — the user picked this
  * providerId for a reason, even if they overrode the wire format. The
- * ollama `'ollama'` throwaway apiKey is style-specific: it's only meaningful
- * to the OpenAI-compat client, since Anthropic/Google clients need a real
- * key on their own URL.
+ * Local OpenAI-compat providers (ollama / lmstudio) use a throwaway apiKey that
+ * is style-specific: only meaningful to the OpenAI-compat client, since
+ * Anthropic/Google clients need a real key on their own URL.
  */
 export function resolveProviderEndpoint(
   config: ProviderConfig,
@@ -637,6 +637,11 @@ export function resolveProviderEndpoint(
     baseURL = baseURL || 'http://localhost:11434/v1';
     if (style === 'openai') {
       apiKey = 'ollama';
+    }
+  } else if (config.providerId === 'lmstudio') {
+    baseURL = baseURL || 'http://localhost:1234/v1';
+    if (style === 'openai') {
+      apiKey = 'lm-studio';
     }
   } else if (config.providerId === 'openrouter') {
     baseURL = baseURL || 'https://openrouter.ai/api/v1';

@@ -81,6 +81,17 @@ test("resolveProviderEndpoint applies the ollama URL fallback for every style ov
   }
 });
 
+test("resolveProviderEndpoint applies the lmstudio URL fallback for every style override", () => {
+  for (const style of ["openai", "anthropic", "google"] as const) {
+    const result = resolveProviderEndpoint(
+      { id: "p", providerId: "lmstudio", name: "LM Studio", enabled: true },
+      style,
+      undefined,
+    );
+    assert.equal(result.baseURL, "http://localhost:1234/v1", `style=${style} should still hit localhost lmstudio`);
+  }
+});
+
 test("resolveProviderEndpoint only swaps in the literal 'ollama' apiKey on the OpenAI-compat client", () => {
   const openai = resolveProviderEndpoint(
     { id: "p", providerId: "ollama", name: "Ollama", enabled: true },
@@ -93,6 +104,22 @@ test("resolveProviderEndpoint only swaps in the literal 'ollama' apiKey on the O
   // verbatim so the SDK forwards the right header instead of "ollama".
   const anthropic = resolveProviderEndpoint(
     { id: "p", providerId: "ollama", name: "Ollama", enabled: true },
+    "anthropic",
+    "PLACEHOLDER",
+  );
+  assert.equal(anthropic.apiKey, "PLACEHOLDER");
+});
+
+test("resolveProviderEndpoint only swaps in the literal 'lm-studio' apiKey on the OpenAI-compat client", () => {
+  const openai = resolveProviderEndpoint(
+    { id: "p", providerId: "lmstudio", name: "LM Studio", enabled: true },
+    "openai",
+    "PLACEHOLDER",
+  );
+  assert.equal(openai.apiKey, "lm-studio");
+
+  const anthropic = resolveProviderEndpoint(
+    { id: "p", providerId: "lmstudio", name: "LM Studio", enabled: true },
     "anthropic",
     "PLACEHOLDER",
   );

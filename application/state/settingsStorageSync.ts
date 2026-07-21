@@ -320,7 +320,7 @@ export function useSettingsStorageSync({
       }
       if (e.key === STORAGE_KEY_SESSION_LOGS_FORMAT && e.newValue) {
         if (
-          (e.newValue === 'txt' || e.newValue === 'raw' || e.newValue === 'html') &&
+          (e.newValue === 'txt' || e.newValue === 'raw' || e.newValue === 'html' || e.newValue === 'cast') &&
           e.newValue !== s.sessionLogsFormat
         ) {
           setSessionLogsFormat(e.newValue);

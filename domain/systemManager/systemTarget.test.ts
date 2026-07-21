@@ -7,6 +7,52 @@ test("system manager shows overview before detailed management tabs", () => {
   assert.deepEqual(buildSystemManagerTabs(null, undefined, null), ["overview", "processes"]);
 });
 
+test("system manager shows kubernetes when kubectl is detected", () => {
+  assert.deepEqual(
+    buildSystemManagerTabs(
+      {
+        id: "host-1",
+        label: "Linux",
+        hostname: "linux.local",
+        username: "root",
+        tags: [],
+        os: "linux",
+      },
+      {
+        targetOs: "linux",
+        hasTmux: false,
+        hasDocker: false,
+        hasKubectl: true,
+        probedAt: Date.now(),
+      },
+      null,
+    ),
+    ["overview", "processes", "tmux", "docker", "kubernetes"],
+  );
+});
+
+test("system manager hides kubernetes when probe reports no kubectl", () => {
+  const tabs = buildSystemManagerTabs(
+    {
+      id: "host-1",
+      label: "Linux",
+      hostname: "linux.local",
+      username: "root",
+      tags: [],
+      os: "linux",
+    },
+    {
+      targetOs: "linux",
+      hasTmux: false,
+      hasDocker: false,
+      hasKubectl: false,
+      probedAt: Date.now(),
+    },
+    null,
+  );
+  assert.equal(tabs.includes("kubernetes"), false);
+});
+
 test("system overview stats skip network devices even when a Linux icon was selected", () => {
   assert.equal(
     shouldCollectServerStats(

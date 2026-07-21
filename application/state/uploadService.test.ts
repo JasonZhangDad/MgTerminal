@@ -268,6 +268,124 @@ test("uploads path-backed clipboard files through stream transfer", async () => 
   ]);
 });
 
+test("resumes path-backed drag-drop uploads with startOffset instead of deleting the target", async () => {
+  const transfers: Array<{
+    sourcePath: string;
+    targetPath: string;
+    totalBytes?: number;
+    startOffset?: number;
+  }> = [];
+  const deleted: string[] = [];
+  const taskStarts: Array<{ transferredBytes: number; totalBytes: number }> = [];
+
+  const results = await uploadEntriesDirect(
+    [
+      {
+        file: null,
+        localPath: "/Users/me/Desktop/large.bin",
+        relativePath: "large.bin",
+        isDirectory: false,
+        size: 100_000,
+      },
+    ],
+    {
+      targetPath: "/target",
+      sftpId: "sftp-1",
+      isLocal: false,
+      bridge: {
+        mkdirSftp: async () => {},
+        statSftp: async (_id, path) => {
+          if (path === "/target/large.bin") {
+            return {
+              type: "file" as const,
+              size: 40_000,
+              lastModified: Date.now() - 60_000,
+            };
+          }
+          return null;
+        },
+        deleteSftp: async (_id, path) => {
+          deleted.push(path);
+        },
+        startStreamTransfer: async (payload) => {
+          transfers.push({
+            sourcePath: payload.sourcePath,
+            targetPath: payload.targetPath,
+            totalBytes: payload.totalBytes,
+            startOffset: payload.startOffset,
+          });
+          return { transferId: payload.transferId };
+        },
+      },
+      joinPath: (base, name) => `${base}/${name}`,
+      resolveConflict: async () => "resume",
+      callbacks: {
+        onTaskCreated: (task) => {
+          taskStarts.push({
+            transferredBytes: task.transferredBytes,
+            totalBytes: task.totalBytes,
+          });
+        },
+      },
+    },
+  );
+
+  assert.deepEqual(deleted, []);
+  assert.deepEqual(transfers, [
+    {
+      sourcePath: "/Users/me/Desktop/large.bin",
+      targetPath: "/target/large.bin",
+      totalBytes: 100_000,
+      startOffset: 40_000,
+    },
+  ]);
+  assert.deepEqual(taskStarts, [{ transferredBytes: 40_000, totalBytes: 100_000 }]);
+  assert.deepEqual(results, [{ fileName: "large.bin", success: true }]);
+});
+
+test("marks already-complete resume targets as success without re-upload", async () => {
+  const transfers: unknown[] = [];
+  const deleted: string[] = [];
+
+  const results = await uploadEntriesDirect(
+    [
+      {
+        file: null,
+        localPath: "/Users/me/Desktop/done.bin",
+        relativePath: "done.bin",
+        isDirectory: false,
+        size: 50_000,
+      },
+    ],
+    {
+      targetPath: "/target",
+      sftpId: "sftp-1",
+      isLocal: false,
+      bridge: {
+        mkdirSftp: async () => {},
+        statSftp: async () => ({
+          type: "file" as const,
+          size: 50_000,
+          lastModified: Date.now(),
+        }),
+        deleteSftp: async (_id, path) => {
+          deleted.push(path);
+        },
+        startStreamTransfer: async (payload) => {
+          transfers.push(payload);
+          return { transferId: payload.transferId };
+        },
+      },
+      joinPath: (base, name) => `${base}/${name}`,
+      resolveConflict: async () => "resume",
+    },
+  );
+
+  assert.deepEqual(deleted, []);
+  assert.deepEqual(transfers, []);
+  assert.deepEqual(results, [{ fileName: "done.bin", success: true }]);
+});
+
 test("copies path-backed clipboard files into local panes through stream transfer", async () => {
   const transfers: Array<{ sourcePath: string; targetPath: string; targetType: string; totalBytes?: number }> = [];
 
@@ -286,6 +404,7 @@ test("copies path-backed clipboard files into local panes through stream transfe
       sftpId: null,
       isLocal: true,
       bridge: {
+        mkdirSftp: async () => {},
         mkdirLocal: async () => {},
         startStreamTransfer: async (payload) => {
           transfers.push({

@@ -45,6 +45,7 @@ import { ClaudeCodeCard } from "./ai/ClaudeCodeCard";
 import { CopilotCliCard } from "./ai/CopilotCliCard";
 import { CodebuddyCard } from "./ai/CodebuddyCard";
 import { SafetySettings } from "./ai/SafetySettings";
+import { LocalPrivacySetup } from "./ai/LocalPrivacySetup";
 import { ExternalMcpCard } from "./ai/ExternalMcpCard";
 import { PermissionGrantsSettings } from "./ai/PermissionGrantsSettings";
 import { useAIPermissionGrantsState } from "../../../application/state/useAIPermissionGrantsState";
@@ -840,6 +841,12 @@ const SettingsAITab: React.FC<SettingsAITabProps> = ({
         </TabsList>
 
         <TabsContent value="providers" className="m-0 space-y-6">
+          <LocalPrivacySetup
+            providers={providers}
+            globalPermissionMode={globalPermissionMode}
+            onAddProvider={handleAddProvider}
+            onSetPermissionMode={setGlobalPermissionMode}
+          />
           <SettingsSection
             title={t('ai.providers')}
             actions={<AddProviderDropdown onAdd={handleAddProvider} />}

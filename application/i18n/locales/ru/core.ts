@@ -235,8 +235,10 @@ export const ruCoreMessages: Messages = {
   'settings.sessionLogs.formatTxt': 'Обычный текст (.txt)',
   'settings.sessionLogs.formatRaw': 'Сырые данные с ANSI (.log)',
   'settings.sessionLogs.formatHtml': 'HTML (.html)',
+  'settings.sessionLogs.formatCast': "Asciinema cast (.cast)",
   'settings.sessionLogs.timestamps': 'Добавлять метки времени',
   'settings.sessionLogs.timestampsDesc': 'Добавлять локальное время в начало каждой строки в текстовых и HTML-журналах.',
+  'settings.sessionLogs.timestampsCastNote': "Cast уже хранит относительное время событий; построчные метки не применяются.",
   'settings.sessionLogs.hint': 'Журналы сессий сохраняют весь вывод терминала для диагностики и аудита.',
 
   // Settings > SSH Debug Logs

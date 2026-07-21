@@ -6,6 +6,7 @@ import { AlertCircle } from 'lucide-react';
 import React, { memo, useState } from 'react';
 import { useI18n } from '../../application/i18n/I18nProvider';
 import { canReplaceSftpConflict, getSftpConflictTypeKey } from '../../domain/sftpConflict';
+import { compareSftpConflictMeta } from '../../domain/sftpConflictCompare';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
 import type { FileConflictAction } from '../../domain/models';
@@ -88,6 +89,13 @@ const SftpConflictDialogInner: React.FC<SftpConflictDialogProps> = ({ conflicts,
     );
     const canMerge = conflict.isDirectory && conflict.existingType === 'directory';
     const canReplace = canReplaceConflict(conflict);
+    const compare = compareSftpConflictMeta({
+        isDirectory: conflict.isDirectory,
+        existingSize: conflict.existingSize,
+        newSize: conflict.newSize,
+        existingModified: conflict.existingModified,
+        newModified: conflict.newModified,
+    });
 
     const handleAction = (action: FileConflictAction) => {
         onResolve(conflict.transferId, action, applyToAll);
@@ -134,6 +142,20 @@ const SftpConflictDialogInner: React.FC<SftpConflictDialogProps> = ({ conflicts,
                         />
                     </div>
 
+                    {(compare.newer === 'existing' || compare.newer === 'incoming' || compare.partialOverlapHint) && (
+                        <div className="rounded-md border border-border/50 bg-muted/15 px-3 py-2 text-xs leading-5 text-muted-foreground space-y-1">
+                            {compare.newer === 'existing' && (
+                                <p>{t('sftp.conflict.hint.existingNewer')}</p>
+                            )}
+                            {compare.newer === 'incoming' && (
+                                <p>{t('sftp.conflict.hint.incomingNewer')}</p>
+                            )}
+                            {compare.partialOverlapHint && (
+                                <p>{t('sftp.conflict.hint.partialOverlap')}</p>
+                            )}
+                        </div>
+                    )}
+
                     {sameTypeConflictCount > 1 && (
                         <label className="flex cursor-pointer items-center gap-2 rounded-md border border-border/60 bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
                             <input
@@ -169,6 +191,15 @@ const SftpConflictDialogInner: React.FC<SftpConflictDialogProps> = ({ conflicts,
                     >
                         {t('sftp.conflict.action.duplicate')}
                     </Button>
+                    {compare.partialOverlapHint && !conflict.isDirectory && (
+                        <Button
+                            variant="outline"
+                            onClick={() => handleAction('resume')}
+                            className="min-w-24 border-primary/40 text-primary hover:bg-primary/10"
+                        >
+                            {t('sftp.conflict.action.resume')}
+                        </Button>
+                    )}
                     {conflict.isDirectory && (
                         <Button
                             variant="outline"

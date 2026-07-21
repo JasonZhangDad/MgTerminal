@@ -216,8 +216,10 @@ export const deCoreMessages: Messages = {
   'settings.sessionLogs.formatTxt': 'Nur-Text (.txt)',
   'settings.sessionLogs.formatRaw': 'Roh mit ANSI (.log)',
   'settings.sessionLogs.formatHtml': 'HTML (.html)',
+  'settings.sessionLogs.formatCast': "Asciinema-Cast (.cast)",
   'settings.sessionLogs.timestamps': 'Zeitstempel hinzufügen',
   'settings.sessionLogs.timestampsDesc': 'Jeder Zeile in Nur-Text- und HTML-Protokollen die Ortszeit voranstellen.',
+  'settings.sessionLogs.timestampsCastNote': "Cast-Aufzeichnungen speichern bereits relative Ereigniszeiten; Zeilen-Zeitstempel entfallen.",
   'settings.sessionLogs.hint': 'Sitzungsprotokolle erfassen die gesamte Terminalausgabe zur Fehlerbehebung und Prüfung.',
 
   // Settings > SSH Debug Logs

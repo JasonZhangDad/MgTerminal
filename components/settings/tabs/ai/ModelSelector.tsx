@@ -140,8 +140,8 @@ export const ModelSelector: React.FC<{
   // Endpoint follows the resolved style so a providerId+style mismatch (e.g.
   // Anthropic providerId switched to OpenAI style) still hits the right path.
   const effectiveModelsEndpoint = resolveModelsDiscoveryEndpoint(resolvedStyle, modelsEndpoint);
-  // Ollama runs locally without auth; all other providers need an API key to list models
-  const needsApiKey = providerId !== "ollama";
+  // Local OpenAI-compat servers (Ollama / LM Studio) run without real auth
+  const needsApiKey = providerId !== "ollama" && providerId !== "lmstudio";
   const canFetch = !!effectiveModelsEndpoint && (!needsApiKey || !!apiKey);
   const hasPresetModels = (presetModels?.length ?? 0) > 0;
   const canSuggest = canFetch || hasPresetModels;

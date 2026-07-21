@@ -222,6 +222,26 @@ test("probeCapabilities reports Docker when docker is installed even if plain do
 
   assert.equal(result.success, true);
   assert.equal(result.capabilities.hasDocker, true);
+  assert.equal(result.capabilities.hasKubectl, false);
+});
+
+test("probeCapabilities reports kubectl when installed", async () => {
+  const conn = {
+    exec(command, callback) {
+      assert.match(command, /command -v kubectl/);
+      callback(null, createFakeExecStream("__NC_OS__=Linux\n__NC_KUBECTL__=1\n"));
+    },
+  };
+  const sessions = new Map([["s1", { conn, type: "ssh" }]]);
+  const bridge = createSystemManagerBridge({
+    getSessions: () => sessions,
+    process,
+  });
+
+  const result = await bridge.probeCapabilities(null, { sessionId: "s1" });
+
+  assert.equal(result.success, true);
+  assert.equal(result.capabilities.hasKubectl, true);
 });
 
 test("setupOsc7Tracking runs the setup command through the active session executor", async () => {

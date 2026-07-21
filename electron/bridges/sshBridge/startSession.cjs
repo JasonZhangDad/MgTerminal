@@ -116,6 +116,8 @@ function createStartSessionApi(ctx) {
           format: options.sessionLog.format || 'txt',
           timestampsEnabled: Boolean(options.sessionLog.timestampsEnabled),
           startTime: Date.now(),
+          cols: session.cols || options.cols || 80,
+          rows: session.rows || options.rows || 24,
         });
       }
       session._logStreamToken = logStreamToken;

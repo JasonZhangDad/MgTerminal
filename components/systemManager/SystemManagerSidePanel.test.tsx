@@ -58,6 +58,11 @@ test("overview tab reuses the shared server stats source", () => {
   assert.match(source, /setHistory\(\[\]\)/);
   assert.match(source, /if \(!isVisible \|\| !hasStats\) return/);
   assert.match(source, /SystemPanelInlineError[\s\S]*onRetry=\{\(\) => void refresh\(\)\}/);
+  assert.match(source, /LiveTelemetryBar/);
+  assert.match(source, /system-monitor-surface/);
+  assert.match(source, /FullWidthTelemetryChart/);
+  assert.match(source, /SystemPanelCollapsible/);
+  assert.match(source, /defaultOpen=\{false\}/);
   assert.doesNotMatch(source, /usePolling/);
   assert.doesNotMatch(source, /backend\.getServerStats/);
 });

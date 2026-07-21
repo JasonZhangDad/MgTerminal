@@ -216,8 +216,10 @@ export const jaCoreMessages: Messages = {
   'settings.sessionLogs.formatTxt': 'プレーンテキスト(.txt)',
   'settings.sessionLogs.formatRaw': 'ANSI 付き Raw(.log)',
   'settings.sessionLogs.formatHtml': 'HTML(.html)',
+  'settings.sessionLogs.formatCast': "Asciinema キャスト (.cast)",
   'settings.sessionLogs.timestamps': 'タイムスタンプを追加',
   'settings.sessionLogs.timestampsDesc': 'プレーンテキストと HTML のログの各行の先頭にローカル時刻を付けます。',
+  'settings.sessionLogs.timestampsCastNote': "キャスト録画は相対時刻を既に持つため、行タイムスタンプは不要です。",
   'settings.sessionLogs.hint': 'セッションログは、トラブルシューティングと監査のためにすべてのターミナル出力を記録します。',
 
   // Settings > SSH Debug Logs

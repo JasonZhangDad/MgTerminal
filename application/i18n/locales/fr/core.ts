@@ -225,8 +225,10 @@ export const frCoreMessages: Messages = {
   'settings.sessionLogs.formatTxt': 'Texte brut (.txt)',
   'settings.sessionLogs.formatRaw': 'Brut avec ANSI (.log)',
   'settings.sessionLogs.formatHtml': 'HTML (.html)',
+  'settings.sessionLogs.formatCast': "Cast Asciinema (.cast)",
   'settings.sessionLogs.timestamps': 'Ajouter des horodatages',
   'settings.sessionLogs.timestampsDesc': 'Préfixer chaque ligne des journaux texte et HTML avec l’heure locale.',
+  'settings.sessionLogs.timestampsCastNote': "Les enregistrements cast stockent déjà des horodatages relatifs ; les horodatages de ligne ne s’appliquent pas.",
   'settings.sessionLogs.hint': 'Les journaux de session capturent toute la sortie du terminal pour le dépannage et l’audit.',
 
   // Settings > SSH Debug Logs

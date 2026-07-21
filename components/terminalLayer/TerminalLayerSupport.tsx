@@ -5,6 +5,7 @@ import { useTerminalLayoutSuppressActive } from '../../application/state/termina
 import type { TerminalSessionExitEvent } from '../../application/state/resolveTerminalSessionExitIntent';
 import { createTerminalSelectionAttachment } from '../../application/state/terminalSelectionAttachment';
 import { getTopTabInsertionTarget, isPointInsideRect, WORKSPACE_SESSION_DRAG_TYPE } from '../../application/state/terminalDragData';
+import { useI18n } from '../../application/i18n/I18nProvider';
 import { useAIState } from '../../application/state/useAIState';
 import { useStoredBoolean } from '../../application/state/useStoredBoolean';
 import { isSavedVaultHost } from '../../domain/ephemeralHosts';
@@ -83,6 +84,8 @@ export type PendingTerminalSelectionForAI = {
   requestId: string;
   tabId: string;
   text: string;
+  /** When set, the AI composer is prefilled (selection is still attached). */
+  draftIntent?: 'explain';
 };
 
 export function hexToHslToken(hex: string): string {
@@ -473,6 +476,7 @@ const AIChatPanelsHostInner: React.FC<AIChatPanelsHostProps> = ({
     showDraftView,
     updateDraft,
   } = aiState;
+  const { t } = useI18n();
 
   useEffect(() => {
     if (!pendingTerminalSelection) return;
@@ -493,8 +497,16 @@ const AIChatPanelsHostInner: React.FC<AIChatPanelsHostProps> = ({
     if (!isSessionView) {
       showDraftView(scopeKey);
     }
+    const explainDraft = pendingTerminalSelection.draftIntent === 'explain'
+      ? t('terminal.selection.explainDraft')
+      : undefined;
     updateDraft(scopeKey, defaultAgentId, (draft) => ({
       ...draft,
+      text: explainDraft
+        ? (draft.text.trim()
+          ? `${draft.text.trim()}\n\n${explainDraft}`
+          : explainDraft)
+        : draft.text,
       attachments: [...draft.attachments, attachment],
     }));
     onPendingTerminalSelectionConsumed?.(pendingTerminalSelection.requestId);
@@ -506,6 +518,7 @@ const AIChatPanelsHostInner: React.FC<AIChatPanelsHostProps> = ({
     panelViewByScope,
     pendingTerminalSelection,
     showDraftView,
+    t,
     updateDraft,
   ]);
 
@@ -791,7 +804,12 @@ interface TerminalPaneProps {
     sessionId: string,
     queueRewrite: ((rewrite: ProgrammaticCommandLogRewrite) => void) | null,
   ) => void;
-  onAddSelectionToAI?: (sessionId: string, selection: string) => void;
+  onAddSelectionToAI?: (
+    sessionId: string,
+    selection: string,
+    options?: { draftIntent?: 'explain' },
+  ) => void;
+  onOpenAI?: () => void;
   showSelectionAIAction: boolean;
   onStartSessionRename?: (sessionId: string) => void;
   onRemoveSessionFromWorkspace?: (
@@ -901,6 +919,7 @@ const terminalPanePropsAreEqual = (
   prev.onToggleWorkspaceComposeBar === next.onToggleWorkspaceComposeBar &&
   prev.onSnippetExecutorChange === next.onSnippetExecutorChange &&
   prev.onAddSelectionToAI === next.onAddSelectionToAI &&
+  prev.onOpenAI === next.onOpenAI &&
   prev.showSelectionAIAction === next.showSelectionAIAction &&
   prev.onStartSessionRename === next.onStartSessionRename &&
   prev.onRemoveSessionFromWorkspace === next.onRemoveSessionFromWorkspace &&
@@ -979,6 +998,7 @@ const TerminalPane: React.FC<TerminalPaneProps> = memo(({
   onSnippetExecutorChange,
   onProgrammaticCommandLogRewriteChange,
   onAddSelectionToAI,
+  onOpenAI,
   showSelectionAIAction,
   onStartSessionRename,
   onRemoveSessionFromWorkspace,
@@ -1471,6 +1491,7 @@ const TerminalPane: React.FC<TerminalPaneProps> = memo(({
         sessionDisplayName={resolveSessionTabTitle(session, terminalSettings?.dynamicTabTitleMode)}
         showSelectionAIAction={showSelectionAIAction}
         onAddSelectionToAI={onAddSelectionToAI}
+        onOpenAI={onOpenAI}
         onRename={handleRename}
         onDetach={inActiveWorkspace ? handleDetach : undefined}
         onStartSessionDrag={inActiveWorkspace ? onStartSessionDrag : undefined}
@@ -1563,7 +1584,12 @@ interface TerminalPanesHostProps {
     executor: SnippetExecutor | null,
   ) => void;
   onProgrammaticCommandLogRewriteChange: TerminalPaneProps['onProgrammaticCommandLogRewriteChange'];
-  onAddSelectionToAI?: (sessionId: string, selection: string) => void;
+  onAddSelectionToAI?: (
+    sessionId: string,
+    selection: string,
+    options?: { draftIntent?: 'explain' },
+  ) => void;
+  onOpenAI?: () => void;
   onStartSessionRename?: (sessionId: string) => void;
   onRemoveSessionFromWorkspace?: TerminalPaneProps['onRemoveSessionFromWorkspace'];
   onReorderTabs?: (draggedId: string, targetId: string, position: 'before' | 'after', additionalTabIds?: readonly string[]) => void;
@@ -1639,6 +1665,7 @@ const terminalPanesHostPropsAreEqual = (
   if (prev.onSnippetExecutorChange !== next.onSnippetExecutorChange) return false;
   if (prev.onProgrammaticCommandLogRewriteChange !== next.onProgrammaticCommandLogRewriteChange) return false;
   if (prev.onAddSelectionToAI !== next.onAddSelectionToAI) return false;
+  if (prev.onOpenAI !== next.onOpenAI) return false;
   if (prev.onStartSessionRename !== next.onStartSessionRename) return false;
   if (prev.onRemoveSessionFromWorkspace !== next.onRemoveSessionFromWorkspace) return false;
   if (prev.onReorderTabs !== next.onReorderTabs) return false;

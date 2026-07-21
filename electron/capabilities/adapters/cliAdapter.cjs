@@ -41,6 +41,13 @@ const CLI_FIELD_BINDINGS = Object.freeze({
   command: { flag: "--", optKey: "command" },
   jobId: { flag: "--job", optKey: "jobId" },
   offset: { flag: "--offset", optKey: "offset" },
+  // Kubernetes remote kubectl (session-scoped)
+  namespace: { flag: "--namespace", optKey: "namespace" },
+  name: { flag: "--name", optKey: "name" },
+  pod: { flag: "--pod", optKey: "pod" },
+  container: { flag: "--container", optKey: "container" },
+  replicas: { flag: "--replicas", optKey: "replicas" },
+  tailLines: { flag: "--tail-lines", optKey: "tailLines" },
 });
 
 function resolveCliRpcMethod(capability) {
@@ -105,6 +112,15 @@ function buildCatalogCliParams(capabilityId, opts, createError) {
     }
     if (fieldName === "offset" && value != null) {
       value = Number(value);
+    }
+    if ((fieldName === "replicas" || fieldName === "tailLines") && value != null) {
+      value = Number(value);
+      if (!Number.isFinite(value)) {
+        throw createError(
+          "INVALID_ARGUMENT",
+          `${binding.flag} must be a number for ${capabilityId}.`,
+        );
+      }
     }
 
     if (value == null || value === "") {

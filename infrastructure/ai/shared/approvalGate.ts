@@ -20,6 +20,7 @@
 import { MAGIES_TERMINAL_APPROVAL_TIMEOUT_MS } from './approvalConstants';
 import { localStorageAdapter } from '../../persistence/localStorageAdapter';
 import { STORAGE_KEY_AI_PERMISSION_GRANTS } from '../../config/storageKeys';
+import { appendApprovalAudit } from '../approvalAudit';
 import { globalTraceStore } from '../harness/traceStore';
 import {
   getActivePermissionGrants,
@@ -123,6 +124,15 @@ function emitApprovalEvent(
       type: 'approval_requested',
       args: request.args,
     });
+    // Persist metadata-only audit (no tool args / secrets) for Settings → Safety.
+    try {
+      appendApprovalAudit({
+        phase: 'requested',
+        toolName: request.toolName,
+        capabilityId: request.capabilityId,
+        chatSessionId: request.chatSessionId,
+      });
+    } catch { /* ignore storage failures */ }
     return;
   }
 
@@ -133,6 +143,15 @@ function emitApprovalEvent(
     outcome: extra?.outcome ?? 'denied',
     persistedGrantId: extra?.persistedGrantId,
   });
+  try {
+    appendApprovalAudit({
+      phase: 'resolved',
+      toolName: request.toolName,
+      capabilityId: request.capabilityId,
+      chatSessionId: request.chatSessionId,
+      outcome: extra?.outcome ?? 'denied',
+    });
+  } catch { /* ignore storage failures */ }
 }
 
 function isGrantedByRules(request: ApprovalRequest): boolean {

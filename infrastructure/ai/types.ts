@@ -7,6 +7,7 @@ export type AIProviderId =
   | 'anthropic'
   | 'google'
   | 'ollama'
+  | 'lmstudio'
   | 'openrouter'
   | 'xai'
   | 'qwen'
@@ -382,6 +383,7 @@ export const PROVIDER_PRESETS: Record<AIProviderId, ProviderPreset> = {
     ],
   },
   ollama: { name: 'Ollama', defaultBaseURL: 'http://localhost:11434/v1', modelsEndpoint: '/models' },
+  lmstudio: { name: 'LM Studio', defaultBaseURL: 'http://localhost:1234/v1', modelsEndpoint: '/models' },
   openrouter: { name: 'OpenRouter', defaultBaseURL: 'https://openrouter.ai/api/v1', modelsEndpoint: '/models' },
   xai: {
     name: 'xAI (Grok)',

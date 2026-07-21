@@ -72,8 +72,11 @@ export function useVaultImportHandlers({
   
           // Check if this file is already managed
           const bridge = (window as unknown as { magiesTerminal?: { getPathForFile?: (file: File) => string | undefined } }).magiesTerminal;
-          // Try bridge.getPathForFile first, then fall back to file.path (Electron legacy)
-          const filePath = bridge?.getPathForFile?.(file) || (file as File & { path?: string }).path;
+          // Prefer explicit path from native picker, then bridge path, then Electron File.path
+          const filePath =
+            options?.filePath
+            || bridge?.getPathForFile?.(file)
+            || (file as File & { path?: string }).path;
   
           if (isManaged && !filePath) {
             // Cannot proceed with managed import without a valid file path

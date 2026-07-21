@@ -1,6 +1,19 @@
 # Changelog
 
 
+## [0.5.20] - 2026-07-21
+
+### 功能
+- **System Manager Kubernetes**：远程 kubectl 管理 Pods/Deployments（列表、日志、describe）；删除 Pod / 伸缩 Deployment 需确认；MCP/CLI 同步暴露只读与受控写工具
+- **本地 LLM 隐私加固**：Ollama/LM Studio 本地提供商路径与审批审计；密钥不进入 LLM 上下文
+- **会话 Cast 录制增强**：asciinema cast v2 记录输入事件；终端 resize 时写入几何标记并在启动时记录 cols/rows
+- **SFTP 冲突比较与真字节续传**：冲突对话框展示元数据对比；拖放上传 resume 走 `startOffset` 追加，不再误删目标
+- **能力目录扩展**：Kubernetes 域 catalog 注册、准插件 registration、CLI/MCP/侧栏 tool specs 对齐
+
+### 优化
+- **System Overview 监控观感**：资源条与概览页更贴近实时监控 HUD
+- **SSH config / Vault 导入 UX**：导入流程与提示文案完善
+
 ## [0.5.19] - 2026-07-20
 
 ### 优化

@@ -5,10 +5,18 @@ const { getCapabilityByRpcMethod } = require("../../capabilities/registry.cjs");
 const { getMcpToolNameForRpcMethod } = require("../../capabilities/adapters/mcpAdapter.cjs");
 const { createVaultService } = require("../../capabilities/services/vaultService.cjs");
 const { createPortForwardService } = require("../../capabilities/services/portforwardService.cjs");
+const { createKubernetesService } = require("../../capabilities/services/kubernetesService.cjs");
 
 const UNROUTED = Symbol("capability-rpc-unrouted");
 
 const SERVICE_BINDINGS = Object.freeze({
+  "kubernetes.namespaces.list": { domain: "kubernetes", method: "listNamespaces" },
+  "kubernetes.pods.list": { domain: "kubernetes", method: "listPods" },
+  "kubernetes.deployments.list": { domain: "kubernetes", method: "listDeployments" },
+  "kubernetes.pods.logs": { domain: "kubernetes", method: "getPodLogs" },
+  "kubernetes.pods.describe": { domain: "kubernetes", method: "describePod" },
+  "kubernetes.pods.delete": { domain: "kubernetes", method: "deletePod" },
+  "kubernetes.deployments.scale": { domain: "kubernetes", method: "scaleDeployment" },
   "vault.host.get": { domain: "vault", method: "getHost" },
   "vault.host.list": { domain: "vault", method: "listHosts" },
   "vault.host.open": { domain: "vault", method: "openHost" },
@@ -70,13 +78,22 @@ function createCapabilityRpcDispatcher(deps) {
     isChatSessionCancelled,
     requestApprovalFromRenderer,
     USER_DENIED_MESSAGE,
+    getSessions,
+    execOnEtSession,
+    ensureMoshStatsConnection,
   } = deps;
 
   const vaultService = createVaultService({ invokeVaultAgent });
   const portforwardService = createPortForwardService({ invokeVaultAgent });
+  const kubernetesService = createKubernetesService({
+    getSessions,
+    execOnEtSession,
+    ensureMoshStatsConnection,
+  });
   const services = {
     vault: vaultService,
     portforward: portforwardService,
+    kubernetes: kubernetesService,
   };
 
   return async function dispatchCapabilityRpc(rpcMethod, params = {}) {

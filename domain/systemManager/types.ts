@@ -4,6 +4,7 @@ export interface SessionCapabilities {
   targetOs: TargetOs;
   hasTmux: boolean;
   hasDocker: boolean;
+  hasKubectl: boolean;
   probedAt: number;
 }
 
@@ -119,7 +120,41 @@ export type DockerImageManageAction =
   | { action: 'prune'; all?: boolean }
   | { action: 'tag'; imageId: string; repository: string; tag?: string };
 
-export type SystemManagerSubTab = 'overview' | 'processes' | 'tmux' | 'docker';
+export type SystemManagerSubTab = 'overview' | 'processes' | 'tmux' | 'docker' | 'kubernetes';
+
+export interface KubernetesNamespaceInfo {
+  name: string;
+  status: string;
+  age: string;
+}
+
+export interface KubernetesPodInfo {
+  name: string;
+  namespace: string;
+  ready: string;
+  status: string;
+  restarts: number;
+  age: string;
+  node: string;
+  ip: string;
+}
+
+export interface KubernetesDeploymentInfo {
+  name: string;
+  namespace: string;
+  ready: string;
+  upToDate: string;
+  available: string;
+  age: string;
+}
+
+export interface KubernetesContextInfo {
+  name: string;
+  cluster: string;
+  user: string;
+  namespace: string;
+  current: boolean;
+}
 
 export interface TerminalPopupIcon {
   kind: 'image';

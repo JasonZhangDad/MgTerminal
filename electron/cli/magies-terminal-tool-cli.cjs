@@ -27,7 +27,9 @@ function printHelp() {
     "  magies-terminal-tool-cli vault host get --host-id host_123 --json\n" +
     "  magies-terminal-tool-cli vault host open --host-id host_123 --json\n" +
     "  magies-terminal-tool-cli snippets run --snippet-id snip_1 --session sess_123 --chat-session ai_123 --json\n" +
-    "  magies-terminal-tool-cli portforward rules list --json\n\n" +
+    "  magies-terminal-tool-cli portforward rules list --json\n" +
+    "  magies-terminal-tool-cli kubernetes deployments list --session sess_123 --json\n" +
+    "  magies-terminal-tool-cli kubernetes deployments scale --session sess_123 --name api --replicas 3 --chat-session ai_123 --json\n\n" +
     "Notes:\n" +
     "  - Start the MagiesTerminal desktop app before using this CLI.\n" +
     "  - This CLI is intended as an internal Skills + CLI transport, not a general customer-facing shell tool.\n" +
@@ -36,7 +38,8 @@ function printHelp() {
     "  - `job-start` always requires both --session <id> and --chat-session <id>.\n" +
     "  - `job-poll` and `job-stop` always require both --job <id> and --chat-session <id>.\n" +
     "  - Every `sftp <op>` always requires both --session <id> and --chat-session <id>, and only works on connected SSH-backed sessions.\n" +
-    "  - Vault/portforward/snippet commands use catalog-driven dispatch; see `capabilities --json` for the full list.\n" +
+    "  - Kubernetes commands require --session <id> (terminal with kubectl). Write ops (pods delete, deployments scale) also require --chat-session <id>.\n" +
+    "  - Vault/portforward/snippet/kubernetes commands use catalog-driven dispatch; see `capabilities --json` for the full list.\n" +
     "  - After `--`, pass exactly one shell-ready command string. Preserve quoting inside that one argument.\n" +
     "  - `cancel` stops in-flight execs, session-backed SFTP transfers, and running jobs for that chat session, then blocks further execs until `resume`.\n",
   );
@@ -78,6 +81,12 @@ function parseArgs(argv) {
     notes: null,
     variables: null,
     multiLineRunMode: null,
+    namespace: null,
+    name: null,
+    pod: null,
+    container: null,
+    replicas: null,
+    tailLines: null,
     command: [],
   };
 
@@ -181,6 +190,38 @@ function parseArgs(argv) {
     }
     if (arg === "--multi-line-run-mode") {
       opts.multiLineRunMode = readFlagValue(args, i + 1);
+      i += 1;
+      continue;
+    }
+    if (arg === "--namespace") {
+      opts.namespace = readFlagValue(args, i + 1);
+      i += 1;
+      continue;
+    }
+    if (arg === "--name") {
+      opts.name = readFlagValue(args, i + 1);
+      i += 1;
+      continue;
+    }
+    if (arg === "--pod") {
+      opts.pod = readFlagValue(args, i + 1);
+      i += 1;
+      continue;
+    }
+    if (arg === "--container") {
+      opts.container = readFlagValue(args, i + 1);
+      i += 1;
+      continue;
+    }
+    if (arg === "--replicas") {
+      const value = readFlagValue(args, i + 1);
+      opts.replicas = value == null ? null : Number(value);
+      i += 1;
+      continue;
+    }
+    if (arg === "--tail-lines") {
+      const value = readFlagValue(args, i + 1);
+      opts.tailLines = value == null ? null : Number(value);
       i += 1;
       continue;
     }

@@ -539,6 +539,7 @@ const SettingsSystemTab: React.FC<SettingsSystemTabProps> = ({
     { value: "txt", label: t("settings.sessionLogs.formatTxt") },
     { value: "raw", label: t("settings.sessionLogs.formatRaw") },
     { value: "html", label: t("settings.sessionLogs.formatHtml") },
+    { value: "cast", label: t("settings.sessionLogs.formatCast") },
   ];
 
   return (
@@ -1401,12 +1402,16 @@ const SettingsSystemTab: React.FC<SettingsSystemTabProps> = ({
 
               <SettingRow
                 label={t("settings.sessionLogs.timestamps")}
-                description={t("settings.sessionLogs.timestampsDesc")}
+                description={
+                  sessionLogsFormat === "cast"
+                    ? t("settings.sessionLogs.timestampsCastNote")
+                    : t("settings.sessionLogs.timestampsDesc")
+                }
               >
                 <Toggle
                   checked={sessionLogsTimestampsEnabled}
                   onChange={setSessionLogsTimestampsEnabled}
-                  disabled={!sessionLogsEnabled}
+                  disabled={!sessionLogsEnabled || sessionLogsFormat === "cast"}
                 />
               </SettingRow>
             </SettingCard>

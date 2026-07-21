@@ -15,6 +15,7 @@ import {
   describeSftpIncomingKind,
   getSftpConflictTypeKey,
 } from "../domain/sftpConflict";
+import { resolveResumeOffset } from "../domain/transferReliability";
 
 // ============================================================================
 // Types
@@ -321,6 +322,8 @@ async function uploadEntries(
   const createdDirs = new Set<string>();
   const failedDirs = new Map<string, string>();
   const reportedDirectoryFailures = new Set<string>();
+  /** Absolute target path -> byte offset for true resume (append streams). */
+  const resumeOffsets = new Map<string, number>();
   let wasCancelled = false;
 
   if (controller?.isCancelled()) {
@@ -469,6 +472,38 @@ async function uploadEntries(
           });
           continue;
         }
+        await deleteTarget(rootTargetPath);
+        resolved.push(...groupEntries);
+        continue;
+      }
+
+      if (action === "resume") {
+        if (isDirectory || existing.type !== "file" || !canReplaceSftpConflict(isDirectory, existing.type)) {
+          results.push({
+            fileName: rootName,
+            success: false,
+            error: `Cannot resume transfer for ${rootTargetPath}`,
+          });
+          continue;
+        }
+        const resumeOffset = resolveResumeOffset({
+          partialTargetBytes: existing.size,
+          totalBytes: newSize,
+          // Drag-drop uploads are local→target (remote or local pane).
+          direction: "upload",
+        });
+        // Already complete on target — treat as success without re-upload.
+        if (newSize > 0 && resumeOffset >= newSize) {
+          results.push({ fileName: rootName, success: true });
+          continue;
+        }
+        if (resumeOffset > 0) {
+          // Keep the partial target and append remaining bytes via startOffset.
+          resumeOffsets.set(rootTargetPath, resumeOffset);
+          resolved.push(...groupEntries);
+          continue;
+        }
+        // Tiny/unsafe partial — full replace.
         await deleteTarget(rootTargetPath);
         resolved.push(...groupEntries);
         continue;
@@ -634,6 +669,7 @@ async function uploadEntries(
     fileTotalBytes: number,
   ): Promise<{ cancelled?: boolean; error?: string }> => {
     const localFilePath = getDropEntryLocalPath(entry);
+    const startOffset = resumeOffsets.get(entryTargetPath) || 0;
 
     // Progress callback factory for both stream and memory paths
     const makeOnProgress = () => {
@@ -681,6 +717,7 @@ async function uploadEntries(
               targetType: isLocal ? 'local' : 'sftp',
               targetSftpId: isLocal ? undefined : sftpId,
               totalBytes: fileTotalBytes,
+              ...(startOffset > 0 ? { startOffset } : {}),
             },
             onProgress,
             undefined,
@@ -697,6 +734,11 @@ async function uploadEntries(
           return { error: streamResult.error };
         }
     } else {
+        if (startOffset > 0) {
+          return {
+            error: `Cannot resume transfer without path-backed stream upload: ${entryTargetPath}`,
+          };
+        }
         if (!entry.file) {
           return { error: "No local file data available" };
         }
@@ -759,14 +801,17 @@ async function uploadEntries(
       const taskId = crypto.randomUUID();
       standaloneTaskIds.set(entry.relativePath, taskId);
       if (callbacks?.onTaskCreated) {
+        const totalBytes = getDropEntrySize(entry);
+        const entryTargetPath = joinPath(targetPath, entry.relativePath);
+        const transferredBytes = resumeOffsets.get(entryTargetPath) || 0;
         callbacks.onTaskCreated({
           id: taskId,
           fileName: entry.relativePath,
           displayName: entry.relativePath,
           isDirectory: false,
           progressMode: 'bytes',
-          totalBytes: getDropEntrySize(entry),
-          transferredBytes: 0,
+          totalBytes,
+          transferredBytes,
           speed: 0,
           fileCount: 1,
           completedCount: 0,

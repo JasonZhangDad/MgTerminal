@@ -1,7 +1,11 @@
 "use strict";
 
-const { ALL_CAPABILITIES } = require("./catalog/index.cjs");
 const { CAPABILITY_STATUS, CAPABILITY_SURFACES } = require("./constants.cjs");
+const {
+  listAllCapabilities,
+  onCapabilityRegistryChange,
+  listStaticCapabilities,
+} = require("./registration.cjs");
 
 function buildRegistryIndex(capabilities) {
   const byId = new Map();
@@ -45,7 +49,14 @@ function buildRegistryIndex(capabilities) {
   };
 }
 
-const registryIndex = buildRegistryIndex(ALL_CAPABILITIES);
+/** @type {ReturnType<typeof buildRegistryIndex>} */
+let registryIndex = buildRegistryIndex(listAllCapabilities());
+
+function rebuildRegistryIndex() {
+  registryIndex = buildRegistryIndex(listAllCapabilities());
+}
+
+onCapabilityRegistryChange(rebuildRegistryIndex);
 
 function listCapabilities(options = {}) {
   const { status, domain, surface } = options;
@@ -97,8 +108,22 @@ function getImplementedRpcMethodsForSurface(surface) {
   return getRpcMethodsForSurface(surface, { status: CAPABILITY_STATUS.IMPLEMENTED });
 }
 
+/**
+ * Snapshot of all capabilities (static + extensions). Prefer listCapabilities() for filters.
+ * Kept for backward compatibility with modules that import ALL_CAPABILITIES.
+ */
+function getAllCapabilities() {
+  return registryIndex.capabilities.slice();
+}
+
+// Backward-compatible export: frozen view of the static catalog only for
+// callers that document "source of truth for codegen". Runtime resolution
+// uses getAllCapabilities / listCapabilities.
+const ALL_CAPABILITIES = listStaticCapabilities();
+
 module.exports = {
   ALL_CAPABILITIES,
+  getAllCapabilities,
   listCapabilities,
   getCapabilityById,
   getCapabilityByRpcMethod,
@@ -108,4 +133,5 @@ module.exports = {
   getRpcMethodsForSurface,
   getImplementedRpcMethodsForSurface,
   buildRegistryIndex,
+  rebuildRegistryIndex,
 };

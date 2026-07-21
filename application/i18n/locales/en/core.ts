@@ -357,8 +357,10 @@ export const enCoreMessages: Messages = {
   'settings.sessionLogs.formatTxt': 'Plain Text (.txt)',
   'settings.sessionLogs.formatRaw': 'Raw with ANSI (.log)',
   'settings.sessionLogs.formatHtml': 'HTML (.html)',
+  'settings.sessionLogs.formatCast': "Asciinema cast (.cast)",
   'settings.sessionLogs.timestamps': 'Add timestamps',
   'settings.sessionLogs.timestampsDesc': 'Prefix each line in plain text and HTML logs with the local time.',
+  'settings.sessionLogs.timestampsCastNote': "Cast recordings already store relative event times; line timestamps do not apply.",
   'settings.sessionLogs.hint': 'Session logs capture all terminal output for troubleshooting and auditing purposes.',
 
   // Settings > SSH Debug Logs

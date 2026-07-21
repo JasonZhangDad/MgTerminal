@@ -3,13 +3,15 @@
 const { createExecOnSessionApi } = require("./systemManager/execOnSession.cjs");
 const { createTmuxOpsApi } = require("./systemManager/tmuxOps.cjs");
 const { createDockerOpsApi } = require("./systemManager/dockerOps.cjs");
+const { createKubectlOpsApi } = require("./systemManager/kubectlOps.cjs");
 
 const CAPABILITY_SCRIPT_POSIX = [
   "exec sh -c ",
   "'",
   'printf "%s\\n" "__NC_OS__=$(uname -s)"; ',
   'command -v tmux >/dev/null 2>&1 && printf "%s\\n" __NC_TMUX__=1; ',
-  'command -v docker >/dev/null 2>&1 && printf "%s\\n" __NC_DOCKER__=1',
+  'command -v docker >/dev/null 2>&1 && printf "%s\\n" __NC_DOCKER__=1; ',
+  'command -v kubectl >/dev/null 2>&1 && printf "%s\\n" __NC_KUBECTL__=1',
   "'",
 ].join("");
 
@@ -37,7 +39,8 @@ function parseCapabilities(stdout, isLocal, localPlatform) {
   }
   const hasTmux = text.includes("__NC_TMUX__=1");
   const hasDocker = text.includes("__NC_DOCKER__=1");
-  return { targetOs, hasTmux, hasDocker, probedAt: Date.now() };
+  const hasKubectl = text.includes("__NC_KUBECTL__=1");
+  return { targetOs, hasTmux, hasDocker, hasKubectl, probedAt: Date.now() };
 }
 
 function parseProcessLines(stdout) {
@@ -134,6 +137,7 @@ function createSystemManagerBridge(deps) {
 
   const tmuxOps = createTmuxOpsApi({ execOnSession });
   const dockerOps = createDockerOpsApi({ execOnSession, getSession });
+  const kubectlOps = createKubectlOpsApi({ execOnSession });
 
   async function probeCapabilities(event, payload) {
     const sessionId = payload?.sessionId;
@@ -144,7 +148,7 @@ function createSystemManagerBridge(deps) {
       let script = CAPABILITY_SCRIPT_POSIX;
       if (platform === "win32") {
         const result = await execOnLocalMachine(
-          "$os=[System.Environment]::OSVersion.Platform; Write-Output \"__NC_OS__=Windows\"; if (Get-Command tmux -ErrorAction SilentlyContinue) { Write-Output '__NC_TMUX__=1' }; docker info 2>$null; if ($LASTEXITCODE -eq 0) { Write-Output '__NC_DOCKER__=1' }",
+          "$os=[System.Environment]::OSVersion.Platform; Write-Output \"__NC_OS__=Windows\"; if (Get-Command tmux -ErrorAction SilentlyContinue) { Write-Output '__NC_TMUX__=1' }; docker info 2>$null; if ($LASTEXITCODE -eq 0) { Write-Output '__NC_DOCKER__=1' }; if (Get-Command kubectl -ErrorAction SilentlyContinue) { Write-Output '__NC_KUBECTL__=1' }",
           8000,
         );
         if (!result.success) return { success: false, error: result.error || "Probe failed" };
@@ -155,7 +159,7 @@ function createSystemManagerBridge(deps) {
         8000,
       );
       if (!result.success) {
-        const fallback = await execOnLocalMachine("uname -s; command -v tmux; command -v docker >/dev/null 2>&1 && echo docker_ok", 8000);
+        const fallback = await execOnLocalMachine("uname -s; command -v tmux; command -v docker >/dev/null 2>&1 && echo docker_ok; command -v kubectl >/dev/null 2>&1 && echo kubectl_ok", 8000);
         if (!fallback.success) return { success: false, error: fallback.error || "Probe failed" };
         const text = fallback.stdout || "";
         return {
@@ -164,6 +168,7 @@ function createSystemManagerBridge(deps) {
             targetOs: platform === "linux" ? "linux" : platform === "darwin" ? "darwin" : "unknown",
             hasTmux: text.includes("tmux") && !text.includes("not found"),
             hasDocker: text.includes("docker_ok"),
+            hasKubectl: text.includes("kubectl_ok"),
             probedAt: Date.now(),
           },
         };
@@ -331,6 +336,48 @@ function createSystemManagerBridge(deps) {
     return { success: true, output: result.stdout };
   }
 
+  async function listKubernetesNamespaces(event, payload) {
+    const sessionId = payload?.sessionId;
+    if (!sessionId) return { success: false, error: "Missing sessionId" };
+    return kubectlOps.listNamespaces(event, sessionId);
+  }
+
+  async function listKubernetesPods(event, payload) {
+    return kubectlOps.listPods(event, payload);
+  }
+
+  async function listKubernetesDeployments(event, payload) {
+    return kubectlOps.listDeployments(event, payload);
+  }
+
+  async function getKubernetesPodLogs(event, payload) {
+    return kubectlOps.getPodLogs(event, payload);
+  }
+
+  async function describeKubernetesPod(event, payload) {
+    return kubectlOps.describePod(event, payload);
+  }
+
+  async function getKubernetesCurrentContext(event, payload) {
+    const sessionId = payload?.sessionId;
+    if (!sessionId) return { success: false, error: "Missing sessionId" };
+    return kubectlOps.getCurrentContext(event, sessionId);
+  }
+
+  async function listKubernetesContexts(event, payload) {
+    const sessionId = payload?.sessionId;
+    if (!sessionId) return { success: false, error: "Missing sessionId" };
+    return kubectlOps.listContexts(event, sessionId);
+  }
+
+  async function deleteKubernetesPod(event, payload) {
+    return kubectlOps.deletePod(event, payload);
+  }
+
+  async function scaleKubernetesDeployment(event, payload) {
+    return kubectlOps.scaleDeployment(event, payload);
+  }
+
   function registerWorkerHandle(ipcMain, terminalWorkerManager, channel) {
     ipcMain.handle(channel, (event, payload) => terminalWorkerManager.request(channel, payload, {
       webContentsId: event?.sender?.id,
@@ -358,6 +405,15 @@ function createSystemManagerBridge(deps) {
         "magiesTerminal:system:dockerImageInspect",
         "magiesTerminal:system:dockerAction",
         "magiesTerminal:system:dockerImageAction",
+        "magiesTerminal:system:listKubernetesNamespaces",
+        "magiesTerminal:system:listKubernetesPods",
+        "magiesTerminal:system:listKubernetesDeployments",
+        "magiesTerminal:system:getKubernetesPodLogs",
+        "magiesTerminal:system:describeKubernetesPod",
+        "magiesTerminal:system:getKubernetesCurrentContext",
+        "magiesTerminal:system:listKubernetesContexts",
+        "magiesTerminal:system:deleteKubernetesPod",
+        "magiesTerminal:system:scaleKubernetesDeployment",
       ].forEach((channel) => registerWorkerHandle(ipcMain, terminalWorkerManager, channel));
       return;
     }
@@ -378,6 +434,15 @@ function createSystemManagerBridge(deps) {
     ipcMain.handle("magiesTerminal:system:dockerImageInspect", dockerImageInspect);
     ipcMain.handle("magiesTerminal:system:dockerAction", dockerAction);
     ipcMain.handle("magiesTerminal:system:dockerImageAction", dockerImageAction);
+    ipcMain.handle("magiesTerminal:system:listKubernetesNamespaces", listKubernetesNamespaces);
+    ipcMain.handle("magiesTerminal:system:listKubernetesPods", listKubernetesPods);
+    ipcMain.handle("magiesTerminal:system:listKubernetesDeployments", listKubernetesDeployments);
+    ipcMain.handle("magiesTerminal:system:getKubernetesPodLogs", getKubernetesPodLogs);
+    ipcMain.handle("magiesTerminal:system:describeKubernetesPod", describeKubernetesPod);
+    ipcMain.handle("magiesTerminal:system:getKubernetesCurrentContext", getKubernetesCurrentContext);
+    ipcMain.handle("magiesTerminal:system:listKubernetesContexts", listKubernetesContexts);
+    ipcMain.handle("magiesTerminal:system:deleteKubernetesPod", deleteKubernetesPod);
+    ipcMain.handle("magiesTerminal:system:scaleKubernetesDeployment", scaleKubernetesDeployment);
   }
 
   return { registerHandlers, probeCapabilities, listProcesses, setupOsc7Tracking };

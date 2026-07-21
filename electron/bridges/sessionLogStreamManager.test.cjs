@@ -4,15 +4,146 @@ const fs = require("node:fs");
 const path = require("node:path");
 const {
   appendData,
+  appendInputData,
   hasStream,
   registerProgrammaticCommandLogRewrite,
   registerSudoAutofillInput,
   startStream,
   startStreamToFile,
   stopStream,
+  updateStreamGeometry,
 } = require("./sessionLogStreamManager.cjs");
 
 const TEMP_ROOT = path.join(__dirname, ".tmp-session-log-stream-tests");
+
+test("cast stream writes asciinema v2 header and timed output events", async () => {
+  const directory = path.join(TEMP_ROOT, `stream-${Date.now()}-${Math.random().toString(16).slice(2)}`);
+  const sessionId = `session-cast-${Date.now()}`;
+  let clock = 1_000_000;
+
+  try {
+    startStream(sessionId, {
+      hostLabel: "cast-host",
+      hostname: "cast.example",
+      directory,
+      format: "cast",
+      startTime: clock,
+      cols: 100,
+      rows: 30,
+      timestampProvider: () => clock,
+    });
+    clock += 1500;
+    appendData(sessionId, "hello");
+    const filePath = await stopStream(sessionId);
+    assert.ok(filePath && filePath.endsWith(".cast"));
+    const lines = fs.readFileSync(filePath, "utf8").trim().split("\n");
+    assert.ok(lines.length >= 2);
+    const header = JSON.parse(lines[0]);
+    assert.equal(header.version, 2);
+    assert.equal(header.width, 100);
+    assert.equal(header.height, 30);
+    assert.equal(header.title, "cast-host");
+    const event = JSON.parse(lines[1]);
+    assert.equal(event[1], "o");
+    assert.equal(event[2], "hello");
+    assert.ok(event[0] >= 1.5);
+  } finally {
+    await stopStream(sessionId);
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test("cast stream records input events as asciinema i frames", async () => {
+  const directory = path.join(TEMP_ROOT, `stream-${Date.now()}-${Math.random().toString(16).slice(2)}`);
+  const sessionId = `session-cast-i-${Date.now()}`;
+  let clock = 2_000_000;
+
+  try {
+    startStream(sessionId, {
+      hostLabel: "cast-host",
+      hostname: "cast.example",
+      directory,
+      format: "cast",
+      startTime: clock,
+      timestampProvider: () => clock,
+    });
+    clock += 100;
+    appendInputData(sessionId, "ls\r");
+    clock += 200;
+    appendData(sessionId, "file.txt\r\n");
+    const filePath = await stopStream(sessionId);
+    const lines = fs.readFileSync(filePath, "utf8").trim().split("\n");
+    assert.ok(lines.length >= 3);
+    const inputEvent = JSON.parse(lines[1]);
+    const outputEvent = JSON.parse(lines[2]);
+    assert.equal(inputEvent[1], "i");
+    assert.equal(inputEvent[2], "ls\r");
+    assert.equal(outputEvent[1], "o");
+    assert.equal(outputEvent[2], "file.txt\r\n");
+  } finally {
+    await stopStream(sessionId);
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test("updateStreamGeometry writes a cast resize marker and keeps header size fixed", async () => {
+  const directory = path.join(TEMP_ROOT, `stream-${Date.now()}-${Math.random().toString(16).slice(2)}`);
+  const sessionId = `session-cast-resize-${Date.now()}`;
+  let clock = 3_000_000;
+
+  try {
+    startStream(sessionId, {
+      hostLabel: "cast-host",
+      hostname: "cast.example",
+      directory,
+      format: "cast",
+      startTime: clock,
+      cols: 80,
+      rows: 24,
+      timestampProvider: () => clock,
+    });
+    clock += 250;
+    updateStreamGeometry(sessionId, 120, 40);
+    clock += 100;
+    appendData(sessionId, "after-resize");
+    const filePath = await stopStream(sessionId);
+    const lines = fs.readFileSync(filePath, "utf8").trim().split("\n");
+    assert.ok(lines.length >= 3);
+    const header = JSON.parse(lines[0]);
+    assert.equal(header.width, 80);
+    assert.equal(header.height, 24);
+    const resizeEvent = JSON.parse(lines[1]);
+    assert.equal(resizeEvent[1], "o");
+    assert.equal(resizeEvent[2], "\x1b[8;40;120t");
+    const outputEvent = JSON.parse(lines[2]);
+    assert.equal(outputEvent[2], "after-resize");
+  } finally {
+    await stopStream(sessionId);
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test("appendInputData is a no-op for non-cast formats", async () => {
+  const directory = path.join(TEMP_ROOT, `stream-${Date.now()}-${Math.random().toString(16).slice(2)}`);
+  const sessionId = `session-raw-${Date.now()}`;
+
+  try {
+    startStream(sessionId, {
+      hostLabel: "host",
+      hostname: "host.example",
+      directory,
+      format: "raw",
+      startTime: Date.now(),
+    });
+    appendInputData(sessionId, "should-not-appear");
+    appendData(sessionId, "only-output\n");
+    const filePath = await stopStream(sessionId);
+    assert.equal(fs.readFileSync(filePath, "utf8"), "only-output\n");
+  } finally {
+    await stopStream(sessionId);
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
+});
 
 test("txt stream live snapshots include pending ED2 cleared screens", async () => {
   const directory = path.join(TEMP_ROOT, `stream-${Date.now()}-${Math.random().toString(16).slice(2)}`);

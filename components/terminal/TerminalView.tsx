@@ -182,7 +182,7 @@ function terminalViewCtxEqual(
 }
 
 function TerminalViewInner({ ctx }: { ctx: TerminalViewContext }) {
-  const { Activity, Binary, Button, Clock3, Copy, Maximize2, Radio, Sparkles, SquareArrowOutUpRight, TerminalAutocomplete, TerminalComposeBar, TerminalConnectionDialog, TerminalContextMenu, TerminalHexPanel, TerminalSearchBar, Tooltip, TooltipContent, TooltipTrigger, ZmodemOverwriteDialog, ZmodemProgressIndicator, auth, autocompleteAcceptTextRef, autocompleteCloseRef, autocompleteHostOs, autocompleteInputRef, autocompleteKeyEventRef, autocompleteRepositionRef, autocompleteSettings, chainProgress, cn, compactToolbar, lineTimestampsAvailable, hexDiagnosticsOpen, hexDumpText, hexByteLength, handleToggleHexDiagnostics, handleClearHexDiagnostics, containerRef, effectiveFontSize, effectiveFontWeight, effectiveTheme, error, executeSnippet, executeSnippetCommand, handleAddSelectionToAI, handleCancelConnect, handleCloseDisconnectedSession, handleCloseSearch, handleDismissDisconnectedDialog, handleDragEnter, handleDragLeave, handleDragOver, handleDrop, handleFindNext, handleFindPrevious, handleHostKeyAddAndContinue, handleHostKeyClose, handleHostKeyContinue, handleOsc52ReadResponse, handleOsc7SetupConfirm, handleOsc7SetupOpenChange, handleReceiveYmodem, handleRetry, handleSearch, handleSendYmodem, handleTopOverlayMouseDownCapture, hasMouseTracking, hasSelection, host, hotkeyScheme, inWorkspace, isBroadcastEnabled, dangerousPasteDialog, handleDangerousPasteDialogOpenChange, handleDangerousPasteConfirm, broadcastConfig, onUpdateBroadcastConfig, broadcastSessionOptions, broadcastAllSessionRefs, isCancelling, isComposeBarOpen, isConnectionAwaitingUserInput, isDraggingOver, isFocusMode, isLocalConnection, remoteDragDropUsesZmodem, isSerialConnection, isSearchOpen, isSupportedOs, isSystemSidebarEligible, isVisible, keyBindings, keys, knownCwdRef, needsHostKeyVerification, onCloseSession, onDetach, onDetachPointerDown, onExpandToFocus, onOpenSystem, onRename, onRunDiagnostics, onSplitHorizontal, onSplitVertical, onToggleBroadcast, onUpdateHost, osc52ReadPromptVisible, osc7SetupOpen, osc7SetupRunning, pendingHostKeyInfo, progressLogs, progressValue, renderControls, resolvedFontFamily, restoreState, scriptExecutionOverlay, searchMatchCount, searchFocusToken, selectionOverlayPosition, sessionDisplayName, sessionId, sessionRef, setIsComposeBarOpen, setShowLogs, shouldShowConnectionDialog, showLogs, showSelectionAIAction, snippets, status, sudoHintRef, sudoHintText, t, termRef, terminalContextActions, terminalCwdTracker, terminalPreviewVars, terminalSettings, timeLeft, toast, zmodem } = ctx;
+  const { Activity, Binary, Button, Clock3, Copy, Maximize2, Radio, Sparkles, SquareArrowOutUpRight, TerminalAutocomplete, TerminalComposeBar, TerminalConnectionDialog, TerminalContextMenu, TerminalHexPanel, TerminalSearchBar, Tooltip, TooltipContent, TooltipTrigger, ZmodemOverwriteDialog, ZmodemProgressIndicator, auth, autocompleteAcceptTextRef, autocompleteCloseRef, autocompleteHostOs, autocompleteInputRef, autocompleteKeyEventRef, autocompleteRepositionRef, autocompleteSettings, chainProgress, cn, compactToolbar, lineTimestampsAvailable, hexDiagnosticsOpen, hexDumpText, hexByteLength, handleToggleHexDiagnostics, handleClearHexDiagnostics, containerRef, effectiveFontSize, effectiveFontWeight, effectiveTheme, error, executeSnippet, executeSnippetCommand, handleAddSelectionToAI, handleAssistAI, handleCancelConnect, handleCloseDisconnectedSession, handleCloseSearch, handleDismissDisconnectedDialog, handleDragEnter, handleDragLeave, handleDragOver, handleDrop, handleFindNext, handleFindPrevious, handleHostKeyAddAndContinue, handleHostKeyClose, handleHostKeyContinue, handleOsc52ReadResponse, handleOsc7SetupConfirm, handleOsc7SetupOpenChange, handleReceiveYmodem, handleRetry, handleSearch, handleSendYmodem, handleTopOverlayMouseDownCapture, hasMouseTracking, hasSelection, host, hotkeyScheme, inWorkspace, isBroadcastEnabled, dangerousPasteDialog, handleDangerousPasteDialogOpenChange, handleDangerousPasteConfirm, broadcastConfig, onUpdateBroadcastConfig, broadcastSessionOptions, broadcastAllSessionRefs, isCancelling, isComposeBarOpen, isConnectionAwaitingUserInput, isDraggingOver, isFocusMode, isLocalConnection, remoteDragDropUsesZmodem, isSerialConnection, isSearchOpen, isSupportedOs, isSystemSidebarEligible, isVisible, keyBindings, keys, knownCwdRef, needsHostKeyVerification, onCloseSession, onDetach, onDetachPointerDown, onExpandToFocus, onOpenSystem, onRename, onRunDiagnostics, onSplitHorizontal, onSplitVertical, onToggleBroadcast, onUpdateHost, osc52ReadPromptVisible, osc7SetupOpen, osc7SetupRunning, pendingHostKeyInfo, progressLogs, progressValue, renderControls, resolvedFontFamily, restoreState, scriptExecutionOverlay, searchMatchCount, searchFocusToken, selectionOverlayPosition, sessionDisplayName, sessionId, sessionRef, setIsComposeBarOpen, setShowLogs, shouldShowConnectionDialog, showLogs, showSelectionAIAction, snippets, status, sudoHintRef, sudoHintText, t, termRef, terminalContextActions, terminalCwdTracker, terminalPreviewVars, terminalSettings, timeLeft, toast, zmodem } = ctx;
   const ymodemActionEnabled = shouldEnableYmodemAction({
     isSerialConnection,
     status,
@@ -279,7 +279,12 @@ function TerminalViewInner({ ctx }: { ctx: TerminalViewContext }) {
       isReconnectable={status === "disconnected"}
       onReconnect={handleRetry}
       onClose={inWorkspace ? () => onCloseSession?.(sessionId) : undefined}
-      onAddSelectionToAI={ctx.onAddSelectionToAI ? handleAddSelectionToAI : undefined}
+      onAddSelectionToAI={ctx.onAddSelectionToAI ? () => handleAddSelectionToAI() : undefined}
+      onExplainSelectionToAI={
+        ctx.onAddSelectionToAI
+          ? () => handleAddSelectionToAI({ draftIntent: 'explain' })
+          : undefined
+      }
       onRename={onRename}
       onDetach={inWorkspace ? onDetach : undefined}
     >
@@ -536,6 +541,34 @@ function TerminalViewInner({ ctx }: { ctx: TerminalViewContext }) {
                   <TooltipContent side="bottom">{t("terminal.toolbar.focusMode")}</TooltipContent>
                 </Tooltip>
               )}
+              {handleAssistAI && (ctx.onAddSelectionToAI || ctx.onOpenAI) && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="secondary"
+                      size="icon"
+                      className={cn(
+                        "h-6 w-6 p-0 shadow-none border-none text-[color:var(--terminal-toolbar-fg)]",
+                        "bg-transparent hover:bg-transparent",
+                        hasSelection && "text-violet-400",
+                      )}
+                      onClick={handleAssistAI}
+                      aria-label={
+                        hasSelection
+                          ? t("terminal.toolbar.aiExplain")
+                          : t("terminal.toolbar.aiAssist")
+                      }
+                    >
+                      <Sparkles size={12} />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">
+                    {hasSelection
+                      ? t("terminal.toolbar.aiExplain")
+                      : t("terminal.toolbar.aiAssist")}
+                  </TooltipContent>
+                </Tooltip>
+              )}
               {renderControls({ showClose: inWorkspace })}
             </div>
           </div>
@@ -623,7 +656,7 @@ function TerminalViewInner({ ctx }: { ctx: TerminalViewContext }) {
                       e.preventDefault();
                       e.stopPropagation();
                     }}
-                    onClick={handleAddSelectionToAI}
+                    onClick={() => handleAddSelectionToAI()}
                     aria-label={t("terminal.selection.addToAI")}
                   >
                     <Sparkles size={12} />

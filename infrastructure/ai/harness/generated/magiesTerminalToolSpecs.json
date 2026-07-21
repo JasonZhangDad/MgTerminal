@@ -1765,5 +1765,231 @@
       "bypassesApproval": true,
       "bypassesChatCancel": true
     }
+  },
+  {
+    "capabilityId": "kubernetes.namespaces.list",
+    "toolName": "kubernetes_namespaces_list",
+    "rpcMethod": "kubernetes/namespaces/list",
+    "localExecution": false,
+    "description": "List Kubernetes namespaces via remote kubectl (read-only).",
+    "inputShape": {
+      "sessionId": {
+        "type": "string",
+        "optional": false,
+        "description": "Terminal session ID with kubectl access (from get_environment / context)."
+      }
+    },
+    "policy": {
+      "write": false,
+      "sensitiveRead": false,
+      "longRunning": false,
+      "requiresChatSession": false,
+      "bypassesObserverBlock": false,
+      "bypassesApproval": true,
+      "bypassesChatCancel": true
+    }
+  },
+  {
+    "capabilityId": "kubernetes.pods.list",
+    "toolName": "kubernetes_pods_list",
+    "rpcMethod": "kubernetes/pods/list",
+    "localExecution": false,
+    "description": "List Kubernetes pods via remote kubectl (read-only).",
+    "inputShape": {
+      "sessionId": {
+        "type": "string",
+        "optional": false,
+        "description": "Terminal session ID with kubectl access."
+      },
+      "namespace": {
+        "type": "string",
+        "optional": true,
+        "description": "Namespace filter. Omit for all namespaces."
+      }
+    },
+    "policy": {
+      "write": false,
+      "sensitiveRead": false,
+      "longRunning": false,
+      "requiresChatSession": false,
+      "bypassesObserverBlock": false,
+      "bypassesApproval": true,
+      "bypassesChatCancel": true
+    }
+  },
+  {
+    "capabilityId": "kubernetes.deployments.list",
+    "toolName": "kubernetes_deployments_list",
+    "rpcMethod": "kubernetes/deployments/list",
+    "localExecution": false,
+    "description": "List Kubernetes deployments via remote kubectl (read-only).",
+    "inputShape": {
+      "sessionId": {
+        "type": "string",
+        "optional": false,
+        "description": "Terminal session ID with kubectl access."
+      },
+      "namespace": {
+        "type": "string",
+        "optional": true,
+        "description": "Namespace filter. Omit for all namespaces."
+      }
+    },
+    "policy": {
+      "write": false,
+      "sensitiveRead": false,
+      "longRunning": false,
+      "requiresChatSession": false,
+      "bypassesObserverBlock": false,
+      "bypassesApproval": true,
+      "bypassesChatCancel": true
+    }
+  },
+  {
+    "capabilityId": "kubernetes.pods.logs",
+    "toolName": "kubernetes_pods_logs",
+    "rpcMethod": "kubernetes/pods/logs",
+    "localExecution": false,
+    "description": "Fetch pod logs via remote kubectl (read-only; may be large).",
+    "inputShape": {
+      "sessionId": {
+        "type": "string",
+        "optional": false,
+        "description": "Terminal session ID with kubectl access."
+      },
+      "namespace": {
+        "type": "string",
+        "optional": false,
+        "description": "Pod namespace."
+      },
+      "pod": {
+        "type": "string",
+        "optional": false,
+        "description": "Pod name."
+      },
+      "container": {
+        "type": "string",
+        "optional": true,
+        "description": "Container name when the pod has multiple containers."
+      },
+      "tailLines": {
+        "type": "number",
+        "optional": true,
+        "description": "Tail line count (default 200, max 2000)."
+      }
+    },
+    "policy": {
+      "write": false,
+      "sensitiveRead": true,
+      "longRunning": false,
+      "requiresChatSession": false,
+      "bypassesObserverBlock": false,
+      "bypassesApproval": true,
+      "bypassesChatCancel": true
+    }
+  },
+  {
+    "capabilityId": "kubernetes.pods.describe",
+    "toolName": "kubernetes_pods_describe",
+    "rpcMethod": "kubernetes/pods/describe",
+    "localExecution": false,
+    "description": "Describe a pod via remote kubectl (read-only).",
+    "inputShape": {
+      "sessionId": {
+        "type": "string",
+        "optional": false,
+        "description": "Terminal session ID with kubectl access."
+      },
+      "namespace": {
+        "type": "string",
+        "optional": false,
+        "description": "Pod namespace."
+      },
+      "pod": {
+        "type": "string",
+        "optional": false,
+        "description": "Pod name."
+      }
+    },
+    "policy": {
+      "write": false,
+      "sensitiveRead": false,
+      "longRunning": false,
+      "requiresChatSession": false,
+      "bypassesObserverBlock": false,
+      "bypassesApproval": true,
+      "bypassesChatCancel": true
+    }
+  },
+  {
+    "capabilityId": "kubernetes.pods.delete",
+    "toolName": "kubernetes_pods_delete",
+    "rpcMethod": "kubernetes/pods/delete",
+    "localExecution": false,
+    "description": "Delete a Kubernetes pod via remote kubectl. Requires confirm-mode approval.",
+    "inputShape": {
+      "sessionId": {
+        "type": "string",
+        "optional": false,
+        "description": "Terminal session ID with kubectl access."
+      },
+      "namespace": {
+        "type": "string",
+        "optional": false,
+        "description": "Pod namespace."
+      },
+      "pod": {
+        "type": "string",
+        "optional": false,
+        "description": "Pod name to delete."
+      }
+    },
+    "policy": {
+      "write": true,
+      "sensitiveRead": false,
+      "longRunning": false,
+      "requiresChatSession": true,
+      "bypassesObserverBlock": false,
+      "bypassesApproval": false,
+      "bypassesChatCancel": false
+    }
+  },
+  {
+    "capabilityId": "kubernetes.deployments.scale",
+    "toolName": "kubernetes_deployments_scale",
+    "rpcMethod": "kubernetes/deployments/scale",
+    "localExecution": false,
+    "description": "Scale a Kubernetes deployment via remote kubectl. Requires confirm-mode approval.",
+    "inputShape": {
+      "sessionId": {
+        "type": "string",
+        "optional": false,
+        "description": "Terminal session ID with kubectl access."
+      },
+      "namespace": {
+        "type": "string",
+        "optional": true,
+        "description": "Deployment namespace (default: default)."
+      },
+      "name": {
+        "type": "string",
+        "optional": false,
+        "description": "Deployment name."
+      },
+      "replicas": {
+        "type": "number",
+        "optional": false,
+        "description": "Desired replica count (0–1000)."
+      }
+    },
+    "policy": {
+      "write": true,
+      "sensitiveRead": false,
+      "longRunning": false,
+      "requiresChatSession": true,
+      "bypassesObserverBlock": false,
+      "bypassesApproval": false,
+      "bypassesChatCancel": false
+    }
   }
 ]

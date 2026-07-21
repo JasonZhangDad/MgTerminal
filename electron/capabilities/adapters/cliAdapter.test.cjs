@@ -21,6 +21,8 @@ test("getCliRpcMethod resolves implemented cli commands to rpc methods", () => {
   assert.equal(getCliRpcMethod(["sftp", "list"]), "magiesTerminal/sftp/list");
   assert.equal(getCliRpcMethod(["vault", "host", "get"]), "vault/host/get");
   assert.equal(getCliRpcMethod(["portforward", "rules", "list"]), "portforward/rules/list");
+  assert.equal(getCliRpcMethod(["kubernetes", "deployments", "list"]), "kubernetes/deployments/list");
+  assert.equal(getCliRpcMethod(["kubernetes", "deployments", "scale"]), "kubernetes/deployments/scale");
   assert.equal(getCliRpcMethod(["capabilities"]), null);
 });
 
@@ -28,6 +30,7 @@ test("listCliCapabilities returns implemented commands by default", () => {
   const entries = listCliCapabilities();
   assert.ok(entries.some((entry) => entry.id === "terminal.execute"));
   assert.ok(entries.some((entry) => entry.id === "vault.host.get"));
+  assert.ok(entries.some((entry) => entry.id === "kubernetes.deployments.list"));
   assert.ok(entries.every((entry) => entry.status === CAPABILITY_STATUS.IMPLEMENTED));
   assert.ok(entries.every((entry) => entry.rpcMethod));
 });
@@ -67,4 +70,27 @@ test("buildCatalogCliParams throws for missing required fields", () => {
     () => buildCatalogCliParams("vault.host.get", {}, fakeCreateError),
     /Missing required --host-id/,
   );
+});
+
+test("buildCatalogCliParams maps kubernetes deployments list flags", () => {
+  const params = buildCatalogCliParams("kubernetes.deployments.list", {
+    sessionId: "sess-1",
+    namespace: "prod",
+  }, fakeCreateError);
+  assert.deepEqual(params, { sessionId: "sess-1", namespace: "prod" });
+});
+
+test("buildCatalogCliParams maps kubernetes deployments scale flags", () => {
+  const params = buildCatalogCliParams("kubernetes.deployments.scale", {
+    sessionId: "sess-1",
+    name: "api",
+    namespace: "prod",
+    replicas: "3",
+  }, fakeCreateError);
+  assert.deepEqual(params, {
+    sessionId: "sess-1",
+    name: "api",
+    namespace: "prod",
+    replicas: 3,
+  });
 });

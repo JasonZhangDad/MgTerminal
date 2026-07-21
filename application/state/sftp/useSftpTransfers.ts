@@ -379,9 +379,26 @@ export const useSftpTransfers = ({
             return "failed";
           }
 
+          if (defaultAction === "resume" && (task.isDirectory || conflict.existingType !== "file")) {
+            updateTask({
+              status: "failed",
+              endTime: Date.now(),
+              error: "Resume is only available for incomplete file transfers",
+              retryable: false,
+            });
+            return "failed";
+          }
+
           const duplicateTarget = defaultAction === "duplicate"
             ? await getDuplicateTarget(task, targetPane, targetSftpId, targetEncoding)
             : null;
+          const resumeOffset = defaultAction === "resume"
+            ? resolveResumeOffset({
+                partialTargetBytes: conflict.existingSize,
+                totalBytes: conflict.newSize || task.totalBytes,
+                direction: task.direction,
+              })
+            : 0;
           const updatedTask: TransferTask = {
             ...task,
             ...(duplicateTarget
@@ -392,6 +409,13 @@ export const useSftpTransfers = ({
               : null),
             skipConflictCheck: true,
             replaceExistingTarget: defaultAction === "replace",
+            ...(defaultAction === "resume"
+              ? {
+                  resumeOffset: resumeOffset > 0 ? resumeOffset : undefined,
+                  transferredBytes: resumeOffset > 0 ? resumeOffset : 0,
+                  replaceExistingTarget: false,
+                }
+              : null),
           };
           setTransfers((prev) =>
             prev.map((t) =>
@@ -961,6 +985,39 @@ export const useSftpTransfers = ({
             skipConflictCheck: true,
             replaceExistingTarget: true,
           };
+        } else if (action === "resume") {
+          if (
+            affectedTask.isDirectory
+            || (affectedConflict && affectedConflict.existingType !== "file")
+          ) {
+            blockedReplaceTasks.push({
+              task: affectedTask,
+              conflict: affectedConflict || {
+                transferId: affectedTask.id,
+                fileName: affectedTask.fileName,
+                sourcePath: affectedTask.sourcePath,
+                targetPath: affectedTask.targetPath,
+                isDirectory: affectedTask.isDirectory,
+                existingSize: 0,
+                newSize: affectedTask.totalBytes,
+                existingModified: 0,
+                newModified: 0,
+              },
+            });
+            continue;
+          }
+          const resumeOffset = resolveResumeOffset({
+            partialTargetBytes: affectedConflict?.existingSize,
+            totalBytes: affectedConflict?.newSize || affectedTask.totalBytes,
+            direction: affectedTask.direction,
+          });
+          updatedTask = {
+            ...affectedTask,
+            skipConflictCheck: true,
+            replaceExistingTarget: false,
+            resumeOffset: resumeOffset > 0 ? resumeOffset : undefined,
+            transferredBytes: resumeOffset > 0 ? resumeOffset : 0,
+          };
         } else if (action === "merge") {
           updatedTask = {
             ...affectedTask,
@@ -977,7 +1034,9 @@ export const useSftpTransfers = ({
         const blockedErrors = new Map(
           blockedReplaceTasks.map(({ task, conflict }) => [
             task.id,
-            buildReplaceTypeMismatchError(task.isDirectory, conflict.existingType, task.targetPath),
+            action === "resume"
+              ? "Resume is only available for incomplete file transfers"
+              : buildReplaceTypeMismatchError(task.isDirectory, conflict.existingType, task.targetPath),
           ]),
         );
         setTransfers((prev) =>
