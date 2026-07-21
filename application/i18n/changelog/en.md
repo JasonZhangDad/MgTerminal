@@ -1,6 +1,22 @@
 # Changelog
 
 
+## [0.5.21] - 2026-07-21
+
+### Security
+- **Deep host-context sanitization**: recursively removes passwords, Telnet passwords, private keys, and passphrases from nested objects and arrays before Agent context is built
+- **Public capability session scope**: every public capability now uses a fail-closed session check and cannot cross terminal sessions exposed to the current chat
+- **Sensitive reads and approval audit**: Pod describe is now a Sensitive Read; approval metadata is atomically persisted by the main process without tool arguments or credentials
+
+### Features
+- **Strict local privacy and model probe**: strict mode permits loopback model services only, disables external agents/web search, and can verify local-model tool calling
+- **Docker Compose management**: System Manager can inspect Compose projects/services and run explicit up, restart, and down actions
+- **Expanded Kubernetes operations**: structured Events, rollout status/history/restart, non-interactive Agent Exec, interactive terminal Exec, and loopback Port Forward
+
+### Fixes
+- **Kubernetes JSON list parsing**: Namespaces, Pods, and Deployments no longer parse unstable table text, and kubectl failures surface directly
+- **Cross-platform packages**: fixes Apple Silicon Fuse-integrity crashes without a paid Developer ID; Android now aligns JDK 21, SDK/Build Tools 36, and v0.5.21 metadata
+
 ## [0.5.20] - 2026-07-21
 
 ### Features

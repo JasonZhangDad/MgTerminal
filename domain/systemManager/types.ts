@@ -99,6 +99,23 @@ export interface DockerImageInfo {
   name: string;
 }
 
+export interface DockerComposeProjectInfo {
+  name: string;
+  status: string;
+  configFiles: string[];
+}
+
+export interface DockerComposeServiceInfo {
+  name: string;
+  containerName: string;
+  state: string;
+  status: string;
+  health: string;
+  publishers: string;
+}
+
+export type DockerComposeProjectAction = 'up' | 'down' | 'restart' | 'start' | 'stop';
+
 /** Unique per `docker images` row — same layer id can have multiple repo:tag lines. */
 export function dockerImageRowKey(image: DockerImageInfo): string {
   return `${image.id}\0${image.repository}\0${image.tag}`;
@@ -146,6 +163,20 @@ export interface KubernetesDeploymentInfo {
   upToDate: string;
   available: string;
   age: string;
+}
+
+export interface KubernetesEventInfo {
+  name: string;
+  namespace: string;
+  type: string;
+  reason: string;
+  message: string;
+  count: number;
+  objectKind: string;
+  objectName: string;
+  source: string;
+  firstSeen: string;
+  lastSeen: string;
 }
 
 export interface KubernetesContextInfo {

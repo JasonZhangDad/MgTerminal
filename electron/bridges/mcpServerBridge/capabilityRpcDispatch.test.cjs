@@ -103,6 +103,38 @@ test("dispatchCapabilityRpc denies public vault host notes set when approval rej
   assert.match(result.error, /denied/i);
 });
 
+test("dispatchCapabilityRpc rejects out-of-scope public session capabilities before approval or execution", async () => {
+  let approvalRequested = false;
+  let sessionsRead = false;
+  const dispatch = createTestDispatcher({
+    validateSessionScope: (sessionId, chatSessionId, scopedSessionIds) => {
+      assert.equal(sessionId, "session-foreign");
+      assert.equal(chatSessionId, "chat-1");
+      assert.deepEqual(scopedSessionIds, ["session-allowed"]);
+      return `Session "${sessionId}" is not in the current scope.`;
+    },
+    requestApprovalFromRenderer: async () => {
+      approvalRequested = true;
+      return true;
+    },
+    getSessions: () => {
+      sessionsRead = true;
+      return new Map();
+    },
+  });
+
+  const result = await dispatch("public/kubernetes/pods/list", {
+    chatSessionId: "chat-1",
+    scopedSessionIds: ["session-allowed"],
+    sessionId: "session-foreign",
+  });
+
+  assert.equal(result.ok, false);
+  assert.match(result.error, /not in the current scope/i);
+  assert.equal(approvalRequested, false);
+  assert.equal(sessionsRead, false);
+});
+
 test("dispatchCapabilityRpc routes vault hosts create to vault service", async () => {
   let invokedOp = null;
   const dispatch = createTestDispatcher({

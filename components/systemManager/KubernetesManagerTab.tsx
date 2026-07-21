@@ -1,12 +1,18 @@
-import { Box, ChevronLeft, FileText, Info, Layers, Scaling, Trash2 } from 'lucide-react';
+import { Activity, Box, ChevronLeft, FileText, History, Info, Layers, Network, RotateCw, Scaling, SquareTerminal, Trash2 } from 'lucide-react';
 import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useI18n } from '../../application/i18n/I18nProvider';
 import type { useSystemManagerBackend } from '../../application/state/useSystemManagerBackend';
+import type { TerminalSession } from '../../types';
 import type {
   KubernetesDeploymentInfo,
+  KubernetesEventInfo,
   KubernetesNamespaceInfo,
   KubernetesPodInfo,
 } from '../../domain/systemManager/types';
+import {
+  buildKubernetesInteractiveExecCommand,
+  buildKubernetesPortForwardCommand,
+} from '../../domain/systemManager/kubernetesCommands';
 import { cn } from '../../lib/utils';
 import { SystemPanelConfirmDialog } from './SystemPanelConfirmDialog';
 import { SystemPanelPromptDialog } from './SystemPanelPromptDialog';
@@ -27,12 +33,14 @@ import {
 } from './SystemPanelUi';
 import { usePolling, useStableTranslate } from './hooks/useSystemManager';
 import { showSystemManagerError } from './systemManagerToast';
+import { openInteractiveTerminal } from './openInteractiveTerminal';
 
 type Backend = ReturnType<typeof useSystemManagerBackend>;
-type ResourceKind = 'pods' | 'deployments';
+type ResourceKind = 'pods' | 'deployments' | 'events';
 
 interface KubernetesManagerTabProps {
   sessionId: string;
+  parentSession: TerminalSession;
   isVisible: boolean;
   backend: Backend;
   refreshIntervalSec: number;
@@ -66,6 +74,7 @@ function deploymentTone(ready: string): 'success' | 'warning' | 'muted' {
 
 export const KubernetesManagerTab = memo(function KubernetesManagerTab({
   sessionId,
+  parentSession,
   isVisible,
   backend,
   refreshIntervalSec,
@@ -91,6 +100,16 @@ export const KubernetesManagerTab = memo(function KubernetesManagerTab({
     namespace: string;
     replicas: string;
   } | null>(null);
+  const [rolloutTarget, setRolloutTarget] = useState<KubernetesDeploymentInfo | null>(null);
+  const [rolloutMode, setRolloutMode] = useState<'status' | 'history'>('status');
+  const [rolloutText, setRolloutText] = useState('');
+  const [rolloutLoading, setRolloutLoading] = useState(false);
+  const [rolloutError, setRolloutError] = useState<string | null>(null);
+  const [restartTarget, setRestartTarget] = useState<KubernetesDeploymentInfo | null>(null);
+  const [restartLoading, setRestartLoading] = useState(false);
+  const [execTarget, setExecTarget] = useState<KubernetesPodInfo | null>(null);
+  const [portForwardTarget, setPortForwardTarget] = useState<KubernetesPodInfo | null>(null);
+  const [terminalPopupLoading, setTerminalPopupLoading] = useState(false);
 
   const intervalMs = Math.max(5, refreshIntervalSec) * 1000;
 
@@ -116,6 +135,15 @@ export const KubernetesManagerTab = memo(function KubernetesManagerTab({
     });
     if (!result.success) throw new Error(result.error || stableT('systemManager.errors.loadKubernetes'));
     return result.deployments ?? [];
+  }, [backend, namespace, sessionId, stableT]);
+
+  const fetchEvents = useCallback(async () => {
+    const result = await backend.listKubernetesEvents({
+      sessionId,
+      namespace: namespace === 'all' ? undefined : namespace,
+    });
+    if (!result.success) throw new Error(result.error || stableT('systemManager.errors.loadKubernetesEvents'));
+    return result.events ?? [];
   }, [backend, namespace, sessionId, stableT]);
 
   const {
@@ -157,6 +185,19 @@ export const KubernetesManagerTab = memo(function KubernetesManagerTab({
     { resetKey: `${sessionId}:${namespace}:deployments` },
   );
 
+  const {
+    data: events,
+    error: eventsError,
+    loading: eventsLoading,
+    refresh: refreshEvents,
+  } = usePolling<KubernetesEventInfo[]>(
+    fetchEvents,
+    intervalMs,
+    isVisible && resourceKind === 'events',
+    undefined,
+    { resetKey: `${sessionId}:${namespace}:events` },
+  );
+
   useEffect(() => {
     if (!isVisible) return;
     let cancelled = false;
@@ -172,6 +213,9 @@ export const KubernetesManagerTab = memo(function KubernetesManagerTab({
     setDetailMode(null);
     setDetailText('');
     setDetailError(null);
+    setRolloutTarget(null);
+    setRolloutText('');
+    setRolloutError(null);
   }, [sessionId, namespace, resourceKind]);
 
   const filteredPods = useMemo(() => {
@@ -197,6 +241,18 @@ export const KubernetesManagerTab = memo(function KubernetesManagerTab({
     ));
   }, [deployments, search]);
 
+  const filteredEvents = useMemo(() => {
+    const list = events ?? [];
+    const q = search.trim().toLowerCase();
+    if (!q) return list;
+    return list.filter((event) => (
+      event.reason.toLowerCase().includes(q)
+      || event.message.toLowerCase().includes(q)
+      || event.namespace.toLowerCase().includes(q)
+      || event.objectName.toLowerCase().includes(q)
+    ));
+  }, [events, search]);
+
   const nsOptions = useMemo(() => {
     const opts = [{ id: 'all', label: t('systemManager.kubernetes.namespaceAll') }];
     for (const ns of namespaces ?? []) {
@@ -208,6 +264,7 @@ export const KubernetesManagerTab = memo(function KubernetesManagerTab({
   const resourceOptions = useMemo(() => ([
     { id: 'pods' as const, label: t('systemManager.kubernetes.resourcePods') },
     { id: 'deployments' as const, label: t('systemManager.kubernetes.resourceDeployments') },
+    { id: 'events' as const, label: t('systemManager.kubernetes.resourceEvents') },
   ]), [t]);
 
   const openScaleDialog = useCallback((prefill?: {
@@ -347,21 +404,179 @@ export const KubernetesManagerTab = memo(function KubernetesManagerTab({
     }
   }, [backend, sessionId, stableT]);
 
+  const loadRollout = useCallback(async (
+    deployment: KubernetesDeploymentInfo,
+    mode: 'status' | 'history',
+  ) => {
+    setRolloutTarget(deployment);
+    setRolloutMode(mode);
+    setRolloutLoading(true);
+    setRolloutError(null);
+    setRolloutText('');
+    try {
+      const options = {
+        sessionId,
+        namespace: deployment.namespace,
+        name: deployment.name,
+      };
+      const result = mode === 'status'
+        ? await backend.getKubernetesDeploymentRolloutStatus(options)
+        : await backend.getKubernetesDeploymentRolloutHistory(options);
+      if (!result.success) {
+        throw new Error(result.error || stableT('systemManager.errors.loadKubernetesRollout'));
+      }
+      setRolloutText(result.output || '');
+    } catch (error) {
+      setRolloutError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setRolloutLoading(false);
+    }
+  }, [backend, sessionId, stableT]);
+
+  const confirmRestartRollout = useCallback(async () => {
+    if (!restartTarget) return;
+    setRestartLoading(true);
+    try {
+      const result = await backend.restartKubernetesDeploymentRollout({
+        sessionId,
+        namespace: restartTarget.namespace,
+        name: restartTarget.name,
+      });
+      if (!result.success) {
+        showSystemManagerError(result.error || stableT('systemManager.errors.actionFailed'));
+        return;
+      }
+      setRestartTarget(null);
+      void refreshDeployments();
+    } catch (error) {
+      showSystemManagerError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setRestartLoading(false);
+    }
+  }, [backend, refreshDeployments, restartTarget, sessionId, stableT]);
+
+  const openPodExec = useCallback(async (values: Record<string, string>) => {
+    if (!execTarget) return;
+    const command = buildKubernetesInteractiveExecCommand({
+      namespace: execTarget.namespace,
+      pod: execTarget.name,
+      container: values.container || undefined,
+    });
+    if (!command) {
+      showSystemManagerError(stableT('systemManager.kubernetes.invalidExecTarget'));
+      return;
+    }
+    setTerminalPopupLoading(true);
+    try {
+      const result = await openInteractiveTerminal(
+        backend,
+        parentSession,
+        `kubectl exec: ${execTarget.name}`,
+        command,
+      );
+      if (!result.success) showSystemManagerError(result.error || stableT('systemManager.errors.actionFailed'));
+      else setExecTarget(null);
+    } catch (error) {
+      showSystemManagerError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setTerminalPopupLoading(false);
+    }
+  }, [backend, execTarget, parentSession, stableT]);
+
+  const openPodPortForward = useCallback(async (values: Record<string, string>) => {
+    if (!portForwardTarget) return;
+    const command = buildKubernetesPortForwardCommand({
+      namespace: portForwardTarget.namespace,
+      pod: portForwardTarget.name,
+      localPort: Number(values.localPort),
+      remotePort: Number(values.remotePort),
+    });
+    if (!command) {
+      showSystemManagerError(stableT('systemManager.kubernetes.invalidPorts'));
+      return;
+    }
+    setTerminalPopupLoading(true);
+    try {
+      const result = await openInteractiveTerminal(
+        backend,
+        parentSession,
+        `kubectl port-forward: ${portForwardTarget.name}`,
+        command,
+      );
+      if (!result.success) showSystemManagerError(result.error || stableT('systemManager.errors.actionFailed'));
+      else setPortForwardTarget(null);
+    } catch (error) {
+      showSystemManagerError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setTerminalPopupLoading(false);
+    }
+  }, [backend, parentSession, portForwardTarget, stableT]);
+
+  const execFields = useMemo(() => ([{
+    id: 'container',
+    label: t('systemManager.kubernetes.container'),
+    placeholder: t('systemManager.kubernetes.containerOptional'),
+    initialValue: '',
+    required: false,
+    mono: true,
+  }]), [t]);
+
+  const portForwardFields = useMemo(() => ([
+    {
+      id: 'localPort',
+      label: t('systemManager.kubernetes.localPort'),
+      placeholder: '8080',
+      initialValue: '8080',
+      mono: true,
+    },
+    {
+      id: 'remotePort',
+      label: t('systemManager.kubernetes.remotePort'),
+      placeholder: '80',
+      initialValue: '80',
+      mono: true,
+    },
+  ]), [t]);
+
   const listLoading = resourceKind === 'pods'
     ? (podsLoading && !pods)
-    : (deploymentsLoading && !deployments);
-  const listError = resourceKind === 'pods' ? podsError : deploymentsError;
-  const listRefreshing = resourceKind === 'pods' ? podsLoading : deploymentsLoading;
+    : resourceKind === 'deployments'
+      ? (deploymentsLoading && !deployments)
+      : (eventsLoading && !events);
+  const listError = resourceKind === 'pods'
+    ? podsError
+    : resourceKind === 'deployments'
+      ? deploymentsError
+      : eventsError;
+  const listRefreshing = resourceKind === 'pods'
+    ? podsLoading
+    : resourceKind === 'deployments'
+      ? deploymentsLoading
+      : eventsLoading;
   const loading = listLoading || (nsLoading && !namespaces);
   const error = listError || nsError;
-  const filteredCount = resourceKind === 'pods' ? filteredPods.length : filteredDeployments.length;
-  const totalCount = resourceKind === 'pods' ? pods?.length : deployments?.length;
+  const filteredCount = resourceKind === 'pods'
+    ? filteredPods.length
+    : resourceKind === 'deployments'
+      ? filteredDeployments.length
+      : filteredEvents.length;
+  const totalCount = resourceKind === 'pods'
+    ? pods?.length
+    : resourceKind === 'deployments'
+      ? deployments?.length
+      : events?.length;
+  const listData = resourceKind === 'pods'
+    ? pods
+    : resourceKind === 'deployments'
+      ? deployments
+      : events;
 
   const handleRefresh = useCallback(() => {
     void refreshNs();
     if (resourceKind === 'pods') void refreshPods();
-    else void refreshDeployments();
-  }, [refreshDeployments, refreshNs, refreshPods, resourceKind]);
+    else if (resourceKind === 'deployments') void refreshDeployments();
+    else void refreshEvents();
+  }, [refreshDeployments, refreshEvents, refreshNs, refreshPods, resourceKind]);
 
   if (detailMode && selectedPod) {
     return (
@@ -410,6 +625,71 @@ export const KubernetesManagerTab = memo(function KubernetesManagerTab({
     );
   }
 
+  if (rolloutTarget) {
+    return (
+      <SystemPanelShell section="system-manager-kubernetes-rollout">
+        <SystemPanelToolbar>
+          <button
+            type="button"
+            className="inline-flex h-7 items-center gap-1 rounded-md px-1.5 text-xs text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+            onClick={() => {
+              setRolloutTarget(null);
+              setRolloutText('');
+              setRolloutError(null);
+            }}
+          >
+            <ChevronLeft size={14} />
+            {t('common.back')}
+          </button>
+          <div className="min-w-0 flex-1 truncate font-mono text-[11px] text-foreground">
+            {rolloutTarget.namespace}/{rolloutTarget.name}
+          </div>
+          <SystemPanelRoundButton
+            title={t('systemManager.kubernetes.rolloutRestart')}
+            onClick={() => setRestartTarget(rolloutTarget)}
+          >
+            <RotateCw size={12} />
+          </SystemPanelRoundButton>
+          <SystemPanelRefreshButton
+            title={t('history.action.refresh')}
+            loading={rolloutLoading}
+            onClick={() => void loadRollout(rolloutTarget, rolloutMode)}
+          />
+        </SystemPanelToolbar>
+        <SystemPanelSegmented
+          value={rolloutMode}
+          options={[
+            { id: 'status', label: t('systemManager.kubernetes.rolloutStatus') },
+            { id: 'history', label: t('systemManager.kubernetes.rolloutHistory') },
+          ]}
+          onChange={(mode) => void loadRollout(rolloutTarget, mode)}
+        />
+        {rolloutLoading && !rolloutText ? (
+          <SystemPanelLoading message={t('systemManager.kubernetes.loadingDetail')} />
+        ) : rolloutError && !rolloutText ? (
+          <SystemPanelError
+            message={rolloutError}
+            onRetry={() => void loadRollout(rolloutTarget, rolloutMode)}
+            retryLabel={t('history.action.retry')}
+          />
+        ) : (
+          <pre className="flex-1 min-h-0 overflow-auto px-3 py-2 font-mono text-[10px] leading-relaxed text-muted-foreground whitespace-pre-wrap break-all">
+            {rolloutText || t('systemManager.kubernetes.emptyDetail')}
+          </pre>
+        )}
+        <SystemPanelConfirmDialog
+          open={Boolean(restartTarget)}
+          title={t('systemManager.kubernetes.rolloutRestart')}
+          message={t('systemManager.kubernetes.rolloutRestartConfirm', { name: rolloutTarget.name })}
+          confirmLabel={t('systemManager.kubernetes.rolloutRestart')}
+          busy={restartLoading}
+          onOpenChange={(open) => { if (!open && !restartLoading) setRestartTarget(null); }}
+          onConfirm={() => void confirmRestartRollout()}
+        />
+      </SystemPanelShell>
+    );
+  }
+
   return (
     <SystemPanelShell section="system-manager-kubernetes">
       <SystemPanelToolbar>
@@ -419,15 +699,19 @@ export const KubernetesManagerTab = memo(function KubernetesManagerTab({
           placeholder={
             resourceKind === 'pods'
               ? t('systemManager.kubernetes.search')
-              : t('systemManager.kubernetes.searchDeployments')
+              : resourceKind === 'deployments'
+                ? t('systemManager.kubernetes.searchDeployments')
+                : t('systemManager.kubernetes.searchEvents')
           }
         />
-        <SystemPanelRoundButton
-          title={t('systemManager.kubernetes.scale')}
-          onClick={() => openScaleDialog()}
-        >
-          <Scaling size={12} />
-        </SystemPanelRoundButton>
+        {resourceKind === 'deployments' && (
+          <SystemPanelRoundButton
+            title={t('systemManager.kubernetes.scale')}
+            onClick={() => openScaleDialog()}
+          >
+            <Scaling size={12} />
+          </SystemPanelRoundButton>
+        )}
         <SystemPanelRefreshButton
           title={t('history.action.refresh')}
           loading={listRefreshing}
@@ -460,7 +744,7 @@ export const KubernetesManagerTab = memo(function KubernetesManagerTab({
         onChange={setNamespace}
       />
 
-      {error && !(resourceKind === 'pods' ? pods : deployments) ? (
+      {error && !listData ? (
         <SystemPanelError
           message={error}
           onRetry={handleRefresh}
@@ -472,7 +756,9 @@ export const KubernetesManagerTab = memo(function KubernetesManagerTab({
           message={
             resourceKind === 'pods'
               ? t('systemManager.kubernetes.loading')
-              : t('systemManager.kubernetes.loadingDeployments')
+              : resourceKind === 'deployments'
+                ? t('systemManager.kubernetes.loadingDeployments')
+                : t('systemManager.kubernetes.loadingEvents')
           }
         />
       ) : resourceKind === 'pods' ? (
@@ -508,6 +794,18 @@ export const KubernetesManagerTab = memo(function KubernetesManagerTab({
                       <Info size={12} />
                     </SystemPanelRoundButton>
                     <SystemPanelRoundButton
+                      title={t('systemManager.kubernetes.exec')}
+                      onClick={() => setExecTarget(pod)}
+                    >
+                      <SquareTerminal size={12} />
+                    </SystemPanelRoundButton>
+                    <SystemPanelRoundButton
+                      title={t('systemManager.kubernetes.portForward')}
+                      onClick={() => setPortForwardTarget(pod)}
+                    >
+                      <Network size={12} />
+                    </SystemPanelRoundButton>
+                    <SystemPanelRoundButton
                       title={t('systemManager.kubernetes.delete')}
                       destructive
                       onClick={() => setDeleteTarget(pod)}
@@ -520,36 +818,77 @@ export const KubernetesManagerTab = memo(function KubernetesManagerTab({
             ))}
           </SystemPanelList>
         )
-      ) : filteredDeployments.length === 0 ? (
-        <SystemPanelEmpty icon={Layers} message={t('systemManager.kubernetes.emptyDeployments')} />
+      ) : resourceKind === 'deployments' ? (
+        filteredDeployments.length === 0 ? (
+          <SystemPanelEmpty icon={Layers} message={t('systemManager.kubernetes.emptyDeployments')} />
+        ) : (
+          <SystemPanelList>
+            {filteredDeployments.map((dep) => (
+              <SystemPanelRow
+                key={`${dep.namespace}/${dep.name}`}
+                leading={(
+                  <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-violet-500/10 text-violet-500">
+                    <Layers size={13} />
+                  </span>
+                )}
+                title={dep.name}
+                subtitle={`${dep.namespace} · ready ${dep.ready} · up-to-date ${dep.upToDate} · age ${dep.age || '—'}`}
+                trailing={(
+                  <div className="flex shrink-0 items-center gap-1">
+                    <SystemPanelStatusBadge tone={deploymentTone(dep.ready)}>
+                      {dep.ready || '—'}
+                    </SystemPanelStatusBadge>
+                    <SystemPanelRoundButton
+                      title={t('systemManager.kubernetes.rollout')}
+                      onClick={() => void loadRollout(dep, 'status')}
+                    >
+                      <History size={12} />
+                    </SystemPanelRoundButton>
+                    <SystemPanelRoundButton
+                      title={t('systemManager.kubernetes.rolloutRestart')}
+                      onClick={() => setRestartTarget(dep)}
+                    >
+                      <RotateCw size={12} />
+                    </SystemPanelRoundButton>
+                    <SystemPanelRoundButton
+                      title={t('systemManager.kubernetes.scale')}
+                      onClick={() => openScaleDialog({
+                        name: dep.name,
+                        namespace: dep.namespace,
+                        replicas: desiredReplicasFromReady(dep.ready),
+                      })}
+                    >
+                      <Scaling size={12} />
+                    </SystemPanelRoundButton>
+                  </div>
+                )}
+              />
+            ))}
+          </SystemPanelList>
+        )
+      ) : filteredEvents.length === 0 ? (
+        <SystemPanelEmpty icon={Activity} message={t('systemManager.kubernetes.emptyEvents')} />
       ) : (
         <SystemPanelList>
-          {filteredDeployments.map((dep) => (
+          {filteredEvents.map((event) => (
             <SystemPanelRow
-              key={`${dep.namespace}/${dep.name}`}
+              key={`${event.namespace}/${event.name}/${event.lastSeen}`}
               leading={(
-                <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-violet-500/10 text-violet-500">
-                  <Layers size={13} />
+                <span className={cn(
+                  'inline-flex h-7 w-7 items-center justify-center rounded-md',
+                  event.type.toLowerCase() === 'warning'
+                    ? 'bg-amber-500/10 text-amber-500'
+                    : 'bg-emerald-500/10 text-emerald-500',
+                )}>
+                  <Activity size={13} />
                 </span>
               )}
-              title={dep.name}
-              subtitle={`${dep.namespace} · ready ${dep.ready} · up-to-date ${dep.upToDate} · age ${dep.age || '—'}`}
+              title={event.reason || event.objectName || event.name}
+              subtitle={`${event.namespace} · ${event.objectKind}/${event.objectName} · ${event.message}`}
               trailing={(
-                <div className="flex shrink-0 items-center gap-1">
-                  <SystemPanelStatusBadge tone={deploymentTone(dep.ready)}>
-                    {dep.ready || '—'}
-                  </SystemPanelStatusBadge>
-                  <SystemPanelRoundButton
-                    title={t('systemManager.kubernetes.scale')}
-                    onClick={() => openScaleDialog({
-                      name: dep.name,
-                      namespace: dep.namespace,
-                      replicas: desiredReplicasFromReady(dep.ready),
-                    })}
-                  >
-                    <Scaling size={12} />
-                  </SystemPanelRoundButton>
-                </div>
+                <SystemPanelStatusBadge tone={event.type.toLowerCase() === 'warning' ? 'warning' : 'muted'}>
+                  {event.count > 1 ? `${event.type} ×${event.count}` : event.type}
+                </SystemPanelStatusBadge>
               )}
             />
           ))}
@@ -579,6 +918,18 @@ export const KubernetesManagerTab = memo(function KubernetesManagerTab({
         onConfirm={() => void confirmDeletePod()}
       />
 
+      <SystemPanelConfirmDialog
+        open={Boolean(restartTarget)}
+        title={t('systemManager.kubernetes.rolloutRestart')}
+        message={restartTarget
+          ? t('systemManager.kubernetes.rolloutRestartConfirm', { name: restartTarget.name })
+          : ''}
+        confirmLabel={t('systemManager.kubernetes.rolloutRestart')}
+        busy={restartLoading}
+        onOpenChange={(open) => { if (!open && !restartLoading) setRestartTarget(null); }}
+        onConfirm={() => void confirmRestartRollout()}
+      />
+
       <SystemPanelPromptDialog
         open={scaleOpen}
         title={t('systemManager.kubernetes.scaleTitle')}
@@ -595,6 +946,40 @@ export const KubernetesManagerTab = memo(function KubernetesManagerTab({
           }
         }}
         onSubmit={(values) => void confirmScale(values)}
+      />
+
+      <SystemPanelPromptDialog
+        open={Boolean(execTarget)}
+        title={execTarget
+          ? t('systemManager.kubernetes.execTitle', { name: execTarget.name })
+          : t('systemManager.kubernetes.exec')}
+        fields={execFields}
+        confirmLabel={t('systemManager.kubernetes.exec')}
+        busy={terminalPopupLoading}
+        onOpenChange={(open) => { if (!open && !terminalPopupLoading) setExecTarget(null); }}
+        onSubmit={(values) => void openPodExec(values)}
+      />
+
+      <SystemPanelPromptDialog
+        open={Boolean(portForwardTarget)}
+        title={portForwardTarget
+          ? t('systemManager.kubernetes.portForwardTitle', { name: portForwardTarget.name })
+          : t('systemManager.kubernetes.portForward')}
+        fields={portForwardFields}
+        confirmLabel={t('systemManager.kubernetes.portForward')}
+        busy={terminalPopupLoading}
+        validate={(values) => (
+          buildKubernetesPortForwardCommand({
+            namespace: portForwardTarget?.namespace || '',
+            pod: portForwardTarget?.name || '',
+            localPort: Number(values.localPort),
+            remotePort: Number(values.remotePort),
+          })
+            ? null
+            : stableT('systemManager.kubernetes.invalidPorts')
+        )}
+        onOpenChange={(open) => { if (!open && !terminalPopupLoading) setPortForwardTarget(null); }}
+        onSubmit={(values) => void openPodPortForward(values)}
       />
     </SystemPanelShell>
   );

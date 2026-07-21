@@ -108,6 +108,26 @@ declare global {
       error?: string;
       output?: string;
     }>;
+    listDockerComposeProjects?(sessionId: string): Promise<{
+      success: boolean;
+      error?: string;
+      projects?: import("../../domain/systemManager/types").DockerComposeProjectInfo[];
+    }>;
+    listDockerComposeServices?(options: {
+      sessionId: string;
+      projectName: string;
+      configFiles: string[];
+    }): Promise<{
+      success: boolean;
+      error?: string;
+      services?: import("../../domain/systemManager/types").DockerComposeServiceInfo[];
+    }>;
+    dockerComposeAction?(options: {
+      sessionId: string;
+      projectName: string;
+      configFiles: string[];
+      action: import("../../domain/systemManager/types").DockerComposeProjectAction;
+    }): Promise<{ success: boolean; error?: string; output?: string }>;
     listKubernetesNamespaces?(sessionId: string): Promise<{
       success: boolean;
       error?: string;
@@ -161,6 +181,36 @@ declare global {
       namespace?: string;
       name: string;
       replicas: number;
+    }): Promise<{ success: boolean; error?: string; output?: string }>;
+    listKubernetesEvents?(options: {
+      sessionId: string;
+      namespace?: string;
+    }): Promise<{
+      success: boolean;
+      error?: string;
+      events?: import("../../domain/systemManager/types").KubernetesEventInfo[];
+    }>;
+    getKubernetesDeploymentRolloutStatus?(options: {
+      sessionId: string;
+      namespace?: string;
+      name: string;
+    }): Promise<{ success: boolean; error?: string; output?: string }>;
+    getKubernetesDeploymentRolloutHistory?(options: {
+      sessionId: string;
+      namespace?: string;
+      name: string;
+    }): Promise<{ success: boolean; error?: string; output?: string }>;
+    restartKubernetesDeploymentRollout?(options: {
+      sessionId: string;
+      namespace?: string;
+      name: string;
+    }): Promise<{ success: boolean; error?: string; output?: string }>;
+    execKubernetesPod?(options: {
+      sessionId: string;
+      namespace: string;
+      pod: string;
+      container?: string;
+      command: string;
     }): Promise<{ success: boolean; error?: string; output?: string }>;
     openTerminalPopup?(payload: import("../../domain/systemManager/types").TerminalPopupPayload): Promise<{
       success: boolean;

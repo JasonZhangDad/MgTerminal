@@ -16,6 +16,14 @@ export const ruAiMessages: Messages = {
   'ai.localPrivacy.safetyNote': 'Пароли и закрытые ключи vault никогда не отправляются модели. Инструменты записи по-прежнему требуют режима подтверждения.',
   'ai.localPrivacy.autoModeWarning': 'Режим прав — Auto: запись пропускает подтверждение. Для локальных агентов предпочтителен Confirm.',
   'ai.localPrivacy.useConfirmMode': 'Включить Confirm',
+  'ai.localPrivacy.strictMode': 'Строгая локальная конфиденциальность',
+  'ai.localPrivacy.strictModeDescription': 'Разрешены только loopback AI-адреса. Облачные провайдеры, внешние агенты, удалённые перенаправления и веб-поиск заблокированы.',
+  'ai.localPrivacy.probe': 'Проверить инструменты',
+  'ai.localPrivacy.probing': 'Проверка…',
+  'ai.localPrivacy.selectModel': 'выберите модель по умолчанию',
+  'ai.localPrivacy.toolsSupported': 'Вызов инструментов поддерживается',
+  'ai.localPrivacy.toolsUnsupported': 'Вызов инструментов не обнаружен',
+  'ai.localPrivacy.probeFailed': 'Ошибка проверки: {detail}',
   'ai.safety.approvalAudit.title': 'Аудит одобрений инструментов',
   'ai.safety.approvalAudit.description': 'Недавние решения одобрить / отклонить для инструментов записи MagiesTerminal и MCP (только метаданные — без аргументов и секретов).',
   'ai.safety.approvalAudit.empty': 'Пока нет событий одобрения.',
@@ -505,6 +513,8 @@ export const ruAiMessages: Messages = {
   'ai.chat.compactingStep': 'Сокращение контекста для следующего шага…',
   'ai.chat.compactionRetry': 'Запрос был слишком большим. Сжимаем контекст и повторяем…',
   'ai.chat.compactionBanner': 'Контекст сжат: {before}K → {after}K токенов',
+  'ai.chat.strictPrivacyExternalBlocked': 'Строгий локальный режим блокирует внешние агенты. Выберите MagiesTerminal Agent с loopback-провайдером или отключите режим в Настройки → AI.',
+  'ai.chat.strictPrivacyEndpointBlocked': 'Строгий локальный режим блокирует этот удалённый endpoint. Выберите localhost-провайдера или отключите режим в Настройки → AI.',
 
   // API key errors
   'ai.providers.apiKey.encryptError': 'Не удалось зашифровать API-ключ. Полностью выйдите (⌘Q), откройте снова и повторите. Если не помогло: Настройки → Система → Исправить Keychain.',

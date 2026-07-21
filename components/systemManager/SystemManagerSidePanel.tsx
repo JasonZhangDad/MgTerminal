@@ -285,6 +285,7 @@ export const SystemManagerSidePanel = memo(function SystemManagerSidePanel({
           <div className={cn('flex-1 min-h-0 flex flex-col', resolvedTab !== 'kubernetes' && 'hidden')}>
             <KubernetesManagerTab
               sessionId={sessionId}
+              parentSession={session}
               isVisible={isVisible && resolvedTab === 'kubernetes'}
               backend={backend}
               refreshIntervalSec={terminalSettings.systemManagerDockerListRefreshInterval}

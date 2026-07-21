@@ -1,6 +1,22 @@
 # 변경 로그
 
 
+## [0.5.21] - 2026-07-21
+
+### 보안
+- **호스트 컨텍스트 심층 정리**: 중첩 객체와 배열의 비밀번호, Telnet 비밀번호, 개인 키, 암호문을 재귀적으로 제거
+- **Public Capability 세션 범위**: 모든 공개 기능이 fail-closed 세션 검사를 적용하여 현재 채팅에 노출된 터미널 세션을 벗어나지 못함
+- **민감 읽기와 승인 감사**: Pod describe를 Sensitive Read로 지정하고 메인 프로세스가 인자나 자격 증명 없이 승인 메타데이터만 영구 저장
+
+### 기능
+- **엄격한 로컬 개인정보 보호와 모델 검사**: 루프백 모델만 허용하고 외부 Agent/웹 검색을 비활성화하며 도구 호출 능력을 검증
+- **Docker Compose 관리**: 프로젝트와 서비스를 확인하고 명시적인 up, restart, down 작업 실행
+- **확장된 Kubernetes 작업**: 구조화 Events, rollout 상태/기록/재시작, Agent Exec, 대화형 Exec, 루프백 Port Forward
+
+### 수정
+- **Kubernetes JSON 목록 파싱**: Namespaces, Pods, Deployments가 불안정한 표를 파싱하지 않으며 kubectl 오류를 직접 표시
+- **크로스 플랫폼 패키지**: 유료 Developer ID 없이 Apple Silicon Fuse 이후 충돌을 수정하고 Android를 JDK 21, SDK/Build Tools 36, v0.5.21로 통일
+
 ## [0.5.20] - 2026-07-21
 
 ### Features

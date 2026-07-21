@@ -1,6 +1,22 @@
 # Änderungsprotokoll
 
 
+## [0.5.21] - 2026-07-21
+
+### Sicherheit
+- **Tiefe Bereinigung des Host-Kontexts**: Passwörter, Telnet-Passwörter, private Schlüssel und Passphrasen werden rekursiv aus verschachtelten Objekten und Arrays entfernt
+- **Sitzungsbereich öffentlicher Fähigkeiten**: Jede öffentliche Fähigkeit prüft die Sitzung nun nach dem Fail-closed-Prinzip und kann den aktuellen Chat-Bereich nicht verlassen
+- **Sensible Lesezugriffe und Freigabeprotokoll**: Pod describe ist ein Sensitive Read; der Hauptprozess speichert nur Freigabemetadaten atomar und ohne Zugangsdaten
+
+### Funktionen
+- **Strikter lokaler Datenschutz und Modelltest**: Nur Loopback-Modelldienste, keine externen Agents/Websuche und ein Test für Tool-Aufrufe lokaler Modelle
+- **Docker-Compose-Verwaltung**: Projekte und Dienste prüfen sowie explizite up-, restart- und down-Aktionen ausführen
+- **Erweiterte Kubernetes-Aktionen**: strukturierte Events, Rollout-Status/-Verlauf/-Neustart, Agent Exec, interaktives Exec und Loopback Port Forward
+
+### Fehlerbehebungen
+- **Kubernetes-Listen als JSON**: Namespaces, Pods und Deployments werden nicht mehr aus instabilen Tabellen gelesen; kubectl-Fehler werden direkt angezeigt
+- **Plattformübergreifende Pakete**: Apple-Silicon-Fuse-Absturz ohne kostenpflichtige Developer ID behoben; Android nutzt JDK 21, SDK/Build Tools 36 und v0.5.21-Metadaten
+
 ## [0.5.20] - 2026-07-21
 
 ### Features

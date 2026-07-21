@@ -1,6 +1,8 @@
 import type { Messages } from '../types';
+import { systemManagerFeatureFallbackMessages } from '../systemManagerFeatureFallback';
 
 export const jaSystemManagerMessages: Messages = {
+  ...systemManagerFeatureFallbackMessages,
   'terminal.layer.system': 'システム',
 
   'systemManager.noSession': 'アクティブなターミナルセッションがありません。',

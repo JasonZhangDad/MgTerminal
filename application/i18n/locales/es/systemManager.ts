@@ -1,6 +1,8 @@
 import type { Messages } from '../types';
+import { systemManagerFeatureFallbackMessages } from '../systemManagerFeatureFallback';
 
 export const esSystemManagerMessages: Messages = {
+  ...systemManagerFeatureFallbackMessages,
   'terminal.layer.system': 'Sistema',
   'systemManager.noSession': 'No hay sesión de terminal activa.',
   'systemManager.notConnected': 'Conéctese a un host para gestionar procesos y servicios.',

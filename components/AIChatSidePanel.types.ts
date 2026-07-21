@@ -71,6 +71,7 @@ export interface AIChatSidePanelProps {
   commandBlocklist?: string[];
   commandTimeout?: number;
   maxIterations?: number;
+  strictLocalPrivacy?: boolean;
 
   // Web search
   webSearchConfig?: WebSearchConfig | null;

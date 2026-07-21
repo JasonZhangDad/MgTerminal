@@ -33,6 +33,16 @@ async function runExternalTurn(input: ExternalTurnInput, ctx: TurnDriverContext)
   const magiesTerminalBridge = bridge ?? getMagiesTerminalBridge();
   const sdkBackend = getExternalAgentSdkBackend(agentConfig);
 
+  if (context.strictLocalPrivacy) {
+    ui.reportStreamError(
+      sessionId,
+      signal,
+      'Strict local privacy mode blocks external SDK agents.',
+    );
+    ui.setStreamingForScope(sessionId, false);
+    return;
+  }
+
   if (!sdkBackend || !magiesTerminalBridge) {
     ui.reportStreamError(
       sessionId,

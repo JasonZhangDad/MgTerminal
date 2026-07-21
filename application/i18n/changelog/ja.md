@@ -1,6 +1,22 @@
 # 更新履歴
 
 
+## [0.5.21] - 2026-07-21
+
+### セキュリティ
+- **ホストコンテキストの深層サニタイズ**：ネストされたオブジェクトと配列からパスワード、Telnet パスワード、秘密鍵、パスフレーズを再帰的に除去
+- **Public Capability のセッションスコープ**：すべての公開機能が fail-closed 検証を行い、現在のチャットに公開された端末セッション外へアクセス不可
+- **機密読み取りと承認監査**：Pod describe を Sensitive Read 化し、メインプロセスが引数や資格情報を含まない承認メタデータのみを永続化
+
+### 機能
+- **厳格なローカルプライバシーとモデル検査**：ループバックのモデルのみ許可し、外部 Agent/Web 検索を無効化してツール呼び出し能力を検証
+- **Docker Compose 管理**：プロジェクトとサービスを確認し、明示的な up、restart、down 操作を実行
+- **Kubernetes 操作の拡張**：構造化 Events、rollout 状態/履歴/再起動、Agent Exec、対話型 Exec、ループバック Port Forward
+
+### 修正
+- **Kubernetes リストの JSON 解析**：Namespaces、Pods、Deployments は不安定な表を解析せず、kubectl エラーを直接表示
+- **クロスプラットフォームパッケージ**：有料 Developer ID なしの Apple Silicon Fuse 後クラッシュを修正し、Android を JDK 21、SDK/Build Tools 36、v0.5.21 に統一
+
 ## [0.5.20] - 2026-07-21
 
 ### Features

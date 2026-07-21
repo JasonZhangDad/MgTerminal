@@ -110,7 +110,8 @@ If you regularly work with a fleet of servers, MagiesTerminal is built for speed
 | **Connection UX** | Progress logs, **Test Connection** diagnostics (DNS → TCP → jump → host key → auth → SFTP), deep links |
 | **Terminal** | Split panes, workspaces, session restore, broadcast, snippets/scripts, serial / telnet / mosh / ET |
 | **SFTP** | Dual pane, conflict handling, transfer queue with **resume / auto-retry / optional checksum**, editor |
-| **Ops** | Port forwarding, system manager, **multi-host health snapshot**, AI sidebar agent |
+| **Ops** | Port forwarding, Docker Compose, Kubernetes pods / deployments / events / rollout / exec, multi-host health snapshot |
+| **AI safety** | Session-scoped tools, sensitive-read confirmation, strict local privacy, persistent approval audit |
 | **Productization** | First-run onboarding, command palette (quick switcher), empty-state migration paths |
 
 ### 🗂️ Vault
@@ -129,10 +130,24 @@ If you regularly work with a fleet of servers, MagiesTerminal is built for speed
 - **Reliable transfers** — resume partial files, auto-retry with backoff, optional SHA-256 verify
 - **Edit in place** — built-in editor for quick changes
 
+### ⚙️ Docker Compose + Kubernetes Operations
+- **Docker Compose projects** — inspect project services and run explicit up, restart, or down actions
+- **Kubernetes resources** — browse pods, deployments, namespaces, and structured events without parsing table columns
+- **Rollout workflows** — inspect deployment rollout status/history and restart rollouts with confirmation
+- **Pod workflows** — view logs/describe output, open an interactive exec terminal, or start loopback-only kubectl port forwarding on the target host
+- **Agent surfaces** — Kubernetes event, rollout, and non-interactive exec tools are available through the same session-scoped MCP/CLI capability catalog
+
 ### 🎨 Personalization
 - **Custom themes** — tune the app appearance to your taste
 - **Keyword highlighting** — customize highlight rules for terminal output
 - **Command palette** — search hosts, tabs, settings, and actions from the quick switcher
+
+### 🔐 AI Safety + Local Privacy
+- **Session-scoped capabilities** — public tools can only act on terminal sessions exposed to the current chat
+- **Sensitive-read confirmation** — high-context reads such as Kubernetes pod descriptions require confirmation in confirm mode
+- **Strict local privacy** — restricts model traffic to loopback providers and disables external agents and web search
+- **Model capability probe** — verifies that a selected local model can perform tool calls before it runs an agent task
+- **Persistent approval audit** — metadata-only approval events are stored by the Electron main process; tool arguments, passwords, and private keys are never written to the audit log
 
 ---
 

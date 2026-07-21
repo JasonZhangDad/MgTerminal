@@ -27,7 +27,13 @@ const {
 const { registerProviderHandlers } = require("./aiBridge/providerHandlers.cjs"), { registerMagiesTerminalExecHandlers } = require("./aiBridge/magiesTerminalExecHandlers.cjs"), { createAgentCliHelpers } = require("./aiBridge/agentCliHelpers.cjs");
 const { createVaultAgentBridge } = require("./aiBridge/vaultAgentBridge.cjs");
 const { registerAgentDiscoveryHandlers } = require("./aiBridge/agentDiscoveryHandlers.cjs"), { registerAgentProcessHandlers } = require("./aiBridge/agentProcessHandlers.cjs"), { registerSdkStreamHandlers } = require("./aiBridge/sdk/sdkStreamHandlers.cjs");
+const { registerApprovalAuditHandlers } = require("./aiBridge/approvalAuditHandlers.cjs");
+const {
+  createApprovalAuditStore,
+  resolveApprovalAuditFilePath,
+} = require("./aiBridge/approvalAuditStore.cjs");
 const { probeClaudeAuth, probeCopilotAuth, probeCodexAuth, probeCodebuddyAuth } = require("./aiBridge/agentAuthProbes.cjs");
+const { isLoopbackHttpUrl } = require("./aiBridge/localPrivacyPolicy.cjs");
 
 // ── Extracted modules ──
 const {
@@ -228,6 +234,7 @@ let mainWebContentsId = null;
 let cliDiscoveryFilePath = null;
 let registeredContext = null;
 let registeredVaultAgentBridge = null;
+let approvalAuditStore = null;
 
 // Active streaming requests (for cancellation)
 const activeStreams = new Map();
@@ -238,6 +245,7 @@ let providerConfigs = [];
 // Web search config (synced from renderer — apiKey stays encrypted, decrypted on use)
 let webSearchApiHost = null;
 let webSearchApiKeyEncrypted = null;
+let strictLocalPrivacy = false;
 
 /**
  * Decrypt an API key (enc:v1 safeStorage, enc:v2 local vault, or plaintext).
@@ -368,6 +376,16 @@ function init(deps) {
   terminalWorkerManager = deps.terminalWorkerManager || null;
   cliDiscoveryFilePath = deps.cliDiscoveryFilePath || null;
   userDataDir = deps.userDataDir || null;
+  let approvalAuditUserDataDir = userDataDir;
+  try {
+    approvalAuditUserDataDir = approvalAuditUserDataDir || electronModule?.app?.getPath?.("userData") || null;
+  } catch {
+    approvalAuditUserDataDir = approvalAuditUserDataDir || null;
+  }
+  approvalAuditStore = createApprovalAuditStore({
+    filePath: resolveApprovalAuditFilePath(approvalAuditUserDataDir),
+  });
+  mcpServerBridge.setApprovalAuditWriter?.((entry) => approvalAuditStore.append(entry));
   mcpServerBridge.init({ sessions, sftpClients, electronModule, cliDiscoveryFilePath, terminalWorkerManager });
 
   // Wire up main window getter for MCP approval IPC
@@ -790,6 +808,9 @@ function createHandlerContext(ipcMain) {
     set webSearchApiHost(value) { webSearchApiHost = value; },
     get webSearchApiKeyEncrypted() { return webSearchApiKeyEncrypted; },
     set webSearchApiKeyEncrypted(value) { webSearchApiKeyEncrypted = value; },
+    get strictLocalPrivacy() { return strictLocalPrivacy; },
+    set strictLocalPrivacy(value) { strictLocalPrivacy = value === true; },
+    isLoopbackHttpUrl,
     decryptApiKeyValue,
     resolveProviderApiKey,
     shouldSkipTLSVerify,
@@ -835,6 +856,11 @@ function registerHandlers(ipcMain) {
   registerMagiesTerminalExecHandlers(context);
   registerAgentDiscoveryHandlers(context);
   registerAgentProcessHandlers(context);
+  registerApprovalAuditHandlers({
+    ipcMain,
+    validateSenderOrSettings,
+    getApprovalAuditStore: () => approvalAuditStore,
+  });
   registerSdkStreamHandlers(context);
 
   if (externalMcpController) {

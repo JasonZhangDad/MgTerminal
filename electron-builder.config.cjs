@@ -12,6 +12,7 @@ function requestedArch() {
 module.exports = {
     appId: 'top.magies.terminal',
     productName: 'MagiesTerminal',
+    forceCodeSigning: false,
     // Set explicitly: without this electron-builder derives the bundle's
     // copyright string (macOS NSHumanReadableCopyright, Windows file version
     // info) from package.json `author`, so the shipped binary's copyright
@@ -47,6 +48,7 @@ module.exports = {
     //     app (which all share Electron's prebuilt LC_UUID) — see #1040.
     beforePack: './scripts/beforePackCursorSdk.cjs',
     afterPack: './scripts/afterPackMacUuid.cjs',
+    artifactBuildStarted: './scripts/beforeMacArtifact.cjs',
     // Platform-split icons (#813):
     //   - public/icon.png keeps Apple's HIG grid margin so the rendered
     //     squircle sits at ~88% of the PNG canvas. macOS needs this —
@@ -191,6 +193,10 @@ module.exports = {
         'skills/**/*'
     ],
     mac: {
+        // MagiesTerminal does not use a paid Developer ID or Apple notarization.
+        // A free ad-hoc integrity envelope is applied immediately before each
+        // macOS artifact is created so Electron fuse changes remain launchable.
+        identity: null,
         target: [
             {
                 target: 'dmg',
@@ -203,7 +209,7 @@ module.exports = {
         ],
         category: 'public.app-category.developer-tools',
         hardenedRuntime: true,
-        notarize: true,
+        notarize: false,
         entitlements: 'electron/entitlements.mac.plist',
         entitlementsInherit: 'electron/entitlements.mac.plist',
         extendInfo: {

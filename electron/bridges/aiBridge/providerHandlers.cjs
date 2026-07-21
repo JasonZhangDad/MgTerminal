@@ -55,6 +55,12 @@ function registerProviderHandlers(ctx) {
     return { ok: true };
   });
 
+  ipcMain.handle("magiesTerminal:ai:set-strict-local-privacy", async (event, { enabled }) => {
+    if (!validateSenderOrSettings(event)) return { ok: false, error: "Unauthorized IPC sender" };
+    strictLocalPrivacy = enabled === true;
+    return { ok: true };
+  });
+
   /**
    * Inject the decrypted web search API key into request headers.
    * Replaces __WEB_SEARCH_KEY__ placeholder, similar to __IPC_SECURED__ for providers.
@@ -284,6 +290,9 @@ function registerProviderHandlers(ctx) {
   }
 
   function isAllowedFetchUrl(urlString, skipHostCheck) {
+    if (strictLocalPrivacy) {
+      return isLoopbackHttpUrl(urlString);
+    }
     try {
       const parsed = new URL(urlString);
       // Always block private/internal hosts when skipHostCheck is set (SSRF protection)

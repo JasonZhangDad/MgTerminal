@@ -53,12 +53,19 @@ const SENSITIVE_HOST_KEYS = new Set([
 ]);
 
 export function sanitizeHostForAgent(host: Host): Record<string, unknown> {
-  const sanitized: Record<string, unknown> = {};
-  for (const [key, value] of Object.entries(host)) {
-    if (SENSITIVE_HOST_KEYS.has(key)) continue;
-    sanitized[key] = value;
+  function sanitizeValue(value: unknown): unknown {
+    if (Array.isArray(value)) return value.map(sanitizeValue);
+    if (!value || typeof value !== 'object') return value;
+
+    const sanitized: Record<string, unknown> = {};
+    for (const [key, nestedValue] of Object.entries(value)) {
+      if (SENSITIVE_HOST_KEYS.has(key)) continue;
+      sanitized[key] = sanitizeValue(nestedValue);
+    }
+    return sanitized;
   }
-  return sanitized;
+
+  return sanitizeValue(host) as Record<string, unknown>;
 }
 
 function summarizeHostForList(host: Host) {

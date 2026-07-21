@@ -1,6 +1,8 @@
 import type { Messages } from '../types';
+import { systemManagerFeatureFallbackMessages } from '../systemManagerFeatureFallback';
 
 export const ruSystemManagerMessages: Messages = {
+  ...systemManagerFeatureFallbackMessages,
   'terminal.layer.system': 'Система',
 
   'systemManager.noSession': 'Нет активного терминального сеанса.',

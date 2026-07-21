@@ -1,6 +1,8 @@
 import type { Messages } from '../types';
+import { systemManagerFeatureFallbackMessages } from '../systemManagerFeatureFallback';
 
 export const deSystemManagerMessages: Messages = {
+  ...systemManagerFeatureFallbackMessages,
   'terminal.layer.system': 'System',
 
   'systemManager.noSession': 'Keine aktive Terminalsitzung.',

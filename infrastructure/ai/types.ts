@@ -34,6 +34,11 @@ export interface ProviderAdvancedParams {
   presencePenalty?: number;   // -2–2
 }
 
+export interface ModelCapabilityInfo {
+  supportsTools: boolean;
+  checkedAt: number;
+}
+
 export interface ProviderConfig {
   id: string;
   providerId: AIProviderId;
@@ -54,6 +59,8 @@ export interface ProviderConfig {
   contextWindow?: number;
   /** Context windows discovered from provider model-list metadata, keyed by model id. */
   modelContextWindows?: Record<string, number>;
+  /** Results from an explicit live capability probe, keyed by model id. */
+  modelCapabilities?: Record<string, ModelCapabilityInfo>;
   advancedParams?: ProviderAdvancedParams;
 }
 
@@ -316,6 +323,7 @@ export interface AISettings {
   commandTimeout: number;        // seconds, default 60
   maxIterations: number;         // doom loop prevention, default 20
   webSearchConfig?: WebSearchConfig;
+  strictLocalPrivacy: boolean;
 }
 
 export const DEFAULT_COMMAND_BLOCKLIST = [
@@ -341,6 +349,7 @@ export const DEFAULT_AI_SETTINGS: AISettings = {
   commandBlocklist: [...DEFAULT_COMMAND_BLOCKLIST],
   commandTimeout: DEFAULT_COMMAND_TIMEOUT_SECONDS,
   maxIterations: 20,
+  strictLocalPrivacy: false,
 };
 
 export interface ProviderPreset {

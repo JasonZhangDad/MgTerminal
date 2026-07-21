@@ -100,6 +100,7 @@ export interface SendToMagiesTerminalContext {
   titleText?: string;
   selectedUserSkillSlugs?: string[];
   permissionMode?: AIPermissionMode;
+  strictLocalPrivacy: boolean;
 }
 
 export interface SendToExternalContext {
@@ -112,6 +113,7 @@ export interface SendToExternalContext {
   selectedAgentModel?: string;
   toolIntegrationMode: AIToolIntegrationMode;
   selectedUserSkillSlugs?: string[];
+  strictLocalPrivacy: boolean;
 }
 
 export function useAIChatStreaming({

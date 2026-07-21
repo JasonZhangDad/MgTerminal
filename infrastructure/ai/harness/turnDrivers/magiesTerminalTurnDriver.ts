@@ -27,6 +27,7 @@ import {
 } from './magiesTerminalMessageBuilder';
 import { hadToolProgressBeforeRequestTooLarge, processMagiesTerminalStream } from './magiesTerminalStreamProcessor';
 import type { MagiesTerminalTurnInput, TurnDriver, TurnDriverContext } from './types';
+import { getStrictLocalPrivacyViolation } from '../../localPrivacy';
 
 export class MagiesTerminalTurnDriver implements TurnDriver {
   readonly backend = 'magiesTerminal' as const;
@@ -75,12 +76,15 @@ async function runMagiesTerminalTurn(input: MagiesTerminalTurnInput, ctx: TurnDr
     workspaceId: context.scopeType === 'workspace' ? context.scopeTargetId : undefined,
     workspaceName: context.scopeType === 'workspace' ? context.scopeLabel : undefined,
   }));
+  const effectiveWebSearchConfig = context.strictLocalPrivacy
+    ? undefined
+    : context.webSearchConfig ?? undefined;
   const toolsBundle = createMagiesTerminalToolsFromCatalog(
     magiesTerminalBridge,
     getExecutorContext,
     context.commandBlocklist,
     context.globalPermissionMode,
-    context.webSearchConfig ?? undefined,
+    effectiveWebSearchConfig,
     sessionId,
     ctx.toolOutputStore,
     ctx.toolResultDedup,
@@ -92,12 +96,21 @@ async function runMagiesTerminalTurn(input: MagiesTerminalTurnInput, ctx: TurnDr
     scopeLabel: context.scopeLabel,
     hosts: context.terminalSessions,
     permissionMode: context.globalPermissionMode,
-    webSearchEnabled: isWebSearchReady(context.webSearchConfig),
+    webSearchEnabled: isWebSearchReady(effectiveWebSearchConfig),
     userSkillsContext,
   });
 
   if (!context.activeProvider) {
     ui.reportStreamError(sessionId, signal, 'No AI provider configured. Please configure a provider in Settings → AI.');
+    return;
+  }
+
+  const privacyViolation = getStrictLocalPrivacyViolation(
+    context.strictLocalPrivacy,
+    context.activeProvider,
+  );
+  if (privacyViolation) {
+    ui.reportStreamError(sessionId, signal, privacyViolation);
     return;
   }
 

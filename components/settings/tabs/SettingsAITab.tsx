@@ -156,6 +156,8 @@ interface SettingsAITabProps {
   setQuickMessages: (value: AIQuickMessage[] | ((prev: AIQuickMessage[]) => AIQuickMessage[])) => void;
   showTerminalSelectionAIAction: boolean;
   setShowTerminalSelectionAIAction: (value: boolean | ((prev: boolean) => boolean)) => void;
+  strictLocalPrivacy: boolean;
+  setStrictLocalPrivacy: (value: boolean | ((prev: boolean) => boolean)) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -191,6 +193,8 @@ const SettingsAITab: React.FC<SettingsAITabProps> = ({
   setQuickMessages,
   showTerminalSelectionAIAction,
   setShowTerminalSelectionAIAction,
+  strictLocalPrivacy,
+  setStrictLocalPrivacy,
 }) => {
   const {
     permissionGrants,
@@ -846,6 +850,9 @@ const SettingsAITab: React.FC<SettingsAITabProps> = ({
             globalPermissionMode={globalPermissionMode}
             onAddProvider={handleAddProvider}
             onSetPermissionMode={setGlobalPermissionMode}
+            strictLocalPrivacy={strictLocalPrivacy}
+            onSetStrictLocalPrivacy={setStrictLocalPrivacy}
+            onUpdateProvider={updateProvider}
           />
           <SettingsSection
             title={t('ai.providers')}

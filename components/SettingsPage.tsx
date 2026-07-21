@@ -222,6 +222,8 @@ const SettingsAITabContainer: React.FC = () => {
                 setQuickMessages={aiState.setQuickMessages}
                 showTerminalSelectionAIAction={aiState.showTerminalSelectionAIAction}
                 setShowTerminalSelectionAIAction={aiState.setShowTerminalSelectionAIAction}
+                strictLocalPrivacy={aiState.strictLocalPrivacy}
+                setStrictLocalPrivacy={aiState.setStrictLocalPrivacy}
             />
         </AITabErrorBoundary>
     );

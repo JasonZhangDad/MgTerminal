@@ -28,7 +28,7 @@ npm run dev          # http://localhost:5175
 export ANDROID_HOME=/usr/local/share/android-commandlinetools
 export PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools"
 yes | sdkmanager --licenses
-sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"
 
 # 构建
 npm install

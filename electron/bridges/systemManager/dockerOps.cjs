@@ -19,6 +19,68 @@ function sanitizeImageRef(ref) {
   return trimmed || null;
 }
 
+function sanitizeComposeProjectName(name) {
+  const trimmed = String(name || "").trim().slice(0, 128);
+  if (!trimmed || !/^[a-zA-Z0-9][a-zA-Z0-9_.-]*$/.test(trimmed)) return null;
+  return trimmed;
+}
+
+function sanitizeComposeFilePath(filePath) {
+  const trimmed = String(filePath || "").trim().slice(0, 2048);
+  if (!trimmed || /[\0\r\n]/.test(trimmed)) return null;
+  return trimmed;
+}
+
+function parseJsonArrayOrLines(stdout) {
+  const text = String(stdout || "").trim();
+  if (!text) return [];
+  try {
+    const parsed = JSON.parse(text);
+    return Array.isArray(parsed) ? parsed : [parsed];
+  } catch {
+    const rows = [];
+    for (const line of text.split("\n")) {
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+      rows.push(JSON.parse(trimmed));
+    }
+    return rows;
+  }
+}
+
+function composeConfigFiles(payload) {
+  const raw = Array.isArray(payload?.configFiles) && payload.configFiles.length > 0
+    ? payload.configFiles
+    : [payload?.configFile];
+  return raw.map(sanitizeComposeFilePath).filter(Boolean);
+}
+
+function buildComposeProjectArgs(payload) {
+  const projectName = sanitizeComposeProjectName(payload?.projectName);
+  if (!projectName) return { error: "Invalid Compose project name" };
+  const configFiles = composeConfigFiles(payload);
+  if (configFiles.length === 0) return { error: "Missing Compose config file" };
+  return {
+    args: [
+      "compose",
+      ...configFiles.flatMap((filePath) => ["-f", shQuote(filePath)]),
+      "-p",
+      shQuote(projectName),
+    ].join(" "),
+  };
+}
+
+function formatComposePublishers(value) {
+  if (!Array.isArray(value)) return typeof value === "string" ? value : "";
+  return value.map((publisher) => {
+    const published = publisher?.PublishedPort;
+    const target = publisher?.TargetPort;
+    if (published == null && target == null) return "";
+    const port = published == null ? String(target) : `${published}:${target ?? published}`;
+    return publisher?.Protocol ? `${port}/${publisher.Protocol}` : port;
+  }).filter(Boolean).join(", ");
+}
+
 function isSuccessfulCommandResult(result) {
   return result?.success && (result.code === 0 || result.code === null || result.code === undefined);
 }
@@ -339,6 +401,68 @@ function createDockerOpsApi({ execOnSession, getSession }) {
     }
   }
 
+  async function listComposeProjects(event, sessionId) {
+    if (!sessionId) return { success: false, error: "Missing sessionId" };
+    const result = await runDocker(event, sessionId, "compose ls --all --format json", 20000);
+    if (!result.success) return { success: false, error: result.error };
+    try {
+      const projects = parseJsonArrayOrLines(result.stdout).map((row) => ({
+        name: String(row?.Name || row?.name || ""),
+        status: String(row?.Status || row?.status || ""),
+        configFiles: (Array.isArray(row?.ConfigFiles) ? row.ConfigFiles : String(row?.ConfigFiles || "").split(","))
+          .map((filePath) => String(filePath || "").trim())
+          .filter(Boolean),
+      })).filter((project) => project.name);
+      return { success: true, projects };
+    } catch (error) {
+      return { success: false, error: `Failed to parse Docker Compose projects: ${error?.message || "invalid JSON"}` };
+    }
+  }
+
+  async function listComposeServices(event, payload) {
+    const sessionId = payload?.sessionId;
+    if (!sessionId) return { success: false, error: "Missing sessionId" };
+    const context = buildComposeProjectArgs(payload);
+    if (context.error) return { success: false, error: context.error };
+    const result = await runDocker(
+      event,
+      sessionId,
+      `${context.args} ps --all --format json`,
+      20000,
+    );
+    if (!result.success) return { success: false, error: result.error };
+    try {
+      const services = parseJsonArrayOrLines(result.stdout).map((row) => ({
+        name: String(row?.Service || row?.service || ""),
+        containerName: String(row?.Name || row?.name || ""),
+        state: String(row?.State || row?.state || ""),
+        status: String(row?.Status || row?.status || ""),
+        health: String(row?.Health || row?.health || ""),
+        publishers: formatComposePublishers(row?.Publishers ?? row?.publishers),
+      })).filter((service) => service.name || service.containerName);
+      return { success: true, services };
+    } catch (error) {
+      return { success: false, error: `Failed to parse Docker Compose services: ${error?.message || "invalid JSON"}` };
+    }
+  }
+
+  async function composeProjectAction(event, payload) {
+    const sessionId = payload?.sessionId;
+    if (!sessionId) return { success: false, error: "Missing sessionId" };
+    const context = buildComposeProjectArgs(payload);
+    if (context.error) return { success: false, error: context.error };
+    const suffixes = {
+      up: "up -d",
+      down: "down",
+      restart: "restart",
+      start: "start",
+      stop: "stop",
+    };
+    const suffix = suffixes[payload?.action];
+    if (!suffix) return { success: false, error: "Invalid Compose action" };
+    return runDocker(event, sessionId, `${context.args} ${suffix}`, 120000);
+  }
+
   return {
     listContainers,
     listImages,
@@ -347,6 +471,9 @@ function createDockerOpsApi({ execOnSession, getSession }) {
     inspectImage,
     containerAction,
     imageAction,
+    listComposeProjects,
+    listComposeServices,
+    composeProjectAction,
     parseDockerContainers,
     parseDockerStats,
     parseDockerImages,
@@ -358,4 +485,5 @@ module.exports = {
   parseDockerContainers,
   parseDockerStats,
   parseDockerImages,
+  sanitizeComposeProjectName,
 };

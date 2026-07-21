@@ -151,7 +151,7 @@ test("public MCP write tools never auto-bypass observer mode", () => {
 
 test("kubernetes catalog tools are implemented with MCP public surfaces", () => {
   const k8s = ALL_CAPABILITIES.filter((c) => c.domain === "kubernetes");
-  assert.ok(k8s.length >= 7);
+  assert.ok(k8s.length >= 12);
   for (const capability of k8s) {
     assert.equal(capability.status, CAPABILITY_STATUS.IMPLEMENTED);
     assert.ok(capability.surfaces?.public?.mcpTool, `${capability.id} missing public mcpTool`);
@@ -160,7 +160,12 @@ test("kubernetes catalog tools are implemented with MCP public surfaces", () => 
     }
   }
   assert.ok(k8s.some((c) => c.id === "kubernetes.deployments.list"));
+  assert.ok(k8s.some((c) => c.id === "kubernetes.events.list"));
+  assert.ok(k8s.some((c) => c.id === "kubernetes.deployments.rollout.status"));
+  assert.ok(k8s.some((c) => c.id === "kubernetes.deployments.rollout.history"));
   const writes = k8s.filter((c) => c.policy.write);
   assert.ok(writes.some((c) => c.id === "kubernetes.pods.delete"));
   assert.ok(writes.some((c) => c.id === "kubernetes.deployments.scale"));
+  assert.ok(writes.some((c) => c.id === "kubernetes.deployments.rollout.restart"));
+  assert.ok(writes.some((c) => c.id === "kubernetes.pods.exec"));
 });

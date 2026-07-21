@@ -204,6 +204,15 @@ function createPreloadApi(ctx) {
   dockerImageAction: async (options) => {
     return ipcRenderer.invoke("magiesTerminal:system:dockerImageAction", options);
   },
+  listDockerComposeProjects: async (sessionId) => {
+    return ipcRenderer.invoke("magiesTerminal:system:listDockerComposeProjects", { sessionId });
+  },
+  listDockerComposeServices: async (options) => {
+    return ipcRenderer.invoke("magiesTerminal:system:listDockerComposeServices", options);
+  },
+  dockerComposeAction: async (options) => {
+    return ipcRenderer.invoke("magiesTerminal:system:dockerComposeAction", options);
+  },
   listKubernetesNamespaces: async (sessionId) => {
     return ipcRenderer.invoke("magiesTerminal:system:listKubernetesNamespaces", { sessionId });
   },
@@ -230,6 +239,21 @@ function createPreloadApi(ctx) {
   },
   scaleKubernetesDeployment: async (options) => {
     return ipcRenderer.invoke("magiesTerminal:system:scaleKubernetesDeployment", options);
+  },
+  listKubernetesEvents: async (options) => {
+    return ipcRenderer.invoke("magiesTerminal:system:listKubernetesEvents", options);
+  },
+  getKubernetesDeploymentRolloutStatus: async (options) => {
+    return ipcRenderer.invoke("magiesTerminal:system:getKubernetesDeploymentRolloutStatus", options);
+  },
+  getKubernetesDeploymentRolloutHistory: async (options) => {
+    return ipcRenderer.invoke("magiesTerminal:system:getKubernetesDeploymentRolloutHistory", options);
+  },
+  restartKubernetesDeploymentRollout: async (options) => {
+    return ipcRenderer.invoke("magiesTerminal:system:restartKubernetesDeploymentRollout", options);
+  },
+  execKubernetesPod: async (options) => {
+    return ipcRenderer.invoke("magiesTerminal:system:execKubernetesPod", options);
   },
   openTerminalPopup: async (payload) => {
     return ipcRenderer.invoke("magiesTerminal:window:openTerminalPopup", payload);
@@ -1237,6 +1261,18 @@ function createPreloadApi(ctx) {
   },
   aiSyncWebSearch: async (apiHost, apiKey) => {
     return ipcRenderer.invoke("magiesTerminal:ai:sync-web-search", { apiHost, apiKey });
+  },
+  aiSetStrictLocalPrivacy: async (enabled) => {
+    return ipcRenderer.invoke("magiesTerminal:ai:set-strict-local-privacy", { enabled });
+  },
+  aiApprovalAuditList: async () => {
+    return ipcRenderer.invoke("magiesTerminal:ai:approval-audit:list");
+  },
+  aiApprovalAuditAppend: async (entry) => {
+    return ipcRenderer.invoke("magiesTerminal:ai:approval-audit:append", { entry });
+  },
+  aiApprovalAuditClear: async () => {
+    return ipcRenderer.invoke("magiesTerminal:ai:approval-audit:clear");
   },
   aiChatStream: async (requestId, url, headers, body, providerId) => {
     return ipcRenderer.invoke("magiesTerminal:ai:chat:stream", { requestId, url, headers, body, providerId });

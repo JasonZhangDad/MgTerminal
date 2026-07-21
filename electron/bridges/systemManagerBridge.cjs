@@ -336,6 +336,24 @@ function createSystemManagerBridge(deps) {
     return { success: true, output: result.stdout };
   }
 
+  async function listDockerComposeProjects(event, payload) {
+    const sessionId = payload?.sessionId;
+    if (!sessionId) return { success: false, error: "Missing sessionId" };
+    return dockerOps.listComposeProjects(event, sessionId);
+  }
+
+  async function listDockerComposeServices(event, payload) {
+    return dockerOps.listComposeServices(event, payload);
+  }
+
+  async function dockerComposeAction(event, payload) {
+    const result = await dockerOps.composeProjectAction(event, payload);
+    if (result.success === false) {
+      return { success: false, error: result.error || result.stderr || "docker compose command failed" };
+    }
+    return { success: true, output: result.stdout };
+  }
+
   async function listKubernetesNamespaces(event, payload) {
     const sessionId = payload?.sessionId;
     if (!sessionId) return { success: false, error: "Missing sessionId" };
@@ -378,6 +396,26 @@ function createSystemManagerBridge(deps) {
     return kubectlOps.scaleDeployment(event, payload);
   }
 
+  async function listKubernetesEvents(event, payload) {
+    return kubectlOps.listEvents(event, payload);
+  }
+
+  async function getKubernetesDeploymentRolloutStatus(event, payload) {
+    return kubectlOps.getDeploymentRolloutStatus(event, payload);
+  }
+
+  async function getKubernetesDeploymentRolloutHistory(event, payload) {
+    return kubectlOps.getDeploymentRolloutHistory(event, payload);
+  }
+
+  async function restartKubernetesDeploymentRollout(event, payload) {
+    return kubectlOps.restartDeploymentRollout(event, payload);
+  }
+
+  async function execKubernetesPod(event, payload) {
+    return kubectlOps.execPod(event, payload);
+  }
+
   function registerWorkerHandle(ipcMain, terminalWorkerManager, channel) {
     ipcMain.handle(channel, (event, payload) => terminalWorkerManager.request(channel, payload, {
       webContentsId: event?.sender?.id,
@@ -405,6 +443,9 @@ function createSystemManagerBridge(deps) {
         "magiesTerminal:system:dockerImageInspect",
         "magiesTerminal:system:dockerAction",
         "magiesTerminal:system:dockerImageAction",
+        "magiesTerminal:system:listDockerComposeProjects",
+        "magiesTerminal:system:listDockerComposeServices",
+        "magiesTerminal:system:dockerComposeAction",
         "magiesTerminal:system:listKubernetesNamespaces",
         "magiesTerminal:system:listKubernetesPods",
         "magiesTerminal:system:listKubernetesDeployments",
@@ -414,6 +455,11 @@ function createSystemManagerBridge(deps) {
         "magiesTerminal:system:listKubernetesContexts",
         "magiesTerminal:system:deleteKubernetesPod",
         "magiesTerminal:system:scaleKubernetesDeployment",
+        "magiesTerminal:system:listKubernetesEvents",
+        "magiesTerminal:system:getKubernetesDeploymentRolloutStatus",
+        "magiesTerminal:system:getKubernetesDeploymentRolloutHistory",
+        "magiesTerminal:system:restartKubernetesDeploymentRollout",
+        "magiesTerminal:system:execKubernetesPod",
       ].forEach((channel) => registerWorkerHandle(ipcMain, terminalWorkerManager, channel));
       return;
     }
@@ -434,6 +480,9 @@ function createSystemManagerBridge(deps) {
     ipcMain.handle("magiesTerminal:system:dockerImageInspect", dockerImageInspect);
     ipcMain.handle("magiesTerminal:system:dockerAction", dockerAction);
     ipcMain.handle("magiesTerminal:system:dockerImageAction", dockerImageAction);
+    ipcMain.handle("magiesTerminal:system:listDockerComposeProjects", listDockerComposeProjects);
+    ipcMain.handle("magiesTerminal:system:listDockerComposeServices", listDockerComposeServices);
+    ipcMain.handle("magiesTerminal:system:dockerComposeAction", dockerComposeAction);
     ipcMain.handle("magiesTerminal:system:listKubernetesNamespaces", listKubernetesNamespaces);
     ipcMain.handle("magiesTerminal:system:listKubernetesPods", listKubernetesPods);
     ipcMain.handle("magiesTerminal:system:listKubernetesDeployments", listKubernetesDeployments);
@@ -443,6 +492,11 @@ function createSystemManagerBridge(deps) {
     ipcMain.handle("magiesTerminal:system:listKubernetesContexts", listKubernetesContexts);
     ipcMain.handle("magiesTerminal:system:deleteKubernetesPod", deleteKubernetesPod);
     ipcMain.handle("magiesTerminal:system:scaleKubernetesDeployment", scaleKubernetesDeployment);
+    ipcMain.handle("magiesTerminal:system:listKubernetesEvents", listKubernetesEvents);
+    ipcMain.handle("magiesTerminal:system:getKubernetesDeploymentRolloutStatus", getKubernetesDeploymentRolloutStatus);
+    ipcMain.handle("magiesTerminal:system:getKubernetesDeploymentRolloutHistory", getKubernetesDeploymentRolloutHistory);
+    ipcMain.handle("magiesTerminal:system:restartKubernetesDeploymentRollout", restartKubernetesDeploymentRollout);
+    ipcMain.handle("magiesTerminal:system:execKubernetesPod", execKubernetesPod);
   }
 
   return { registerHandlers, probeCapabilities, listProcesses, setupOsc7Tracking };

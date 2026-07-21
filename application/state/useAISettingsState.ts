@@ -16,6 +16,7 @@ import {
   STORAGE_KEY_AI_WEB_SEARCH,
   STORAGE_KEY_AI_QUICK_MESSAGES,
   STORAGE_KEY_AI_SHOW_TERMINAL_SELECTION_ACTION,
+  STORAGE_KEY_AI_STRICT_LOCAL_PRIVACY,
 } from '../../infrastructure/config/storageKeys';
 import type { AIQuickMessage } from '../../infrastructure/ai/quickMessages';
 import { sanitizeQuickMessages } from '../../infrastructure/ai/quickMessages';
@@ -87,6 +88,14 @@ export function useAISettingsState() {
     STORAGE_KEY_AI_SHOW_TERMINAL_SELECTION_ACTION,
     true,
   );
+  const [strictLocalPrivacy, setStrictLocalPrivacy] = useStoredBoolean(
+    STORAGE_KEY_AI_STRICT_LOCAL_PRIVACY,
+    false,
+  );
+
+  useEffect(() => {
+    getAIBridge()?.aiSetStrictLocalPrivacy?.(strictLocalPrivacy);
+  }, [strictLocalPrivacy]);
 
   const setProviders = useCallback((value: ProviderConfig[] | ((prev: ProviderConfig[]) => ProviderConfig[])) => {
     setProvidersRaw((prev) => {
@@ -323,6 +332,8 @@ export function useAISettingsState() {
     setQuickMessages,
     showTerminalSelectionAIAction,
     setShowTerminalSelectionAIAction,
+    strictLocalPrivacy,
+    setStrictLocalPrivacy,
   }), [
     providers,
     setProviders,
@@ -354,5 +365,7 @@ export function useAISettingsState() {
     setQuickMessages,
     showTerminalSelectionAIAction,
     setShowTerminalSelectionAIAction,
+    strictLocalPrivacy,
+    setStrictLocalPrivacy,
   ]);
 }

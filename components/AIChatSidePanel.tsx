@@ -48,6 +48,7 @@ import {
 import { getScopedHistorySessions } from './ai/scopedHistorySessions';
 import { buildExternalAgentHistoryMessagesForBridge } from './ai/externalAgentHistory';
 import { canSendWithAgent, findEnabledExternalAgent } from './ai/agentSendEligibility';
+import { getStrictLocalPrivacyViolation } from '../infrastructure/ai/localPrivacy';
 import { registerGrantPersister } from '../infrastructure/ai/shared/approvalGate';
 import { stopAgentTurn } from '../infrastructure/ai/harness/agentStop';
 import { getAgentRuntime } from '../infrastructure/ai/harness/globalAgentRuntime';
@@ -266,6 +267,7 @@ const AIChatSidePanelActive: React.FC<AIChatSidePanelProps> = ({
   commandBlocklist,
   commandTimeout,
   maxIterations = 20,
+  strictLocalPrivacy = false,
   webSearchConfig,
   quickMessages = [],
   scopeType,
@@ -553,6 +555,11 @@ const AIChatSidePanelActive: React.FC<AIChatSidePanelProps> = ({
     }
   }, [isVisible, webSearchConfig?.apiHost, webSearchConfig?.apiKey, webSearchConfig?.enabled]);
 
+  useEffect(() => {
+    if (!isVisible) return;
+    void getMagiesTerminalBridge()?.aiSetStrictLocalPrivacy?.(strictLocalPrivacy);
+  }, [isVisible, strictLocalPrivacy]);
+
   /** Ensure main process has the latest encrypted provider keys before chat HTTP. */
   const syncProvidersToMain = useCallback(async () => {
     const bridge = getMagiesTerminalBridge();
@@ -562,6 +569,13 @@ const AIChatSidePanelActive: React.FC<AIChatSidePanelProps> = ({
     } catch (err) {
       console.warn("[AIChatSidePanel] aiSyncProviders failed:", err);
     }
+    if (bridge.aiSetStrictLocalPrivacy) {
+      try {
+        await bridge.aiSetStrictLocalPrivacy(strictLocalPrivacy);
+      } catch (err) {
+        console.warn("[AIChatSidePanel] aiSetStrictLocalPrivacy failed:", err);
+      }
+    }
     if (bridge?.aiSyncWebSearch) {
       try {
         await bridge.aiSyncWebSearch(webSearchConfig?.apiHost || null, webSearchConfig?.apiKey || null);
@@ -569,14 +583,14 @@ const AIChatSidePanelActive: React.FC<AIChatSidePanelProps> = ({
         console.warn("[AIChatSidePanel] aiSyncWebSearch failed:", err);
       }
     }
-  }, [providers, webSearchConfig?.apiHost, webSearchConfig?.apiKey]);
+  }, [providers, strictLocalPrivacy, webSearchConfig?.apiHost, webSearchConfig?.apiKey]);
 
   const {
     discoveredAgents,
     isDiscovering,
     rediscover,
     enableAgent,
-  } = useAgentDiscovery(externalAgents, setExternalAgents, { enabled: isVisible });
+  } = useAgentDiscovery(externalAgents, setExternalAgents, { enabled: isVisible && !strictLocalPrivacy });
 
   const handleEnableDiscoveredAgent = useCallback(
     (agent: DiscoveredAgent) => {
@@ -1062,6 +1076,29 @@ const AIChatSidePanelActive: React.FC<AIChatSidePanelProps> = ({
         return;
       }
 
+      const strictPrivacyError = strictLocalPrivacy
+        ? isExternalAgent
+          ? t('ai.chat.strictPrivacyExternalBlocked')
+          : sendActiveProvider && getStrictLocalPrivacyViolation(true, sendActiveProvider)
+            ? t('ai.chat.strictPrivacyEndpointBlocked')
+            : null
+        : null;
+      if (strictPrivacyError) {
+        addMessageToSession(sessionId, {
+          id: generateId(), role: 'user', content: trimmed,
+          ...(attachments.length > 0 ? { attachments } : {}),
+          timestamp: Date.now(),
+        });
+        addMessageToSession(sessionId, {
+          id: generateId(), role: 'assistant', content: strictPrivacyError, timestamp: Date.now(),
+        });
+        if (currentPanelView.mode === 'session') {
+          clearScopeDraft();
+          showScopeSessionView(sessionId);
+        }
+        return;
+      }
+
       addMessageToSession(sessionId, {
         id: generateId(), role: 'user', content: trimmed,
         ...(attachments.length > 0 ? { attachments } : {}),
@@ -1108,6 +1145,7 @@ const AIChatSidePanelActive: React.FC<AIChatSidePanelProps> = ({
             selectedAgentModel,
             toolIntegrationMode,
             selectedUserSkillSlugs: selectedSkillSlugs,
+            strictLocalPrivacy,
           });
         } catch (err) {
           reportStreamError(sessionId, abortController.signal, err);
@@ -1132,7 +1170,8 @@ const AIChatSidePanelActive: React.FC<AIChatSidePanelProps> = ({
           commandBlocklist,
           commandTimeout,
           terminalSessions,
-          webSearchConfig,
+          webSearchConfig: strictLocalPrivacy ? null : webSearchConfig,
+          strictLocalPrivacy,
           getExecutorContext: () => buildExecutorContextForScope(toolScope),
           autoTitleSession,
           selectedUserSkillSlugs: selectedSkillSlugs,
@@ -1152,7 +1191,7 @@ const AIChatSidePanelActive: React.FC<AIChatSidePanelProps> = ({
     sendToExternalAgent, sendToMagiesTerminalAgent, reportStreamError, autoTitleSession, t,
     syncProvidersToMain,
     abortControllersRef, terminalSessions, defaultTargetSession, providers, selectedAgentModel, updateSessionExternalSessionId,
-    scopeType, scopeTargetId, scopeHostIds, scopeLabel, globalPermissionMode, commandBlocklist, commandTimeout, webSearchConfig, buildExecutorContextForScope,
+    scopeType, scopeTargetId, scopeHostIds, scopeLabel, globalPermissionMode, commandBlocklist, commandTimeout, webSearchConfig, strictLocalPrivacy, buildExecutorContextForScope,
     toolIntegrationMode,
     clearScopeDraft, showScopeSessionView, setActiveSessionId,
   ]);
@@ -1356,6 +1395,7 @@ const AI_CHAT_SIDE_PANEL_AI_STATE_KEYS = [
   'commandBlocklist',
   'commandTimeout',
   'maxIterations',
+  'strictLocalPrivacy',
   'webSearchConfig',
   'quickMessages',
 ] as const satisfies readonly (keyof AIChatSidePanelProps)[];

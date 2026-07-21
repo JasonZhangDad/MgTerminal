@@ -5,6 +5,7 @@ import {
   clearApprovalAudit,
   MAX_APPROVAL_AUDIT_ENTRIES,
   readApprovalAudit,
+  readApprovalAuditPersisted,
   sanitizeApprovalAuditEntries,
   writeApprovalAudit,
 } from './approvalAudit';
@@ -23,6 +24,7 @@ test.beforeEach(() => {
     key(index: number) { return [...memory.keys()][index] ?? null; },
   };
   (globalThis as { localStorage: Storage }).localStorage = store as Storage;
+  (globalThis as { window: unknown }).window = {};
 });
 
 test('sanitizeApprovalAuditEntries drops malformed rows', () => {
@@ -59,4 +61,51 @@ test('clearApprovalAudit empties storage', () => {
   }]);
   clearApprovalAudit();
   assert.deepEqual(readApprovalAudit(), []);
+});
+
+test('appendApprovalAudit mirrors metadata to main-process persistence', async () => {
+  const calls: unknown[] = [];
+  (globalThis as { window: unknown }).window = {
+    magiesTerminal: {
+      aiApprovalAuditAppend: async (entry: unknown) => {
+        calls.push(entry);
+        return { ok: true };
+      },
+    },
+  };
+
+  const entry = appendApprovalAudit({
+    id: 'audit-main-1',
+    at: 10,
+    phase: 'resolved',
+    toolName: 'terminal_execute',
+    outcome: 'denied',
+  });
+  await new Promise((resolve) => setTimeout(resolve, 0));
+
+  assert.deepEqual(calls, [entry]);
+});
+
+test('readApprovalAuditPersisted refreshes the renderer cache from the main process', async () => {
+  writeApprovalAudit([{
+    id: 'legacy',
+    at: 1,
+    phase: 'requested',
+    toolName: 'legacy_tool',
+  }]);
+  const persisted = [{
+    id: 'main',
+    at: 2,
+    phase: 'resolved' as const,
+    toolName: 'main_tool',
+    outcome: 'approved' as const,
+  }];
+  (globalThis as { window: unknown }).window = {
+    magiesTerminal: {
+      aiApprovalAuditList: async () => ({ ok: true, entries: persisted }),
+    },
+  };
+
+  assert.deepEqual(await readApprovalAuditPersisted(), persisted);
+  assert.deepEqual(readApprovalAudit(), persisted);
 });

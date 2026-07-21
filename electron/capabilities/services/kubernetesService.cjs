@@ -69,6 +69,15 @@ function createKubernetesService(ctx = {}) {
       }));
     },
 
+    listEvents: async (params = {}) => {
+      const gate = requireSessionId(params);
+      if (!gate.ok) return gate;
+      return mapResult(await getOps().listEvents(null, {
+        sessionId: gate.sessionId,
+        namespace: params.namespace,
+      }));
+    },
+
     getPodLogs: async (params = {}) => {
       const gate = requireSessionId(params);
       if (!gate.ok) return gate;
@@ -101,6 +110,18 @@ function createKubernetesService(ctx = {}) {
       }));
     },
 
+    execPod: async (params = {}) => {
+      const gate = requireSessionId(params);
+      if (!gate.ok) return gate;
+      return mapResult(await getOps().execPod(null, {
+        sessionId: gate.sessionId,
+        namespace: params.namespace,
+        pod: params.pod,
+        container: params.container,
+        command: params.command,
+      }));
+    },
+
     scaleDeployment: async (params = {}) => {
       const gate = requireSessionId(params);
       if (!gate.ok) return gate;
@@ -109,6 +130,36 @@ function createKubernetesService(ctx = {}) {
         namespace: params.namespace,
         name: params.name || params.deployment,
         replicas: params.replicas,
+      }));
+    },
+
+    getDeploymentRolloutStatus: async (params = {}) => {
+      const gate = requireSessionId(params);
+      if (!gate.ok) return gate;
+      return mapResult(await getOps().getDeploymentRolloutStatus(null, {
+        sessionId: gate.sessionId,
+        namespace: params.namespace,
+        name: params.name,
+      }));
+    },
+
+    getDeploymentRolloutHistory: async (params = {}) => {
+      const gate = requireSessionId(params);
+      if (!gate.ok) return gate;
+      return mapResult(await getOps().getDeploymentRolloutHistory(null, {
+        sessionId: gate.sessionId,
+        namespace: params.namespace,
+        name: params.name,
+      }));
+    },
+
+    restartDeploymentRollout: async (params = {}) => {
+      const gate = requireSessionId(params);
+      if (!gate.ok) return gate;
+      return mapResult(await getOps().restartDeploymentRollout(null, {
+        sessionId: gate.sessionId,
+        namespace: params.namespace,
+        name: params.name,
       }));
     },
   };

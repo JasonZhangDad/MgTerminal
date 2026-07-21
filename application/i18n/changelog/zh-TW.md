@@ -1,6 +1,22 @@
 # 更新日誌
 
 
+## [0.5.21] - 2026-07-21
+
+### 安全
+- **主機上下文深層脫敏**：遞迴移除巢狀物件與陣列中的密碼、Telnet 密碼、私鑰和口令，阻止敏感欄位進入 Agent 上下文
+- **公共能力會話範圍**：所有 public capability 統一執行 fail-closed 會話校驗，不能跨越目前聊天暴露的終端會話
+- **敏感讀取與審批稽核**：Pod describe 改為 Sensitive Read；審批中繼資料由主程序原子持久化，不記錄工具參數或憑據
+
+### 功能
+- **嚴格本地隱私與模型探測**：嚴格模式僅允許回環模型服務，停用外部 Agent/網頁搜尋，並可預檢本地模型工具呼叫能力
+- **Docker Compose 管理**：System Manager 新增 Compose 專案與服務檢視，以及需明確操作的 up、restart、down
+- **Kubernetes 維運擴展**：結構化 Events、Rollout 狀態/歷史/重啟、非互動 Agent Exec、互動終端 Exec 與回環 Port Forward
+
+### 修正
+- **Kubernetes JSON 列表解析**：Namespaces、Pods、Deployments 不再解析易變表格文字，kubectl 錯誤會直接顯示
+- **跨平台發佈包**：修正免費無 Developer ID 的 Apple Silicon Fuse 後完整性閃退；Android 統一 JDK 21、SDK/Build Tools 36 與 v0.5.21 中繼資料
+
 ## [0.5.20] - 2026-07-21
 
 ### 功能

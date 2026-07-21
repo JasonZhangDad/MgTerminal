@@ -195,6 +195,7 @@ export const STORAGE_KEY_AI_PERMISSION_GRANTS = 'magiesTerminal_ai_permission_gr
 /** Ring buffer of recent tool-approval request/resolve events (no args/secrets). */
 export const STORAGE_KEY_AI_APPROVAL_AUDIT = 'magiesTerminal_ai_approval_audit_v1';
 export const STORAGE_KEY_AI_SHOW_TERMINAL_SELECTION_ACTION = 'magiesTerminal_ai_show_terminal_selection_action_v1';
+export const STORAGE_KEY_AI_STRICT_LOCAL_PRIVACY = 'magiesTerminal_ai_strict_local_privacy_v1';
 /** External MCP: whether the user last enabled the public catalog MCP endpoint. */
 export const STORAGE_KEY_AI_EXTERNAL_MCP_ENABLED = 'magiesTerminal_ai_external_mcp_enabled_v1';
 /** External MCP lifecycle mode: temporary (idle timeout) or persistent (restore on launch). */

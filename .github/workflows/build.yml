@@ -315,6 +315,15 @@ jobs:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
         run: npm run ${{ matrix.pack_script }}
 
+      # MagiesTerminal intentionally ships without a paid Developer ID. The
+      # free ad-hoc envelope must be applied after Electron fuses, otherwise
+      # Apple Silicon terminates the app before the main process can start.
+      - name: Verify macOS app bundle integrity
+        if: matrix.name == 'macos'
+        run: |
+          codesign --verify --deep --strict --verbose=2 release/mac-arm64/MagiesTerminal.app
+          codesign --verify --deep --strict --verbose=2 release/mac/MagiesTerminal.app
+
       # The asar-integrity fuse makes Electron exit silently at launch when the
       # header hash embedded in the exe does not match resources/app.asar
       # (v0.2.7 shipped that way). Fail the build instead of shipping it.

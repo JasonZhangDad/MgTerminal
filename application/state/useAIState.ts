@@ -18,6 +18,7 @@ import {
   STORAGE_KEY_AI_AGENT_PROVIDER_MAP,
   STORAGE_KEY_AI_WEB_SEARCH,
   STORAGE_KEY_AI_QUICK_MESSAGES,
+  STORAGE_KEY_AI_STRICT_LOCAL_PRIVACY,
 } from '../../infrastructure/config/storageKeys';
 import type { AIQuickMessage } from '../../infrastructure/ai/quickMessages';
 import { sanitizeQuickMessages } from '../../infrastructure/ai/quickMessages';
@@ -72,6 +73,7 @@ import {
   type PanelViewByScope,
 } from './aiStateSnapshots';
 import { AI_STATE_CHANGED_EVENT, emitAIStateChanged } from './aiStateEvents';
+import { useStoredBoolean } from './useStoredBoolean';
 export function useAIState() {
   // ── Provider Config ──
   const [providers, setProvidersRaw] = useState<ProviderConfig[]>(() =>
@@ -177,6 +179,14 @@ export function useAIState() {
   const [quickMessages, setQuickMessagesRaw] = useState<AIQuickMessage[]>(() =>
     sanitizeQuickMessages(localStorageAdapter.read<unknown>(STORAGE_KEY_AI_QUICK_MESSAGES)),
   );
+  const [strictLocalPrivacy, setStrictLocalPrivacy] = useStoredBoolean(
+    STORAGE_KEY_AI_STRICT_LOCAL_PRIVACY,
+    false,
+  );
+
+  useEffect(() => {
+    getAIBridge()?.aiSetStrictLocalPrivacy?.(strictLocalPrivacy);
+  }, [strictLocalPrivacy]);
 
   useEffect(() => {
     setLatestAISessionsSnapshot(sessions);
@@ -1038,6 +1048,8 @@ export function useAIState() {
     setWebSearchConfig,
     quickMessages,
     setQuickMessages,
+    strictLocalPrivacy,
+    setStrictLocalPrivacy,
     sessions,
     activeSessionIdMap,
     draftsByScope,
@@ -1095,6 +1107,8 @@ export function useAIState() {
     setWebSearchConfig,
     quickMessages,
     setQuickMessages,
+    strictLocalPrivacy,
+    setStrictLocalPrivacy,
     sessions,
     activeSessionIdMap,
     draftsByScope,

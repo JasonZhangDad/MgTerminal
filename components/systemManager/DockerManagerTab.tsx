@@ -1,4 +1,4 @@
-import { Box, Layers } from 'lucide-react';
+import { Box, Boxes, Layers } from 'lucide-react';
 import React, { memo, useState } from 'react';
 import { useI18n } from '../../application/i18n/I18nProvider';
 import type { useSystemManagerBackend } from '../../application/state/useSystemManagerBackend';
@@ -6,10 +6,11 @@ import type { TerminalSession } from '../../types';
 import { cn } from '../../lib/utils';
 import { DockerContainersPanel } from './DockerContainersPanel';
 import { DockerImagesPanel } from './DockerImagesPanel';
+import { DockerComposePanel } from './DockerComposePanel';
 import { SystemPanelShell } from './SystemPanelUi';
 
 type Backend = ReturnType<typeof useSystemManagerBackend>;
-type DockerSubTab = 'containers' | 'images';
+type DockerSubTab = 'containers' | 'images' | 'compose';
 
 interface DockerManagerTabProps {
   sessionId: string;
@@ -36,6 +37,7 @@ export const DockerManagerTab = memo(function DockerManagerTab({
   const tabs: { id: DockerSubTab; icon: typeof Box; label: string }[] = [
     { id: 'containers', icon: Box, label: t('systemManager.docker.subTabs.containers') },
     { id: 'images', icon: Layers, label: t('systemManager.docker.subTabs.images') },
+    { id: 'compose', icon: Boxes, label: t('systemManager.docker.subTabs.compose') },
   ];
 
   return (
@@ -76,6 +78,14 @@ export const DockerManagerTab = memo(function DockerManagerTab({
             sessionId={sessionId}
             isVisible={isVisible && subTab === 'images'}
             warmupEnabled={warmupEnabled || (isVisible && subTab !== 'images')}
+            backend={backend}
+            listRefreshIntervalSec={listRefreshIntervalSec}
+          />
+        </div>
+        <div className={cn('flex-1 min-h-0 flex flex-col', subTab !== 'compose' && 'hidden')}>
+          <DockerComposePanel
+            sessionId={sessionId}
+            isVisible={isVisible && subTab === 'compose'}
             backend={backend}
             listRefreshIntervalSec={listRefreshIntervalSec}
           />

@@ -20,6 +20,13 @@ test('canonical changelog parses into entries', () => {
   assert.ok(canonical.length > 0);
 });
 
+test('canonical changelog starts with the package release version', () => {
+  const packageVersion = JSON.parse(
+    readFileSync(path.join(repoRoot, 'package.json'), 'utf8'),
+  ).version;
+  assert.equal(canonical[0]?.version, packageVersion);
+});
+
 for (const locale of translatedLocales) {
   test(`changelog ${locale} mirrors canonical structure`, () => {
     const raw = readFileSync(path.join(changelogDir, `${locale}.md`), 'utf8');

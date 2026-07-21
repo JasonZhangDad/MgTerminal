@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react';
-import type { DockerContainerAction, DockerImageManageAction, TmuxManageAction } from '../../domain/systemManager/types';
+import type { DockerComposeProjectAction, DockerContainerAction, DockerImageManageAction, TmuxManageAction } from '../../domain/systemManager/types';
 import { magiesTerminalBridge } from '../../infrastructure/services/magiesTerminalBridge';
 
 export function useSystemManagerBackend() {
@@ -149,6 +149,39 @@ export function useSystemManagerBackend() {
     return bridge.dockerImageAction(options);
   }, []);
 
+  const listDockerComposeProjects = useCallback(async (sessionId: string) => {
+    const bridge = magiesTerminalBridge.get();
+    if (!bridge?.listDockerComposeProjects) {
+      return { success: false as const, error: 'listDockerComposeProjects unavailable' };
+    }
+    return bridge.listDockerComposeProjects(sessionId);
+  }, []);
+
+  const listDockerComposeServices = useCallback(async (options: {
+    sessionId: string;
+    projectName: string;
+    configFiles: string[];
+  }) => {
+    const bridge = magiesTerminalBridge.get();
+    if (!bridge?.listDockerComposeServices) {
+      return { success: false as const, error: 'listDockerComposeServices unavailable' };
+    }
+    return bridge.listDockerComposeServices(options);
+  }, []);
+
+  const dockerComposeAction = useCallback(async (options: {
+    sessionId: string;
+    projectName: string;
+    configFiles: string[];
+    action: DockerComposeProjectAction;
+  }) => {
+    const bridge = magiesTerminalBridge.get();
+    if (!bridge?.dockerComposeAction) {
+      return { success: false as const, error: 'dockerComposeAction unavailable' };
+    }
+    return bridge.dockerComposeAction(options);
+  }, []);
+
   const listKubernetesNamespaces = useCallback(async (sessionId: string) => {
     const bridge = magiesTerminalBridge.get();
     if (!bridge?.listKubernetesNamespaces) {
@@ -243,6 +276,64 @@ export function useSystemManagerBackend() {
     return bridge.scaleKubernetesDeployment(options);
   }, []);
 
+  const listKubernetesEvents = useCallback(async (options: { sessionId: string; namespace?: string }) => {
+    const bridge = magiesTerminalBridge.get();
+    if (!bridge?.listKubernetesEvents) {
+      return { success: false as const, error: 'listKubernetesEvents unavailable' };
+    }
+    return bridge.listKubernetesEvents(options);
+  }, []);
+
+  const getKubernetesDeploymentRolloutStatus = useCallback(async (options: {
+    sessionId: string;
+    namespace?: string;
+    name: string;
+  }) => {
+    const bridge = magiesTerminalBridge.get();
+    if (!bridge?.getKubernetesDeploymentRolloutStatus) {
+      return { success: false as const, error: 'getKubernetesDeploymentRolloutStatus unavailable' };
+    }
+    return bridge.getKubernetesDeploymentRolloutStatus(options);
+  }, []);
+
+  const getKubernetesDeploymentRolloutHistory = useCallback(async (options: {
+    sessionId: string;
+    namespace?: string;
+    name: string;
+  }) => {
+    const bridge = magiesTerminalBridge.get();
+    if (!bridge?.getKubernetesDeploymentRolloutHistory) {
+      return { success: false as const, error: 'getKubernetesDeploymentRolloutHistory unavailable' };
+    }
+    return bridge.getKubernetesDeploymentRolloutHistory(options);
+  }, []);
+
+  const restartKubernetesDeploymentRollout = useCallback(async (options: {
+    sessionId: string;
+    namespace?: string;
+    name: string;
+  }) => {
+    const bridge = magiesTerminalBridge.get();
+    if (!bridge?.restartKubernetesDeploymentRollout) {
+      return { success: false as const, error: 'restartKubernetesDeploymentRollout unavailable' };
+    }
+    return bridge.restartKubernetesDeploymentRollout(options);
+  }, []);
+
+  const execKubernetesPod = useCallback(async (options: {
+    sessionId: string;
+    namespace: string;
+    pod: string;
+    container?: string;
+    command: string;
+  }) => {
+    const bridge = magiesTerminalBridge.get();
+    if (!bridge?.execKubernetesPod) {
+      return { success: false as const, error: 'execKubernetesPod unavailable' };
+    }
+    return bridge.execKubernetesPod(options);
+  }, []);
+
   const openTerminalPopup = useCallback(async (
     payload: Parameters<NonNullable<MagiesTerminalBridge['openTerminalPopup']>>[0],
   ) => {
@@ -270,6 +361,9 @@ export function useSystemManagerBackend() {
     dockerImageInspect,
     dockerAction,
     dockerImageAction,
+    listDockerComposeProjects,
+    listDockerComposeServices,
+    dockerComposeAction,
     listKubernetesNamespaces,
     listKubernetesPods,
     listKubernetesDeployments,
@@ -279,6 +373,11 @@ export function useSystemManagerBackend() {
     listKubernetesContexts,
     deleteKubernetesPod,
     scaleKubernetesDeployment,
+    listKubernetesEvents,
+    getKubernetesDeploymentRolloutStatus,
+    getKubernetesDeploymentRolloutHistory,
+    restartKubernetesDeploymentRollout,
+    execKubernetesPod,
     openTerminalPopup,
   }), [
     probeSystemCapabilities,
@@ -297,6 +396,9 @@ export function useSystemManagerBackend() {
     dockerImageInspect,
     dockerAction,
     dockerImageAction,
+    listDockerComposeProjects,
+    listDockerComposeServices,
+    dockerComposeAction,
     listKubernetesNamespaces,
     listKubernetesPods,
     listKubernetesDeployments,
@@ -306,6 +408,11 @@ export function useSystemManagerBackend() {
     listKubernetesContexts,
     deleteKubernetesPod,
     scaleKubernetesDeployment,
+    listKubernetesEvents,
+    getKubernetesDeploymentRolloutStatus,
+    getKubernetesDeploymentRolloutHistory,
+    restartKubernetesDeploymentRollout,
+    execKubernetesPod,
     openTerminalPopup,
   ]);
 }

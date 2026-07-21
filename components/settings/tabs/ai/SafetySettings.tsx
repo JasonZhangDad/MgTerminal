@@ -5,6 +5,7 @@ import { DEFAULT_COMMAND_BLOCKLIST, MAX_COMMAND_TIMEOUT_SECONDS } from "../../..
 import {
   clearApprovalAudit,
   readApprovalAudit,
+  readApprovalAuditPersisted,
   type ApprovalAuditEntry,
 } from "../../../../infrastructure/ai/approvalAudit";
 import { useI18n } from "../../../../application/i18n/I18nProvider";
@@ -36,7 +37,11 @@ export const SafetySettings: React.FC<{
 
   useEffect(() => {
     // Refresh when the safety tab is mounted so recent approvals appear without restart.
-    setApprovalAudit(readApprovalAudit());
+    let active = true;
+    void readApprovalAuditPersisted().then((entries) => {
+      if (active) setApprovalAudit(entries);
+    });
+    return () => { active = false; };
   }, []);
 
   const validatePattern = useCallback((pattern: string, idx: number): boolean => {

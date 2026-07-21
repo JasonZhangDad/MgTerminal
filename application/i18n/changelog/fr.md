@@ -1,6 +1,22 @@
 # Journal des modifications
 
 
+## [0.5.21] - 2026-07-21
+
+### Sécurité
+- **Nettoyage profond du contexte hôte** : supprime récursivement mots de passe, mots de passe Telnet, clés privées et phrases secrètes des objets et tableaux imbriqués
+- **Portée de session des capacités publiques** : chaque capacité publique applique une validation fail-closed et ne peut pas sortir des sessions exposées au chat courant
+- **Lectures sensibles et audit d’approbation** : Pod describe devient une Sensitive Read ; le processus principal conserve uniquement les métadonnées d’approbation, sans arguments ni identifiants
+
+### Fonctionnalités
+- **Confidentialité locale stricte et test du modèle** : services de modèle loopback uniquement, agents externes/recherche web désactivés et vérification des appels d’outils
+- **Gestion Docker Compose** : inspection des projets/services et actions explicites up, restart et down
+- **Opérations Kubernetes étendues** : Events structurés, état/historique/redémarrage de rollout, Agent Exec, Exec interactif et Port Forward loopback
+
+### Corrections
+- **Listes Kubernetes en JSON** : Namespaces, Pods et Deployments ne dépendent plus de tableaux instables, et les erreurs kubectl sont affichées directement
+- **Paquets multiplateformes** : corrige le crash Apple Silicon après les Fuses sans Developer ID payant ; Android aligne JDK 21, SDK/Build Tools 36 et v0.5.21
+
 ## [0.5.20] - 2026-07-21
 
 ### Features

@@ -27,31 +27,29 @@ function kubectlError(result, fallback) {
   return (result?.stderr || result?.error || "").trim() || fallback;
 }
 
-function parseWideRows(stdout, headers) {
-  const lines = (stdout || "").split("\n").map((l) => l.trimEnd()).filter(Boolean);
-  if (lines.length === 0) return [];
-  // Drop header if present
-  const start = /NAME\s+/i.test(lines[0]) ? 1 : 0;
-  const rows = [];
-  for (let i = start; i < lines.length; i += 1) {
-    const cols = lines[i].trim().split(/\s{2,}|\t+/).map((c) => c.trim()).filter(Boolean);
-    if (cols.length < 2) continue;
-    const row = {};
-    for (let h = 0; h < headers.length; h += 1) {
-      row[headers[h]] = cols[h] ?? "";
+function parseKubectlList(stdout, resourceName) {
+  try {
+    const parsed = JSON.parse(String(stdout || ""));
+    if (!parsed || !Array.isArray(parsed.items)) {
+      return { ok: false, error: `Invalid JSON returned while listing ${resourceName}: missing items array` };
     }
-    // last column may absorb rest
-    if (cols.length > headers.length) {
-      row[headers[headers.length - 1]] = cols.slice(headers.length - 1).join(" ");
-    }
-    rows.push(row);
+    return { ok: true, items: parsed.items };
+  } catch (error) {
+    return {
+      ok: false,
+      error: `Invalid JSON returned while listing ${resourceName}: ${error?.message || "parse failed"}`,
+    };
   }
-  return rows;
 }
 
-function parseRestarts(value) {
-  const m = String(value || "0").match(/^(\d+)/);
-  return m ? Number(m[1]) : 0;
+function formatResourceAge(creationTimestamp) {
+  const createdAt = Date.parse(String(creationTimestamp || ""));
+  if (!Number.isFinite(createdAt)) return "";
+  const seconds = Math.max(0, Math.floor((Date.now() - createdAt) / 1000));
+  if (seconds >= 86400) return `${Math.floor(seconds / 86400)}d`;
+  if (seconds >= 3600) return `${Math.floor(seconds / 3600)}h`;
+  if (seconds >= 60) return `${Math.floor(seconds / 60)}m`;
+  return `${seconds}s`;
 }
 
 function createKubectlOpsApi({ execOnSession }) {
@@ -112,22 +110,19 @@ function createKubectlOpsApi({ execOnSession }) {
     const result = await runKubectl(
       event,
       sessionId,
-      "get namespaces --no-headers",
+      "get namespaces -o json",
       20000,
     );
     if (!result.success) {
       return { success: false, error: result.error || "Failed to list namespaces" };
     }
-    const namespaces = [];
-    for (const line of String(result.stdout || "").split("\n")) {
-      const cols = line.trim().split(/\s+/).filter(Boolean);
-      if (cols.length < 2) continue;
-      namespaces.push({
-        name: cols[0],
-        status: cols[1] || "",
-        age: cols[2] || "",
-      });
-    }
+    const parsed = parseKubectlList(result.stdout, "namespaces");
+    if (!parsed.ok) return { success: false, error: parsed.error };
+    const namespaces = parsed.items.map((item) => ({
+      name: item?.metadata?.name || "",
+      status: item?.status?.phase || "",
+      age: formatResourceAge(item?.metadata?.creationTimestamp),
+    })).filter((namespace) => namespace.name);
     return { success: true, namespaces };
   }
 
@@ -142,43 +137,36 @@ function createKubectlOpsApi({ execOnSession }) {
     const result = await runKubectl(
       event,
       sessionId,
-      `get pods ${scope} --no-headers -o wide`,
+      `get pods ${scope} -o json`,
       25000,
     );
     if (!result.success) {
       return { success: false, error: result.error || "Failed to list pods" };
     }
 
-    const pods = [];
-    for (const line of String(result.stdout || "").split("\n")) {
-      const cols = line.trim().split(/\s+/).filter(Boolean);
-      if (cols.length < 5) continue;
-      // all-namespaces: NS NAME READY STATUS RESTARTS AGE IP NODE ...
-      // namespaced: NAME READY STATUS RESTARTS AGE IP NODE ...
-      if (ns) {
-        pods.push({
-          name: cols[0],
-          namespace: ns,
-          ready: cols[1] || "",
-          status: cols[2] || "",
-          restarts: parseRestarts(cols[3]),
-          age: cols[4] || "",
-          ip: cols[5] || "",
-          node: cols[6] || "",
-        });
-      } else {
-        pods.push({
-          namespace: cols[0],
-          name: cols[1],
-          ready: cols[2] || "",
-          status: cols[3] || "",
-          restarts: parseRestarts(cols[4]),
-          age: cols[5] || "",
-          ip: cols[6] || "",
-          node: cols[7] || "",
-        });
-      }
-    }
+    const parsed = parseKubectlList(result.stdout, "pods");
+    if (!parsed.ok) return { success: false, error: parsed.error };
+    const pods = parsed.items.map((item) => {
+      const containerStatuses = Array.isArray(item?.status?.containerStatuses)
+        ? item.status.containerStatuses
+        : [];
+      const containerCount = Array.isArray(item?.spec?.containers)
+        ? item.spec.containers.length
+        : containerStatuses.length;
+      return {
+        name: item?.metadata?.name || "",
+        namespace: item?.metadata?.namespace || ns || "default",
+        ready: `${containerStatuses.filter((status) => status?.ready).length}/${containerCount}`,
+        status: item?.metadata?.deletionTimestamp ? "Terminating" : (item?.status?.phase || ""),
+        restarts: containerStatuses.reduce(
+          (total, status) => total + (Number(status?.restartCount) || 0),
+          0,
+        ),
+        age: formatResourceAge(item?.metadata?.creationTimestamp),
+        ip: item?.status?.podIP || "",
+        node: item?.spec?.nodeName || "",
+      };
+    }).filter((pod) => pod.name);
     return { success: true, pods };
   }
 
@@ -193,40 +181,23 @@ function createKubectlOpsApi({ execOnSession }) {
     const result = await runKubectl(
       event,
       sessionId,
-      `get deployments ${scope} --no-headers -o wide`,
+      `get deployments ${scope} -o json`,
       25000,
     );
     if (!result.success) {
       return { success: false, error: result.error || "Failed to list deployments" };
     }
 
-    const deployments = [];
-    for (const line of String(result.stdout || "").split("\n")) {
-      const cols = line.trim().split(/\s+/).filter(Boolean);
-      if (cols.length < 4) continue;
-      // all-namespaces: NS NAME READY UP-TO-DATE AVAILABLE AGE ...
-      // namespaced: NAME READY UP-TO-DATE AVAILABLE AGE ...
-      if (ns) {
-        deployments.push({
-          name: cols[0],
-          namespace: ns,
-          ready: cols[1] || "",
-          upToDate: cols[2] || "",
-          available: cols[3] || "",
-          age: cols[4] || "",
-        });
-      } else {
-        if (cols.length < 5) continue;
-        deployments.push({
-          namespace: cols[0],
-          name: cols[1],
-          ready: cols[2] || "",
-          upToDate: cols[3] || "",
-          available: cols[4] || "",
-          age: cols[5] || "",
-        });
-      }
-    }
+    const parsed = parseKubectlList(result.stdout, "deployments");
+    if (!parsed.ok) return { success: false, error: parsed.error };
+    const deployments = parsed.items.map((item) => ({
+      name: item?.metadata?.name || "",
+      namespace: item?.metadata?.namespace || ns || "default",
+      ready: `${Number(item?.status?.readyReplicas) || 0}/${Number(item?.spec?.replicas) || 0}`,
+      upToDate: String(Number(item?.status?.updatedReplicas) || 0),
+      available: String(Number(item?.status?.availableReplicas) || 0),
+      age: formatResourceAge(item?.metadata?.creationTimestamp),
+    })).filter((deployment) => deployment.name);
     return { success: true, deployments };
   }
 
@@ -310,6 +281,107 @@ function createKubectlOpsApi({ execOnSession }) {
     return { success: true, output: String(result.stdout || result.stderr || "scaled") };
   }
 
+  async function listEvents(event, payload) {
+    const sessionId = payload?.sessionId;
+    if (!sessionId) return { success: false, error: "Missing sessionId" };
+    const namespace = payload?.namespace ? sanitizeK8sName(payload.namespace) : null;
+    if (payload?.namespace && !namespace) return { success: false, error: "Invalid namespace" };
+    const scope = namespace ? `-n ${shQuote(namespace)}` : "--all-namespaces";
+    const result = await runKubectl(
+      event,
+      sessionId,
+      `get events ${scope} -o json --sort-by=.metadata.creationTimestamp`,
+      25000,
+    );
+    if (!result.success) return { success: false, error: result.error || "Failed to list events" };
+    const parsed = parseKubectlList(result.stdout, "events");
+    if (!parsed.ok) return { success: false, error: parsed.error };
+    const events = parsed.items.map((item) => {
+      const component = item?.source?.component || item?.reportingController || "";
+      const host = item?.source?.host || item?.reportingInstance || "";
+      return {
+        name: item?.metadata?.name || "",
+        namespace: item?.metadata?.namespace || item?.involvedObject?.namespace || namespace || "default",
+        type: item?.type || "Normal",
+        reason: item?.reason || "",
+        message: item?.message || item?.note || "",
+        count: Number(item?.count || item?.deprecatedCount) || 1,
+        objectKind: item?.involvedObject?.kind || item?.regarding?.kind || "",
+        objectName: item?.involvedObject?.name || item?.regarding?.name || "",
+        source: [component, host].filter(Boolean).join("/"),
+        firstSeen: item?.firstTimestamp || item?.deprecatedFirstTimestamp || item?.metadata?.creationTimestamp || "",
+        lastSeen: item?.eventTime || item?.lastTimestamp || item?.series?.lastObservedTime || item?.deprecatedLastTimestamp || item?.metadata?.creationTimestamp || "",
+      };
+    }).filter((item) => item.name || item.reason || item.message);
+    return { success: true, events };
+  }
+
+  function deploymentRolloutTarget(payload) {
+    const sessionId = payload?.sessionId;
+    const namespace = sanitizeK8sName(payload?.namespace) || "default";
+    const name = sanitizeK8sName(payload?.name || payload?.deployment);
+    if (!sessionId) return { error: "Missing sessionId" };
+    if (!name) return { error: "Invalid deployment name" };
+    return { sessionId, namespace, name };
+  }
+
+  async function runDeploymentRollout(event, payload, args, timeoutMs) {
+    const target = deploymentRolloutTarget(payload);
+    if (target.error) return { success: false, error: target.error };
+    const result = await runKubectl(
+      event,
+      target.sessionId,
+      `rollout ${args} deployment/${target.name} -n ${shQuote(target.namespace)}`,
+      timeoutMs,
+    );
+    if (!result.success) return { success: false, error: result.error || "Rollout command failed" };
+    return { success: true, output: String(result.stdout || result.stderr || "") };
+  }
+
+  async function getDeploymentRolloutStatus(event, payload) {
+    const target = deploymentRolloutTarget(payload);
+    if (target.error) return { success: false, error: target.error };
+    const result = await runKubectl(
+      event,
+      target.sessionId,
+      `rollout status deployment/${target.name} -n ${shQuote(target.namespace)} --timeout=20s`,
+      30000,
+    );
+    if (!result.success) return { success: false, error: result.error || "Failed to get rollout status" };
+    return { success: true, output: String(result.stdout || result.stderr || "") };
+  }
+
+  async function getDeploymentRolloutHistory(event, payload) {
+    return runDeploymentRollout(event, payload, "history", 30000);
+  }
+
+  async function restartDeploymentRollout(event, payload) {
+    return runDeploymentRollout(event, payload, "restart", 60000);
+  }
+
+  async function execPod(event, payload) {
+    const sessionId = payload?.sessionId;
+    const namespace = sanitizeK8sName(payload?.namespace);
+    const pod = sanitizeK8sName(payload?.pod);
+    const container = payload?.container ? sanitizeK8sName(payload.container) : null;
+    const command = typeof payload?.command === "string" ? payload.command.trim().slice(0, 32768) : "";
+    if (!sessionId) return { success: false, error: "Missing sessionId" };
+    if (!namespace || !pod || (payload?.container && !container)) {
+      return { success: false, error: "Invalid namespace, pod, or container" };
+    }
+    if (!command) return { success: false, error: "Command is required" };
+    if (command.includes("\0")) return { success: false, error: "Invalid command" };
+    const containerArg = container ? ` -c ${shQuote(container)}` : "";
+    const result = await runKubectl(
+      event,
+      sessionId,
+      `exec -n ${shQuote(namespace)} ${shQuote(pod)}${containerArg} -- sh -lc ${shQuote(command)}`,
+      60000,
+    );
+    if (!result.success) return { success: false, error: result.error || "Pod exec failed" };
+    return { success: true, output: String(result.stdout || result.stderr || "") };
+  }
+
   return {
     getCurrentContext,
     listContexts,
@@ -320,6 +392,11 @@ function createKubectlOpsApi({ execOnSession }) {
     describePod,
     deletePod,
     scaleDeployment,
+    listEvents,
+    getDeploymentRolloutStatus,
+    getDeploymentRolloutHistory,
+    restartDeploymentRollout,
+    execPod,
   };
 }
 

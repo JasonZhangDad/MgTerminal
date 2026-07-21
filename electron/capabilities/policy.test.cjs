@@ -84,6 +84,20 @@ test("public surface treats sensitive reads as confirm-gated", () => {
   assert.equal(PUBLIC_CONFIRM_RPC_METHODS.has("public/sftp/list"), true);
 });
 
+test("kubernetes pod describe is a confirm-gated sensitive read on the public surface", () => {
+  const decision = evaluateRpcPermission({
+    rpcMethod: "public/kubernetes/pods/describe",
+    surface: CAPABILITY_SURFACES.PUBLIC,
+    permissionMode: PERMISSION_MODES.CONFIRM,
+    params: { sessionId: "sess-1", namespace: "default", pod: "api-1" },
+  });
+
+  assert.equal(decision.capability?.policy.sensitiveRead, true);
+  assert.equal(decision.allowed, true);
+  assert.equal(decision.requiresApproval, true);
+  assert.equal(PUBLIC_CONFIRM_RPC_METHODS.has("public/kubernetes/pods/describe"), true);
+});
+
 test("write operations require chatSessionId on builtin surface", () => {
   const decision = evaluateRpcPermission({
     rpcMethod: "magiesTerminal/exec",

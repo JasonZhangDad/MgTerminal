@@ -125,14 +125,18 @@ function emitApprovalEvent(
       args: request.args,
     });
     // Persist metadata-only audit (no tool args / secrets) for Settings → Safety.
-    try {
-      appendApprovalAudit({
-        phase: 'requested',
-        toolName: request.toolName,
-        capabilityId: request.capabilityId,
-        chatSessionId: request.chatSessionId,
-      });
-    } catch { /* ignore storage failures */ }
+    if (!request.toolCallId.startsWith('mcp_approval_')) {
+      try {
+        appendApprovalAudit({
+          phase: 'requested',
+          toolName: request.toolName,
+          capabilityId: request.capabilityId,
+          chatSessionId: request.chatSessionId,
+        });
+      } catch (error) {
+        console.warn('[approvalGate] approval audit append failed:', error);
+      }
+    }
     return;
   }
 
@@ -143,15 +147,19 @@ function emitApprovalEvent(
     outcome: extra?.outcome ?? 'denied',
     persistedGrantId: extra?.persistedGrantId,
   });
-  try {
-    appendApprovalAudit({
-      phase: 'resolved',
-      toolName: request.toolName,
-      capabilityId: request.capabilityId,
-      chatSessionId: request.chatSessionId,
-      outcome: extra?.outcome ?? 'denied',
-    });
-  } catch { /* ignore storage failures */ }
+  if (!request.toolCallId.startsWith('mcp_approval_')) {
+    try {
+      appendApprovalAudit({
+        phase: 'resolved',
+        toolName: request.toolName,
+        capabilityId: request.capabilityId,
+        chatSessionId: request.chatSessionId,
+        outcome: extra?.outcome ?? 'denied',
+      });
+    } catch (error) {
+      console.warn('[approvalGate] approval audit append failed:', error);
+    }
+  }
 }
 
 function isGrantedByRules(request: ApprovalRequest): boolean {

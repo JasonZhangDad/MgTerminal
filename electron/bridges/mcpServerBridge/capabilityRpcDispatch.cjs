@@ -13,10 +13,15 @@ const SERVICE_BINDINGS = Object.freeze({
   "kubernetes.namespaces.list": { domain: "kubernetes", method: "listNamespaces" },
   "kubernetes.pods.list": { domain: "kubernetes", method: "listPods" },
   "kubernetes.deployments.list": { domain: "kubernetes", method: "listDeployments" },
+  "kubernetes.events.list": { domain: "kubernetes", method: "listEvents" },
   "kubernetes.pods.logs": { domain: "kubernetes", method: "getPodLogs" },
   "kubernetes.pods.describe": { domain: "kubernetes", method: "describePod" },
   "kubernetes.pods.delete": { domain: "kubernetes", method: "deletePod" },
+  "kubernetes.pods.exec": { domain: "kubernetes", method: "execPod" },
   "kubernetes.deployments.scale": { domain: "kubernetes", method: "scaleDeployment" },
+  "kubernetes.deployments.rollout.status": { domain: "kubernetes", method: "getDeploymentRolloutStatus" },
+  "kubernetes.deployments.rollout.history": { domain: "kubernetes", method: "getDeploymentRolloutHistory" },
+  "kubernetes.deployments.rollout.restart": { domain: "kubernetes", method: "restartDeploymentRollout" },
   "vault.host.get": { domain: "vault", method: "getHost" },
   "vault.host.list": { domain: "vault", method: "listHosts" },
   "vault.host.open": { domain: "vault", method: "openHost" },
@@ -113,6 +118,20 @@ function createCapabilityRpcDispatcher(deps) {
         code: "CAPABILITY_NOT_IMPLEMENTED",
         error: `Capability "${capability.id}" is not implemented yet.`,
       };
+    }
+
+    if (surface === CAPABILITY_SURFACES.PUBLIC && params?.sessionId) {
+      if (typeof deps.validateSessionScope !== "function") {
+        return { ok: false, error: "Session scope validation is unavailable." };
+      }
+      const scopeError = deps.validateSessionScope(
+        params.sessionId,
+        params.chatSessionId,
+        params.scopedSessionIds,
+      );
+      if (scopeError) {
+        return { ok: false, error: scopeError };
+      }
     }
 
     const binding = SERVICE_BINDINGS[capability.id];

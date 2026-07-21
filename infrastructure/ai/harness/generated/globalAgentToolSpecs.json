@@ -1735,6 +1735,35 @@
     "agentKind": "global"
   },
   {
+    "capabilityId": "kubernetes.events.list",
+    "toolName": "kubernetes_events_list",
+    "rpcMethod": "kubernetes/events/list",
+    "localExecution": false,
+    "description": "List Kubernetes events via remote kubectl (read-only).",
+    "inputShape": {
+      "sessionId": {
+        "type": "string",
+        "optional": false,
+        "description": "Terminal session ID with kubectl access."
+      },
+      "namespace": {
+        "type": "string",
+        "optional": true,
+        "description": "Namespace filter. Omit for all namespaces."
+      }
+    },
+    "policy": {
+      "write": false,
+      "sensitiveRead": false,
+      "longRunning": false,
+      "requiresChatSession": false,
+      "bypassesObserverBlock": false,
+      "bypassesApproval": true,
+      "bypassesChatCancel": true
+    },
+    "agentKind": "global"
+  },
+  {
     "capabilityId": "kubernetes.pods.logs",
     "toolName": "kubernetes_pods_logs",
     "rpcMethod": "kubernetes/pods/logs",
@@ -1783,7 +1812,7 @@
     "toolName": "kubernetes_pods_describe",
     "rpcMethod": "kubernetes/pods/describe",
     "localExecution": false,
-    "description": "Describe a pod via remote kubectl (read-only).",
+    "description": "Describe a pod via remote kubectl (sensitive read; may expose environment and event details).",
     "inputShape": {
       "sessionId": {
         "type": "string",
@@ -1803,7 +1832,7 @@
     },
     "policy": {
       "write": false,
-      "sensitiveRead": false,
+      "sensitiveRead": true,
       "longRunning": false,
       "requiresChatSession": false,
       "bypassesObserverBlock": false,
@@ -1847,6 +1876,50 @@
     "agentKind": "global"
   },
   {
+    "capabilityId": "kubernetes.pods.exec",
+    "toolName": "kubernetes_pods_exec",
+    "rpcMethod": "kubernetes/pods/exec",
+    "localExecution": false,
+    "description": "Execute a non-interactive command in a Kubernetes pod via remote kubectl. Requires confirm-mode approval.",
+    "inputShape": {
+      "sessionId": {
+        "type": "string",
+        "optional": false,
+        "description": "Terminal session ID with kubectl access."
+      },
+      "namespace": {
+        "type": "string",
+        "optional": false,
+        "description": "Pod namespace."
+      },
+      "pod": {
+        "type": "string",
+        "optional": false,
+        "description": "Pod name."
+      },
+      "container": {
+        "type": "string",
+        "optional": true,
+        "description": "Container name when the pod has multiple containers."
+      },
+      "command": {
+        "type": "string",
+        "optional": false,
+        "description": "Non-interactive shell command to run in the pod."
+      }
+    },
+    "policy": {
+      "write": true,
+      "sensitiveRead": false,
+      "longRunning": false,
+      "requiresChatSession": true,
+      "bypassesObserverBlock": false,
+      "bypassesApproval": false,
+      "bypassesChatCancel": false
+    },
+    "agentKind": "global"
+  },
+  {
     "capabilityId": "kubernetes.deployments.scale",
     "toolName": "kubernetes_deployments_scale",
     "rpcMethod": "kubernetes/deployments/scale",
@@ -1872,6 +1945,108 @@
         "type": "number",
         "optional": false,
         "description": "Desired replica count (0–1000)."
+      }
+    },
+    "policy": {
+      "write": true,
+      "sensitiveRead": false,
+      "longRunning": false,
+      "requiresChatSession": true,
+      "bypassesObserverBlock": false,
+      "bypassesApproval": false,
+      "bypassesChatCancel": false
+    },
+    "agentKind": "global"
+  },
+  {
+    "capabilityId": "kubernetes.deployments.rollout.status",
+    "toolName": "kubernetes_deployments_rollout_status",
+    "rpcMethod": "kubernetes/deployments/rollout/status",
+    "localExecution": false,
+    "description": "Wait briefly for and report Kubernetes deployment rollout status (read-only).",
+    "inputShape": {
+      "sessionId": {
+        "type": "string",
+        "optional": false,
+        "description": "Terminal session ID with kubectl access."
+      },
+      "namespace": {
+        "type": "string",
+        "optional": true,
+        "description": "Deployment namespace (default: default)."
+      },
+      "name": {
+        "type": "string",
+        "optional": false,
+        "description": "Deployment name."
+      }
+    },
+    "policy": {
+      "write": false,
+      "sensitiveRead": false,
+      "longRunning": true,
+      "requiresChatSession": false,
+      "bypassesObserverBlock": false,
+      "bypassesApproval": true,
+      "bypassesChatCancel": true
+    },
+    "agentKind": "global"
+  },
+  {
+    "capabilityId": "kubernetes.deployments.rollout.history",
+    "toolName": "kubernetes_deployments_rollout_history",
+    "rpcMethod": "kubernetes/deployments/rollout/history",
+    "localExecution": false,
+    "description": "Read Kubernetes deployment rollout history (sensitive read; may expose change annotations).",
+    "inputShape": {
+      "sessionId": {
+        "type": "string",
+        "optional": false,
+        "description": "Terminal session ID with kubectl access."
+      },
+      "namespace": {
+        "type": "string",
+        "optional": true,
+        "description": "Deployment namespace (default: default)."
+      },
+      "name": {
+        "type": "string",
+        "optional": false,
+        "description": "Deployment name."
+      }
+    },
+    "policy": {
+      "write": false,
+      "sensitiveRead": true,
+      "longRunning": false,
+      "requiresChatSession": false,
+      "bypassesObserverBlock": false,
+      "bypassesApproval": true,
+      "bypassesChatCancel": true
+    },
+    "agentKind": "global"
+  },
+  {
+    "capabilityId": "kubernetes.deployments.rollout.restart",
+    "toolName": "kubernetes_deployments_rollout_restart",
+    "rpcMethod": "kubernetes/deployments/rollout/restart",
+    "localExecution": false,
+    "description": "Restart a Kubernetes deployment rollout. Requires confirm-mode approval.",
+    "inputShape": {
+      "sessionId": {
+        "type": "string",
+        "optional": false,
+        "description": "Terminal session ID with kubectl access."
+      },
+      "namespace": {
+        "type": "string",
+        "optional": true,
+        "description": "Deployment namespace (default: default)."
+      },
+      "name": {
+        "type": "string",
+        "optional": false,
+        "description": "Deployment name."
       }
     },
     "policy": {

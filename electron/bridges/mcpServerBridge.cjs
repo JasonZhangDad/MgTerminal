@@ -130,12 +130,37 @@ let activeSftpOpSeq = 0;
 
 // ── Approval gate (for confirm mode with SDK/MCP agents) ──
 let getMainWindowFn = null; // () => BrowserWindow | null
+let approvalAuditWriter = null;
 const pendingApprovals = new Map(); // approvalId → { resolve, chatSessionId }
 let approvalIdCounter = 0;
 
 function setMainWindowGetter(fn) {
   getMainWindowFn = fn;
   debugLog("setMainWindowGetter", { hasGetter: typeof fn === "function" });
+}
+
+function setApprovalAuditWriter(writer) {
+  approvalAuditWriter = typeof writer === "function" ? writer : null;
+}
+
+function recordApprovalAudit(approvalId, phase, toolName, chatSessionId, outcome) {
+  if (!approvalAuditWriter) return;
+  const entry = {
+    id: `${approvalId}:${phase}`,
+    at: Date.now(),
+    phase,
+    toolName,
+  };
+  if (chatSessionId) entry.chatSessionId = chatSessionId;
+  if (phase === "resolved" && outcome) entry.outcome = outcome;
+  try {
+    const result = approvalAuditWriter(entry);
+    if (result?.ok === false) {
+      console.warn("[MCP Bridge] approval audit write failed:", result.error || "unknown error");
+    }
+  } catch (error) {
+    console.warn("[MCP Bridge] approval audit write failed:", error?.message || error);
+  }
 }
 
 /**
@@ -182,18 +207,21 @@ function broadcastApprovalEvent(channel, payload) {
 function requestApprovalFromRenderer(toolName, args, chatSessionId) {
   return new Promise((resolve) => {
     debugLog("requestApprovalFromRenderer", { toolName, args, chatSessionId });
+    const approvalId = `mcp_approval_${++approvalIdCounter}_${Date.now()}`;
+    recordApprovalAudit(approvalId, "requested", toolName, chatSessionId);
     const targets = listApprovalTargetWindows();
     if (targets.length === 0) {
       // No renderer available — deny to preserve confirm mode safety guarantee
+      recordApprovalAudit(approvalId, "resolved", toolName, chatSessionId, "denied");
       resolve(false);
       return;
     }
-    const approvalId = `mcp_approval_${++approvalIdCounter}_${Date.now()}`;
 
     // Auto-deny after timeout so SDK/MCP tool calls don't hang indefinitely
     const timerId = setTimeout(() => {
       if (pendingApprovals.has(approvalId)) {
         pendingApprovals.delete(approvalId);
+        recordApprovalAudit(approvalId, "resolved", toolName, chatSessionId, "timeout");
         resolve(false);
         // Notify renderer(s) to remove the stale approval card
         broadcastApprovalEvent('magiesTerminal:ai:mcp:approval-cleared', { approvalIds: [approvalId] });
@@ -206,6 +234,7 @@ function requestApprovalFromRenderer(toolName, args, chatSessionId) {
         resolve(approved);
       },
       chatSessionId: chatSessionId || null,
+      toolName,
     });
     broadcastApprovalEvent('magiesTerminal:ai:mcp:approval-request', {
       approvalId,
@@ -221,6 +250,13 @@ function resolveApprovalFromRenderer(approvalId, approved) {
   const entry = pendingApprovals.get(approvalId);
   if (entry) {
     pendingApprovals.delete(approvalId);
+    recordApprovalAudit(
+      approvalId,
+      "resolved",
+      entry.toolName,
+      entry.chatSessionId,
+      approved ? "approved" : "denied",
+    );
     entry.resolve(approved);
     // Main + settings both receive approval requests; clear the sibling card.
     notifyRendererApprovalCleared([approvalId]);
@@ -240,6 +276,7 @@ function clearPendingApprovals(chatSessionId) {
   const clearedIds = [];
   if (!chatSessionId) {
     for (const [id, entry] of pendingApprovals) {
+      recordApprovalAudit(id, "resolved", entry.toolName, entry.chatSessionId, "denied");
       entry.resolve(false);
       clearedIds.push(id);
     }
@@ -250,6 +287,7 @@ function clearPendingApprovals(chatSessionId) {
   for (const [id, entry] of pendingApprovals) {
     if (entry.chatSessionId === chatSessionId) {
       pendingApprovals.delete(id);
+      recordApprovalAudit(id, "resolved", entry.toolName, entry.chatSessionId, "denied");
       entry.resolve(false);
       clearedIds.push(id);
     }
@@ -1100,6 +1138,7 @@ const dispatchCapabilityRpc = createCapabilityRpcDispatcher({
   requestApprovalFromRenderer,
   USER_DENIED_MESSAGE,
   getSessions: () => sessions,
+  validateSessionScope,
 });
 
 /**
@@ -1728,6 +1767,7 @@ module.exports = {
   cleanup,
   shutdownHost,
   setMainWindowGetter,
+  setApprovalAuditWriter,
   setVaultAgentInvoker,
   setExternalMcpHooks,
   disconnectExternalMcpClients,
@@ -1736,6 +1776,7 @@ module.exports = {
   getExternalMcpAuthToken,
   syncLiveSessionsToExternalScope,
   resolveApprovalFromRenderer,
+  requestApprovalFromRenderer,
   clearPendingApprovals,
   reserveSessionExecution,
   releaseSessionExecution,

@@ -1,7 +1,12 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import type { Host, Snippet, VaultNote } from '../../domain/models';
-import { handleVaultAgentOp, runSerializedVaultAgentRequest, type VaultAgentApiDeps } from './vaultAgentBridgeClient';
+import {
+  handleVaultAgentOp,
+  runSerializedVaultAgentRequest,
+  sanitizeHostForAgent,
+  type VaultAgentApiDeps,
+} from './vaultAgentBridgeClient';
 
 type DepsSeed = {
   hosts?: Host[];
@@ -217,6 +222,45 @@ describe('handleVaultAgentOp vault hosts', () => {
     assert.equal(hosts?.length, 1);
     assert.equal(hosts?.[0]?.hostname, '10.0.0.1');
     assert.equal('password' in (hosts?.[0] ?? {}), false);
+  });
+
+  it('sanitizeHostForAgent removes sensitive fields at every nesting depth', () => {
+    const host = {
+      id: 'host-1',
+      label: 'prod',
+      hostname: '10.0.0.1',
+      username: 'root',
+      password: 'top-level-secret',
+      proxyConfig: {
+        type: 'http',
+        host: 'proxy.example.com',
+        port: 8080,
+        username: 'proxy-user',
+        password: 'nested-secret',
+      },
+      extensionData: {
+        credentials: [
+          { privateKey: 'nested-key', passphrase: 'nested-passphrase', label: 'safe' },
+        ],
+      },
+    } as unknown as Host;
+
+    const sanitized = sanitizeHostForAgent(host);
+
+    assert.equal(JSON.stringify(sanitized).includes('top-level-secret'), false);
+    assert.equal(JSON.stringify(sanitized).includes('nested-secret'), false);
+    assert.equal(JSON.stringify(sanitized).includes('nested-key'), false);
+    assert.equal(JSON.stringify(sanitized).includes('nested-passphrase'), false);
+    assert.deepEqual(sanitized.proxyConfig, {
+      type: 'http',
+      host: 'proxy.example.com',
+      port: 8080,
+      username: 'proxy-user',
+    });
+    assert.deepEqual(sanitized.extensionData, {
+      credentials: [{ label: 'safe' }],
+    });
+    assert.equal(host.proxyConfig?.password, 'nested-secret');
   });
 
   it('host.open creates a terminal session for a vault host', async () => {

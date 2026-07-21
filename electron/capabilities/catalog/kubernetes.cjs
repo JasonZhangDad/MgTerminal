@@ -60,6 +60,16 @@ const KUBERNETES_CAPABILITIES = [
     },
   ),
   k8sCapability(
+    "kubernetes.events.list",
+    "List Kubernetes events via remote kubectl (read-only).",
+    {},
+    {
+      public: { rpcMethod: "public/kubernetes/events/list", mcpTool: "kubernetes_events_list" },
+      global: { rpcMethod: "kubernetes/events/list" },
+      cli: { command: ["kubernetes", "events", "list"] },
+    },
+  ),
+  k8sCapability(
     "kubernetes.pods.logs",
     "Fetch pod logs via remote kubectl (read-only; may be large).",
     { sensitiveRead: true },
@@ -75,10 +85,14 @@ const KUBERNETES_CAPABILITIES = [
   ),
   k8sCapability(
     "kubernetes.pods.describe",
-    "Describe a pod via remote kubectl (read-only).",
-    {},
+    "Describe a pod via remote kubectl (sensitive read; may expose environment and event details).",
+    { sensitiveRead: true },
     {
-      public: { rpcMethod: "public/kubernetes/pods/describe", mcpTool: "kubernetes_pods_describe" },
+      public: {
+        rpcMethod: "public/kubernetes/pods/describe",
+        mcpTool: "kubernetes_pods_describe",
+        confirmInConfirmMode: true,
+      },
       global: { rpcMethod: "kubernetes/pods/describe" },
       cli: { command: ["kubernetes", "pods", "describe"] },
     },
@@ -99,6 +113,21 @@ const KUBERNETES_CAPABILITIES = [
     },
   ),
   k8sCapability(
+    "kubernetes.pods.exec",
+    "Execute a non-interactive command in a Kubernetes pod via remote kubectl. Requires confirm-mode approval.",
+    {
+      write: true,
+      bypassesApproval: false,
+      bypassesChatCancel: false,
+      requiresChatSession: true,
+    },
+    {
+      public: { rpcMethod: "public/kubernetes/pods/exec", mcpTool: "kubernetes_pods_exec" },
+      global: { rpcMethod: "kubernetes/pods/exec" },
+      cli: { command: ["kubernetes", "pods", "exec"] },
+    },
+  ),
+  k8sCapability(
     "kubernetes.deployments.scale",
     "Scale a Kubernetes deployment via remote kubectl. Requires confirm-mode approval.",
     {
@@ -111,6 +140,45 @@ const KUBERNETES_CAPABILITIES = [
       public: { rpcMethod: "public/kubernetes/deployments/scale", mcpTool: "kubernetes_deployments_scale" },
       global: { rpcMethod: "kubernetes/deployments/scale" },
       cli: { command: ["kubernetes", "deployments", "scale"] },
+    },
+  ),
+  k8sCapability(
+    "kubernetes.deployments.rollout.status",
+    "Wait briefly for and report Kubernetes deployment rollout status (read-only).",
+    { longRunning: true },
+    {
+      public: { rpcMethod: "public/kubernetes/deployments/rollout/status", mcpTool: "kubernetes_deployments_rollout_status" },
+      global: { rpcMethod: "kubernetes/deployments/rollout/status" },
+      cli: { command: ["kubernetes", "deployments", "rollout", "status"] },
+    },
+  ),
+  k8sCapability(
+    "kubernetes.deployments.rollout.history",
+    "Read Kubernetes deployment rollout history (sensitive read; may expose change annotations).",
+    { sensitiveRead: true },
+    {
+      public: {
+        rpcMethod: "public/kubernetes/deployments/rollout/history",
+        mcpTool: "kubernetes_deployments_rollout_history",
+        confirmInConfirmMode: true,
+      },
+      global: { rpcMethod: "kubernetes/deployments/rollout/history" },
+      cli: { command: ["kubernetes", "deployments", "rollout", "history"] },
+    },
+  ),
+  k8sCapability(
+    "kubernetes.deployments.rollout.restart",
+    "Restart a Kubernetes deployment rollout. Requires confirm-mode approval.",
+    {
+      write: true,
+      bypassesApproval: false,
+      bypassesChatCancel: false,
+      requiresChatSession: true,
+    },
+    {
+      public: { rpcMethod: "public/kubernetes/deployments/rollout/restart", mcpTool: "kubernetes_deployments_rollout_restart" },
+      global: { rpcMethod: "kubernetes/deployments/rollout/restart" },
+      cli: { command: ["kubernetes", "deployments", "rollout", "restart"] },
     },
   ),
 ];

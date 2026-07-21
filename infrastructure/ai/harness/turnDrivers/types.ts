@@ -63,6 +63,7 @@ export interface MagiesTerminalTurnContext {
   autoTitleSession: (sessionId: string, text: string) => void;
   titleText?: string;
   selectedUserSkillSlugs?: string[];
+  strictLocalPrivacy?: boolean;
 }
 
 export interface ExternalTurnContext {
@@ -75,6 +76,7 @@ export interface ExternalTurnContext {
   selectedAgentModel?: string;
   toolIntegrationMode: AIToolIntegrationMode;
   selectedUserSkillSlugs?: string[];
+  strictLocalPrivacy?: boolean;
 }
 
 export interface MagiesTerminalTurnInput {

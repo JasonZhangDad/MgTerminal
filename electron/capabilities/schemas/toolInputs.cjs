@@ -32,6 +32,10 @@ const TOOL_INPUT_FIELDS = Object.freeze({
     sessionId: { type: "string", description: "Terminal session ID with kubectl access." },
     namespace: { type: "string", optional: true, description: "Namespace filter. Omit for all namespaces." },
   },
+  "kubernetes.events.list": {
+    sessionId: { type: "string", description: "Terminal session ID with kubectl access." },
+    namespace: { type: "string", optional: true, description: "Namespace filter. Omit for all namespaces." },
+  },
   "kubernetes.pods.logs": {
     sessionId: { type: "string", description: "Terminal session ID with kubectl access." },
     namespace: { type: "string", description: "Pod namespace." },
@@ -49,11 +53,33 @@ const TOOL_INPUT_FIELDS = Object.freeze({
     namespace: { type: "string", description: "Pod namespace." },
     pod: { type: "string", description: "Pod name to delete." },
   },
+  "kubernetes.pods.exec": {
+    sessionId: { type: "string", description: "Terminal session ID with kubectl access." },
+    namespace: { type: "string", description: "Pod namespace." },
+    pod: { type: "string", description: "Pod name." },
+    container: { type: "string", optional: true, description: "Container name when the pod has multiple containers." },
+    command: { type: "string", description: "Non-interactive shell command to run in the pod." },
+  },
   "kubernetes.deployments.scale": {
     sessionId: { type: "string", description: "Terminal session ID with kubectl access." },
     namespace: { type: "string", optional: true, description: "Deployment namespace (default: default)." },
     name: { type: "string", description: "Deployment name." },
     replicas: { type: "number", description: "Desired replica count (0–1000)." },
+  },
+  "kubernetes.deployments.rollout.status": {
+    sessionId: { type: "string", description: "Terminal session ID with kubectl access." },
+    namespace: { type: "string", optional: true, description: "Deployment namespace (default: default)." },
+    name: { type: "string", description: "Deployment name." },
+  },
+  "kubernetes.deployments.rollout.history": {
+    sessionId: { type: "string", description: "Terminal session ID with kubectl access." },
+    namespace: { type: "string", optional: true, description: "Deployment namespace (default: default)." },
+    name: { type: "string", description: "Deployment name." },
+  },
+  "kubernetes.deployments.rollout.restart": {
+    sessionId: { type: "string", description: "Terminal session ID with kubectl access." },
+    namespace: { type: "string", optional: true, description: "Deployment namespace (default: default)." },
+    name: { type: "string", description: "Deployment name." },
   },
   "attachment.list": {},
   "attachment.read": {
