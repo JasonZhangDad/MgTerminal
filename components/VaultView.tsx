@@ -50,6 +50,7 @@ import {
   resolveTelnetPort,
   resolveTelnetUsername,
   sanitizeHost,
+  selectHostsForExport,
   upsertHostById,
 } from "../domain/host";
 import { exportHostsToCsvWithStats } from "../domain/vaultImport";
@@ -580,14 +581,15 @@ const VaultViewInner: React.FC<VaultViewProps> = ({
     setIsHostPanelOpen(true);
   }, [t]);
 
-  // Export hosts to CSV
+  // Export hosts to CSV — honors the multi-select subset, like shareInventory
   const handleExportHosts = useCallback(() => {
-    if (hosts.length === 0) {
+    const sourceHosts = selectHostsForExport(hosts, selectedHostIds);
+    if (sourceHosts.length === 0) {
       toast.warning(t('vault.hosts.export.toast.noHosts'));
       return;
     }
 
-    const { csv, exportedCount, skippedCount } = exportHostsToCsvWithStats(hosts);
+    const { csv, exportedCount, skippedCount } = exportHostsToCsvWithStats(sourceHosts);
 
     if (exportedCount === 0) {
       toast.warning(t('vault.hosts.export.toast.noHosts'));
@@ -609,7 +611,7 @@ const VaultViewInner: React.FC<VaultViewProps> = ({
     } else {
       toast.success(t('vault.hosts.export.toast.success', { count: exportedCount }));
     }
-  }, [hosts, t]);
+  }, [hosts, selectedHostIds, t]);
 
   /**
    * Team Vault first slice: share host inventory as metadata-only JSON/INI
@@ -623,9 +625,7 @@ const VaultViewInner: React.FC<VaultViewProps> = ({
     const selection = selectedHostIds.size > 0
       ? Array.from(selectedHostIds)
       : undefined;
-    const sourceHosts = selection
-      ? hosts.filter((host) => selectedHostIds.has(host.id))
-      : hosts;
+    const sourceHosts = selectHostsForExport(hosts, selectedHostIds);
 
     if (sourceHosts.length === 0) {
       toast.warning(t("vault.hosts.share.toast.noHosts"));
