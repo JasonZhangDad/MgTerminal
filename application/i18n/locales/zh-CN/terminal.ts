@@ -114,6 +114,7 @@ export const zhCNTerminalMessages: Messages = {
   'terminal.hex.disable': '隐藏 Hex 诊断',
   'terminal.hex.title': 'Hex / 原始数据流',
   'terminal.hex.hint': '会话解码后的 UTF-8 字节（环形缓冲上限）',
+  'terminal.hex.width': '每行字节数',
   'terminal.hex.bytes': '{count} 字节',
   'terminal.hex.empty': '等待输出…',
   'terminal.hex.copy': '复制',

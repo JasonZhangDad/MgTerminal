@@ -135,6 +135,7 @@ export const enTerminalMessages: Messages = {
   'terminal.hex.disable': 'Hide hex diagnostics',
   'terminal.hex.title': 'Hex / raw stream',
   'terminal.hex.hint': 'Decoded session stream as UTF-8 bytes (ring-capped)',
+  'terminal.hex.width': 'Bytes per row',
   'terminal.hex.bytes': '{count} bytes',
   'terminal.hex.empty': 'Waiting for output…',
   'terminal.hex.copy': 'Copy',

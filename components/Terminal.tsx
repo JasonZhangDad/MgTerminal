@@ -80,7 +80,7 @@ import { createKnownHostFromHostKeyInfo, toHostKeyInfo } from "./terminal/hostKe
 import { TerminalToolbar } from "./terminal/TerminalToolbar";
 import { SerialHexSendDialog } from "./terminal/SerialHexSendDialog";
 import { TerminalHexPanel } from "./terminal/TerminalHexPanel";
-import { TerminalHexRingBuffer } from "../domain/terminalHexDump";
+import { DEFAULT_HEX_WIDTH, TerminalHexRingBuffer } from "../domain/terminalHexDump";
 import { ScriptRecordingIndicator } from "./terminal/ScriptRecordingIndicator";
 import { ScriptSaveRecordingDialog } from "./scripts/ScriptSaveRecordingDialog";
 import { registerScreenSnapshotProvider } from "@/infrastructure/scripts/screenSnapshotRegistry.ts";
@@ -464,6 +464,10 @@ const TerminalComponent: React.FC<TerminalProps> = ({
   const [serialHexOpen, setSerialHexOpen] = useState(false);
   const [hexDumpText, setHexDumpText] = useState("");
   const [hexByteLength, setHexByteLength] = useState(0);
+  const [hexWidth, setHexWidth] = useState(DEFAULT_HEX_WIDTH);
+  // Read by the rAF flush, which must not be rebuilt on every width change.
+  const hexWidthRef = useRef(hexWidth);
+  hexWidthRef.current = hexWidth;
   const hexRingRef = useRef(new TerminalHexRingBuffer());
   const hexOpenRef = useRef(false);
   const hexRafRef = useRef(0);
@@ -472,9 +476,16 @@ const TerminalComponent: React.FC<TerminalProps> = ({
   const flushHexDumpView = useCallback(() => {
     hexRafRef.current = 0;
     const ring = hexRingRef.current;
-    setHexDumpText(ring.format());
+    setHexDumpText(ring.format(hexWidthRef.current));
     setHexByteLength(ring.byteLength);
   }, []);
+
+  // Re-lay-out what is already captured; waiting for the next byte would make
+  // the control look broken on an idle session.
+  useEffect(() => {
+    if (!hexOpenRef.current) return;
+    setHexDumpText(hexRingRef.current.format(hexWidth));
+  }, [hexWidth]);
 
   const scheduleHexDumpView = useCallback(() => {
     if (hexRafRef.current) return;
@@ -2972,7 +2983,7 @@ const TerminalComponent: React.FC<TerminalProps> = ({
 
   return (
     <>
-      <TerminalView ctx={{ Activity, ArrowDownToLine, ArrowUpFromLine, Button, Clock3, Copy, Cpu, HardDrive, HoverCard, HoverCardContent, HoverCardTrigger, Maximize2, MemoryStick, Radio, Sparkles, SquareArrowOutUpRight, TerminalAutocomplete, TerminalComposeBar, TerminalConnectionDialog, TerminalContextMenu, TerminalSearchBar, Tooltip, TooltipContent, TooltipTrigger, ZmodemOverwriteDialog, ZmodemProgressIndicator, auth, autocompleteAcceptTextRef, autocompleteCloseRef, autocompleteHostOs, autocompleteInputRef, autocompleteKeyEventRef, autocompleteRepositionRef, autocompleteSettings, chainProgress, cn, compactToolbar, lineTimestampsAvailable, Binary, hexDiagnosticsOpen, hexDumpText, hexByteLength, handleToggleHexDiagnostics, handleClearHexDiagnostics, TerminalHexPanel, containerRef, effectiveFontSize, effectiveFontWeight, effectiveTheme, error, executeSnippet, executeSnippetCommand, handleAddSelectionToAI, handleAssistAI, handleCancelConnect, handleCloseDisconnectedSession, handleCloseSearch, handleDismissDisconnectedDialog, handleDragEnter, handleDragLeave, handleDragOver, handleDrop, handleFindNext, handleFindPrevious, handleHostKeyAddAndContinue, handleHostKeyClose, handleHostKeyContinue, handleOsc52ReadResponse, handleOsc7SetupConfirm, handleOsc7SetupOpenChange, handleReceiveYmodem, handleRetry, handleSearch, handleSendYmodem, handleTopOverlayMouseDownCapture, hasMouseTracking, hasSelection, host, hotkeyScheme, inWorkspace, isBroadcastEnabled, dangerousPasteDialog, handleDangerousPasteDialogOpenChange, handleDangerousPasteConfirm, broadcastConfig, onUpdateBroadcastConfig, broadcastSessionOptions, broadcastAllSessionRefs, isCancelling, isComposeBarOpen: effectiveComposeBarOpen, isConnectionAwaitingUserInput, isDraggingOver, isFocusMode, isLocalConnection, remoteDragDropUsesZmodem, isSerialConnection, isSearchOpen, isSupportedOs, isSystemSidebarEligible, isVisible, keyBindings, keys, knownCwdRef, needsHostKeyVerification, onAddSelectionToAI, onOpenAI, onBroadcastInput, onCloseSession, onDetach, onDetachDragEnd, onDetachDragStart, onDetachPointerDown, onEndSessionDrag, onExpandToFocus, onOpenSystem, onRename, onRunDiagnostics: canRunDiagnostics ? handleRunDiagnostics : undefined, onSplitHorizontal, onSplitVertical, onStartSessionDrag, onToggleBroadcast, onUpdateHost: handleUpdateHostFromTerminal, osc52ReadPromptVisible, osc7SetupOpen, osc7SetupRunning, pendingHostKeyInfo, progressLogs, progressValue, renderControls, resolvedFontFamily, restoreState, scrollToBottomAfterProgrammaticInput, searchMatchCount, searchFocusToken, scriptExecutionOverlay: activeScriptRun ? (
+      <TerminalView ctx={{ Activity, ArrowDownToLine, ArrowUpFromLine, Button, Clock3, Copy, Cpu, HardDrive, HoverCard, HoverCardContent, HoverCardTrigger, Maximize2, MemoryStick, Radio, Sparkles, SquareArrowOutUpRight, TerminalAutocomplete, TerminalComposeBar, TerminalConnectionDialog, TerminalContextMenu, TerminalSearchBar, Tooltip, TooltipContent, TooltipTrigger, ZmodemOverwriteDialog, ZmodemProgressIndicator, auth, autocompleteAcceptTextRef, autocompleteCloseRef, autocompleteHostOs, autocompleteInputRef, autocompleteKeyEventRef, autocompleteRepositionRef, autocompleteSettings, chainProgress, cn, compactToolbar, lineTimestampsAvailable, Binary, hexDiagnosticsOpen, hexDumpText, hexByteLength, hexWidth, setHexWidth, handleToggleHexDiagnostics, handleClearHexDiagnostics, TerminalHexPanel, containerRef, effectiveFontSize, effectiveFontWeight, effectiveTheme, error, executeSnippet, executeSnippetCommand, handleAddSelectionToAI, handleAssistAI, handleCancelConnect, handleCloseDisconnectedSession, handleCloseSearch, handleDismissDisconnectedDialog, handleDragEnter, handleDragLeave, handleDragOver, handleDrop, handleFindNext, handleFindPrevious, handleHostKeyAddAndContinue, handleHostKeyClose, handleHostKeyContinue, handleOsc52ReadResponse, handleOsc7SetupConfirm, handleOsc7SetupOpenChange, handleReceiveYmodem, handleRetry, handleSearch, handleSendYmodem, handleTopOverlayMouseDownCapture, hasMouseTracking, hasSelection, host, hotkeyScheme, inWorkspace, isBroadcastEnabled, dangerousPasteDialog, handleDangerousPasteDialogOpenChange, handleDangerousPasteConfirm, broadcastConfig, onUpdateBroadcastConfig, broadcastSessionOptions, broadcastAllSessionRefs, isCancelling, isComposeBarOpen: effectiveComposeBarOpen, isConnectionAwaitingUserInput, isDraggingOver, isFocusMode, isLocalConnection, remoteDragDropUsesZmodem, isSerialConnection, isSearchOpen, isSupportedOs, isSystemSidebarEligible, isVisible, keyBindings, keys, knownCwdRef, needsHostKeyVerification, onAddSelectionToAI, onOpenAI, onBroadcastInput, onCloseSession, onDetach, onDetachDragEnd, onDetachDragStart, onDetachPointerDown, onEndSessionDrag, onExpandToFocus, onOpenSystem, onRename, onRunDiagnostics: canRunDiagnostics ? handleRunDiagnostics : undefined, onSplitHorizontal, onSplitVertical, onStartSessionDrag, onToggleBroadcast, onUpdateHost: handleUpdateHostFromTerminal, osc52ReadPromptVisible, osc7SetupOpen, osc7SetupRunning, pendingHostKeyInfo, progressLogs, progressValue, renderControls, resolvedFontFamily, restoreState, scrollToBottomAfterProgrammaticInput, searchMatchCount, searchFocusToken, scriptExecutionOverlay: activeScriptRun ? (
         <ScriptExecutionOverlay
           run={activeScriptRun}
           onPause={() => { void pauseScriptRun(activeScriptRun.runId); }}
