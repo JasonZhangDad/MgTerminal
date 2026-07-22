@@ -480,7 +480,7 @@ export function VaultViewLayout({ ctx }: { ctx: VaultViewLayoutContext }) {
                   // Sized to its widest item: Button is whitespace-nowrap, so a fixed
                   // width made long labels (e.g. the Ansible share/copy entries in
                   // Chinese) spill past the menu while their icons collapsed to zero.
-                  className="w-max min-w-44 max-w-[24rem]"
+                  className="w-max min-w-[11rem] max-w-[24rem]"
                   align="end"
                   alignToParent
                 >
