@@ -17,7 +17,12 @@ import {
 } from "lucide-react";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useI18n } from "../../application/i18n/I18nProvider";
+import { loadDefaultKeyPassphrase } from "../../application/defaultKeyPassphrases";
 import { useHostHealthBackend } from "../../application/state/useHostHealthBackend";
+import {
+  applyResolvedPassphrases,
+  collectMissingPassphrasePaths,
+} from "../../domain/hostHealthPassphrase";
 import {
   buildHostHealthRequests,
   isHealthCheckableHost,
@@ -108,13 +113,29 @@ export const HostHealthPanel: React.FC<HostHealthPanelProps> = ({
       keys,
       identities,
     });
-    const requests = buildHostHealthRequests({
+    const built = buildHostHealthRequests({
       hosts: checkable,
       keys,
       identities,
       knownHosts,
       allHosts,
     });
+
+    // A passphrase typed during a normal connect is remembered per key path.
+    // Without it the probe skips the key entirely and falls back to the agent,
+    // which is how a key that works in the terminal fails here.
+    const resolved = new Map<string, string>();
+    await Promise.all(
+      collectMissingPassphrasePaths(built).map(async (keyPath) => {
+        try {
+          const stored = await loadDefaultKeyPassphrase(keyPath);
+          if (stored) resolved.set(keyPath, stored);
+        } catch {
+          // A lookup failure just leaves the key skipped, as before.
+        }
+      }),
+    );
+    const requests = applyResolvedPassphrases(built, resolved);
     if (requests.length === 0 && credentialsLocked.length === 0) return;
     const runId = `health-${crypto.randomUUID()}`;
     runIdRef.current = runId;
