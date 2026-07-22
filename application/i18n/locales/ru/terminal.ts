@@ -152,6 +152,7 @@ export const ruTerminalMessages: Messages = {
   'terminal.hex.disable': 'Скрыть hex-диагностику',
   'terminal.hex.title': 'Hex / сырой поток',
   'terminal.hex.hint': 'Декодированный поток как UTF-8 байты (кольцевой буфер)',
+  'terminal.hex.width': 'Байтов в строке',
   'terminal.hex.bytes': '{count} байт',
   'terminal.hex.empty': 'Ожидание вывода…',
   'terminal.hex.copy': 'Копировать',

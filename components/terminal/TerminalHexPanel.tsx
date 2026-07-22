@@ -7,10 +7,15 @@ import { toast } from "../ui/toast";
 
 export const TERMINAL_HEX_PANEL_HEIGHT_PX = 168;
 
+const WIDTH_OPTIONS = [8, 16, 32] as const;
+
 export type TerminalHexPanelProps = {
   open: boolean;
   text: string;
   byteLength: number;
+  /** Bytes per row; 16 matches xxd's default. */
+  width?: number;
+  onWidthChange?: (width: number) => void;
   onClose: () => void;
   onClear: () => void;
   className?: string;
@@ -20,6 +25,8 @@ export const TerminalHexPanel: React.FC<TerminalHexPanelProps> = ({
   open,
   text,
   byteLength,
+  width,
+  onWidthChange,
   onClose,
   onClear,
   className,
@@ -66,6 +73,26 @@ export const TerminalHexPanel: React.FC<TerminalHexPanelProps> = ({
         <span className="text-[10px] opacity-50 truncate flex-1">
           {t("terminal.hex.hint")}
         </span>
+        {onWidthChange && (
+          <div className="flex shrink-0 items-center gap-0.5" role="group" aria-label={t("terminal.hex.width")}>
+            {WIDTH_OPTIONS.map((option) => (
+              <button
+                key={option}
+                type="button"
+                onClick={() => onWidthChange(option)}
+                aria-pressed={width === option}
+                className={cn(
+                  "h-5 rounded px-1.5 text-[10px] tabular-nums transition-opacity",
+                  width === option
+                    ? "bg-[color:var(--terminal-ui-fg)]/15 opacity-100"
+                    : "opacity-50 hover:opacity-90",
+                )}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+        )}
         <Button
           type="button"
           variant="ghost"
