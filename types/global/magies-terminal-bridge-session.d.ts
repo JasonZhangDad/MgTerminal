@@ -271,6 +271,12 @@ declare global {
         logRewrite?: { sentCommand: string; displayCommand: string };
       },
     ): void;
+    /**
+     * Send raw bytes to a serial device. `hexData` is a compact hex string;
+     * it bypasses the charset encoder, which would otherwise rewrite bytes
+     * that have no reading in the session's charset.
+     */
+    writeHexToSession?(sessionId: string, hexData: string): void;
     interruptSession?(sessionId: string, trace?: MagiesTerminalTerminalInterruptTrace): void;
     resizeSession(sessionId: string, cols: number, rows: number): void;
     setSessionFlowPaused(sessionId: string, paused: boolean): void;
