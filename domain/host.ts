@@ -315,6 +315,18 @@ export const upsertHostById = (hosts: Host[], host: Host): Host[] => {
     : [...hosts, host];
 };
 
+/**
+ * Hosts an export should cover: the multi-select subset when one is active,
+ * otherwise the whole vault. Keeps vault order regardless of selection order,
+ * and tolerates stale ids left over from deleted hosts.
+ */
+export const selectHostsForExport = (
+  hosts: Host[],
+  selectedHostIds: ReadonlySet<string>,
+): Host[] => (selectedHostIds.size > 0
+  ? hosts.filter((host) => selectedHostIds.has(host.id))
+  : hosts);
+
 export interface ResolvedKeepalive {
   interval: number; // Seconds; 0 = disabled
   countMax: number; // Unanswered keepalives before declaring dead

@@ -13,6 +13,7 @@ import {
   type HostInventoryShareDocument,
 } from "./hostDataSource";
 import type { Host } from "./models";
+import { buildVaultHostFromDraft, buildVaultHostMergeKey } from "./vaultHostCreate";
 
 export type TeamVaultRole = "owner" | "editor" | "viewer";
 
@@ -186,6 +187,57 @@ export function buildTeamVaultPackage(input: {
     exportedAt: now,
     exportedByMemberId: input.policy.localMemberId,
   };
+}
+
+export type TeamVaultInventoryMergeResult = {
+  hosts: Host[];
+  /** Hosts actually appended to the vault. */
+  added: number;
+  /** Package entries already present locally, or unusable. */
+  skipped: number;
+};
+
+/**
+ * Fold a team package's inventory into the local vault.
+ *
+ * Packages carry metadata only, so this is additive: an entry that already
+ * exists (same protocol/hostname/port/user) is left untouched so local edits
+ * and locally-attached credentials are never clobbered by a teammate's export.
+ */
+export function mergeTeamVaultInventory(
+  existingHosts: Host[],
+  inventory: HostInventoryShareDocument,
+): TeamVaultInventoryMergeResult {
+  const seenKeys = new Set(existingHosts.map(buildVaultHostMergeKey));
+  const hosts = [...existingHosts];
+  let added = 0;
+  let skipped = 0;
+
+  for (const item of inventory.hosts ?? []) {
+    const built = buildVaultHostFromDraft({
+      label: item.label,
+      hostname: item.hostname,
+      port: item.port,
+      username: item.username,
+      group: item.group,
+      tags: item.tags,
+      protocol: item.protocol,
+    });
+    if (!built.ok) {
+      skipped += 1;
+      continue;
+    }
+    const key = buildVaultHostMergeKey(built.host);
+    if (seenKeys.has(key)) {
+      skipped += 1;
+      continue;
+    }
+    seenKeys.add(key);
+    hosts.push(built.host);
+    added += 1;
+  }
+
+  return { hosts, added, skipped };
 }
 
 export function parseTeamVaultPackage(
@@ -362,6 +414,28 @@ export async function verifyTeamVaultAuditEvent(
     diff |= signed.sig.charCodeAt(i) ^ event.sig.charCodeAt(i);
   }
   return diff === 0;
+}
+
+/**
+ * What the audit table is allowed to claim about a row's signature.
+ * `unverifiable` exists so a missing key is never reported as either a good
+ * signature or a tampered one.
+ */
+export type TeamVaultAuditSignatureState =
+  | "verified"
+  | "invalid"
+  | "unsigned"
+  | "unverifiable";
+
+export async function classifyTeamVaultAuditSignatures(
+  events: TeamVaultAuditEvent[],
+  auditKeyHex: string | undefined,
+): Promise<TeamVaultAuditSignatureState[]> {
+  return Promise.all(events.map(async (event): Promise<TeamVaultAuditSignatureState> => {
+    if (!event.sig) return "unsigned";
+    if (!auditKeyHex) return "unverifiable";
+    return (await verifyTeamVaultAuditEvent(event, auditKeyHex)) ? "verified" : "invalid";
+  }));
 }
 
 export function encodeTeamVaultPackageShare(pkg: TeamVaultPackage): string {
