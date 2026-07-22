@@ -5,6 +5,7 @@
  * Credentials never imported — only host metadata + optional identity hints.
  */
 
+import { applyHostFieldMapping, validateHostFieldMapping, type HostFieldMapping } from "./hostFieldMapping";
 import type { Host, ManagedSource } from "./models";
 import { sanitizeHost } from "./host";
 import { getNextVaultOrder } from "./vaultOrder";
@@ -269,13 +270,16 @@ export function listDueHostDataSources(
  * Auto-detect inventory format: MagiesTerminal JSON, Ansible INI, or Ansible YAML.
  * Rejects payloads that embed secrets.
  */
-export function parseInventoryDocument(raw: string): HostInventoryDocument {
+export function parseInventoryDocument(
+  raw: string,
+  fieldMapping?: HostFieldMapping,
+): HostInventoryDocument {
   const text = raw.replace(/^\uFEFF/, "").trim();
   if (!text) {
     throw new Error("Inventory is empty.");
   }
   if (text.startsWith("{")) {
-    return parseHostInventoryDocument(text);
+    return parseHostInventoryDocument(text, fieldMapping);
   }
   if (looksLikeAnsibleInventoryIni(text)) {
     const parsed = parseAnsibleInventoryIni(text);
@@ -288,7 +292,7 @@ export function parseInventoryDocument(raw: string): HostInventoryDocument {
   // Fallbacks: try JSON, then INI, then YAML with combined error.
   const errors: string[] = [];
   try {
-    return parseHostInventoryDocument(text);
+    return parseHostInventoryDocument(text, fieldMapping);
   } catch (err) {
     errors.push(`JSON: ${err instanceof Error ? err.message : String(err)}`);
   }
@@ -310,7 +314,17 @@ export function parseInventoryDocument(raw: string): HostInventoryDocument {
 /**
  * Parse inventory JSON. Rejects payloads that embed secrets.
  */
-export function parseHostInventoryDocument(raw: string): HostInventoryDocument {
+export function parseHostInventoryDocument(
+  raw: string,
+  fieldMapping?: HostFieldMapping,
+): HostInventoryDocument {
+  const mappingCheck = validateHostFieldMapping(fieldMapping);
+  if (!mappingCheck.ok) {
+    throw new Error(
+      `Field mapping must not read ${mappingCheck.field} from a secret field `
+      + `(${mappingCheck.sourceField}). Use Keychain identities in MagiesTerminal.`,
+    );
+  }
   let parsed: unknown;
   try {
     parsed = JSON.parse(raw);
@@ -337,8 +351,13 @@ export function parseHostInventoryDocument(raw: string): HostInventoryDocument {
   const seen = new Set<string>();
   for (let index = 0; index < hostsRaw.length; index += 1) {
     const item = hostsRaw[index];
+    // Secrets are checked on the raw item, before any renaming: mapping must
+    // never be able to move a forbidden key out of this check's sight.
     assertNoSecrets(item, `hosts[${index}]`);
-    const normalized = normalizeInventoryItem(item, index);
+    const mappedItem = item && typeof item === "object" && !Array.isArray(item)
+      ? applyHostFieldMapping(item as Record<string, unknown>, fieldMapping)
+      : item;
+    const normalized = normalizeInventoryItem(mappedItem, index);
     if (seen.has(normalized.id)) {
       throw new Error(`Duplicate inventory host id: ${normalized.id}`);
     }
@@ -602,10 +621,12 @@ export function createJsonManagedSource(input: {
   autoSyncIntervalMs?: number;
   httpAuthHeaderName?: string;
   httpAuthHeaderValue?: string;
+  fieldMapping?: HostFieldMapping;
   id?: string;
   now?: number;
 }): ManagedSource {
   const now = input.now ?? Date.now();
+  const fieldMapping = normalizeHostFieldMapping(input.fieldMapping);
   return {
     id: input.id || `mds-${now.toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
     type: input.type,
@@ -622,7 +643,31 @@ export function createJsonManagedSource(input: {
     httpAuthHeaderValue: input.type === "json_http"
       ? normalizeHttpAuthHeaderValue(input.httpAuthHeaderValue)
       : undefined,
+    fieldMapping,
   };
+}
+
+/**
+ * Drop blank entries and reject a mapping that reads from a secret, so a bad
+ * configuration fails here rather than silently at the next sync.
+ */
+function normalizeHostFieldMapping(
+  mapping: HostFieldMapping | undefined,
+): HostFieldMapping | undefined {
+  const entries = Object.entries(mapping ?? {})
+    .filter(([, source]) => typeof source === "string" && source.trim())
+    .map(([field, source]) => [field, (source as string).trim()] as const);
+  if (entries.length === 0) return undefined;
+
+  const normalized = Object.fromEntries(entries) as HostFieldMapping;
+  const check = validateHostFieldMapping(normalized);
+  if (!check.ok) {
+    throw new Error(
+      `Field mapping must not read ${check.field} from a secret field `
+      + `(${check.sourceField}). Use Keychain identities in MagiesTerminal.`,
+    );
+  }
+  return normalized;
 }
 
 export function isHttpInventoryUrl(value: string): boolean {

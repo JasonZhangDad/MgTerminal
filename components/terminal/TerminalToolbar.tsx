@@ -2,7 +2,7 @@
  * Terminal Toolbar
  * Displays high-frequency terminal actions and close button in the terminal status bar.
  */
-import { Check, ChevronRight, Download, FileText, FolderInput, FolderSync, History, Languages, MoreVertical, X, Zap, Palette, Search, TextCursorInput, Upload, Circle } from 'lucide-react';
+import { Binary, Check, ChevronRight, Download, FileText, FolderInput, FolderSync, History, Languages, MoreVertical, X, Zap, Palette, Search, TextCursorInput, Upload, Circle } from 'lucide-react';
 import React, { useState } from 'react';
 import { useI18n } from '../../application/i18n/I18nProvider';
 import { Host, Snippet } from '../../types';
@@ -23,6 +23,7 @@ export interface TerminalToolbarProps {
     onSnippetClick?: (snippet: Snippet) => void;
     onOpenSFTP: () => void;
     onSendYmodem?: () => void;
+    onSendSerialHex?: () => void;
     onReceiveYmodem?: () => void;
     onOpenScripts: () => void;
     onOpenHistory?: () => void;
@@ -60,6 +61,7 @@ export const TerminalToolbar: React.FC<TerminalToolbarProps> = ({
     onSnippetClick,
     onOpenSFTP,
     onSendYmodem,
+    onSendSerialHex,
     onReceiveYmodem,
     onOpenScripts,
     onOpenHistory,
@@ -250,6 +252,23 @@ export const TerminalToolbar: React.FC<TerminalToolbarProps> = ({
                         </TooltipTrigger>
                         <TooltipContent>
                             {status === 'connected' ? t("terminal.toolbar.receiveYmodem") : t("terminal.toolbar.availableAfterConnect")}
+                        </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                variant="secondary"
+                                size="icon"
+                                className={cn(buttonBase, status !== 'connected' && "opacity-50")}
+                                aria-label={t("terminal.toolbar.sendSerialHex")}
+                                onClick={onSendSerialHex}
+                                disabled={status !== 'connected' || !onSendSerialHex}
+                            >
+                                <Binary size={12} />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            {status === 'connected' ? t("terminal.toolbar.sendSerialHex") : t("terminal.toolbar.availableAfterConnect")}
                         </TooltipContent>
                     </Tooltip>
                 </>

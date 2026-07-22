@@ -898,6 +898,17 @@ function shouldBlockSessionInput(session, data) {
   return false;
 }
 
+/**
+ * Compact hex string -> Buffer, or null when it is not a whole number of
+ * well-formed bytes. Mirrors domain/serialHexInput.ts, which is what produced
+ * the string; this is the boundary check, not a second parser.
+ */
+function parseRawHexPayload(hexData) {
+  const hex = String(hexData || "").trim();
+  if (!hex || hex.length % 2 !== 0 || !/^[0-9a-f]+$/i.test(hex)) return null;
+  return Buffer.from(hex, "hex");
+}
+
 function writeToSessionNow(payload, data, logRewrite = payload.logRewrite) {
   const session = sessions.get(payload.sessionId);
   const trace = payload.interruptTrace || null;
@@ -921,6 +932,16 @@ function writeToSessionNow(payload, data, logRewrite = payload.logRewrite) {
   }
 
   try {
+    // Raw byte input (serial hex send). Deliberately placed before every text
+    // path: these bytes have no charset reading, so running them through
+    // encodeTerminalInput would rewrite them into something else entirely.
+    if (typeof payload.hexData === "string") {
+      const raw = parseRawHexPayload(payload.hexData);
+      if (!raw) return;
+      if (session.serialPort) session.serialPort.write(raw);
+      return;
+    }
+
     if (session.type === 'telnet-native' && !payload.automated) {
       session.autoLogin?.handleUserInput();
     }

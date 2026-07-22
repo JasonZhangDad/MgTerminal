@@ -128,6 +128,10 @@ function createPreloadApi(ctx) {
         : undefined,
     });
   },
+  /** Raw bytes for a serial device; bypasses the charset encoder in main. */
+  writeHexToSession: (sessionId, hexData) => {
+    ipcRenderer.send("magiesTerminal:write", { sessionId, hexData: String(hexData || "") });
+  },
   interruptSession: (sessionId, trace) => {
     const sanitizedTrace = sanitizeInterruptTrace(trace);
     if (ctx.terminalUrgentInputPorts?.postInterrupt?.(sessionId, sanitizedTrace)) {

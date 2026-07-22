@@ -78,6 +78,7 @@ import { SSH_TCP_CONNECT_TIMEOUT_MS } from "./terminal/connectionTimeouts";
 import { HostKeyInfo } from "./terminal/TerminalHostKeyVerification";
 import { createKnownHostFromHostKeyInfo, toHostKeyInfo } from "./terminal/hostKeyVerification";
 import { TerminalToolbar } from "./terminal/TerminalToolbar";
+import { SerialHexSendDialog } from "./terminal/SerialHexSendDialog";
 import { TerminalHexPanel } from "./terminal/TerminalHexPanel";
 import { TerminalHexRingBuffer } from "../domain/terminalHexDump";
 import { ScriptRecordingIndicator } from "./terminal/ScriptRecordingIndicator";
@@ -460,6 +461,7 @@ const TerminalComponent: React.FC<TerminalProps> = ({
   // Hex / raw diagnostics: session-local, default off. Captures decoded stream
   // as UTF-8 bytes for opt-in dump panel (does not change xterm write path).
   const [hexDiagnosticsOpen, setHexDiagnosticsOpen] = useState(false);
+  const [serialHexOpen, setSerialHexOpen] = useState(false);
   const [hexDumpText, setHexDumpText] = useState("");
   const [hexByteLength, setHexByteLength] = useState(0);
   const hexRingRef = useRef(new TerminalHexRingBuffer());
@@ -2644,6 +2646,7 @@ const TerminalComponent: React.FC<TerminalProps> = ({
       onSnippetClick={(snippet) => { void executeSnippet(snippet); }}
       onOpenSFTP={handleOpenSFTP}
       onSendYmodem={isSerialConnection ? handleSendYmodem : undefined}
+      onSendSerialHex={isSerialConnection ? () => setSerialHexOpen(true) : undefined}
       onReceiveYmodem={isSerialConnection ? handleReceiveYmodem : undefined}
       onOpenScripts={onOpenScripts ?? (() => {})}
       onOpenHistory={onOpenHistory}
@@ -2978,6 +2981,13 @@ const TerminalComponent: React.FC<TerminalProps> = ({
           onDismiss={dismissScriptOverlay}
         />
       ) : null, selectionOverlayPosition, sessionDisplayName, sessionId, sessionRef, setIsComposeBarOpen, setShowLogs, shouldShowConnectionDialog, showLogs, showSelectionAIAction, snippets, status, sudoHintRef, sudoHintText: t("terminal.sudoHint.pressEnter"), t, termRef, terminalBackend, terminalContextActions, terminalCwdTracker, terminalPreviewVars, terminalSettings, timeLeft, toast, zmodem }} />
+      {isSerialConnection && (
+        <SerialHexSendDialog
+          open={serialHexOpen}
+          onOpenChange={setSerialHexOpen}
+          sessionId={sessionId}
+        />
+      )}
       {isDiagnosticsOpen && (
         <ConnectionTestPanel
           open={isDiagnosticsOpen}
