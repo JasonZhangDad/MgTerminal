@@ -160,7 +160,7 @@ export function PetWidget(): React.ReactElement {
         <div
           className={cn(
             'h-[128px] w-[128px] bg-contain bg-no-repeat drop-shadow-[0_6px_10px_rgba(0,0,0,0.35)]',
-            status === 'idle' && 'animate-[pet-idle-bob_2.6s_ease-in-out_infinite]',
+            status === 'idle' && 'animate-[pet-idle-walk_7s_ease-in-out_infinite]',
             status === 'running' && 'animate-[pet-running-bounce_0.6s_ease-in-out_infinite]',
             status === 'waiting' && 'animate-[pet-waiting-tilt_1.1s_ease-in-out_infinite]',
             status === 'done' && 'animate-[pet-done-wave_0.8s_ease-in-out_1]',
@@ -178,9 +178,35 @@ export function PetWidget(): React.ReactElement {
 }
 
 const PET_ANIMATION_STYLES = `
-@keyframes pet-idle-bob {
-  0%, 100% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-12px) scale(1.05); }
+/* No walk-cycle sprite frames exist for the default character, so the "walking" read
+   comes entirely from transform: pacing side to side inside the pet window, a footstep
+   bounce/squash on every stride, and a scaleX flip at each turn to face the new direction. */
+@keyframes pet-idle-walk {
+  0%   { transform: translateX(-24px) scaleX(1)  translateY(0)    scaleY(1); }
+  4%   { transform: translateX(-19px) scaleX(1)  translateY(-3px) scaleY(0.97); }
+  8%   { transform: translateX(-14px) scaleX(1)  translateY(0)    scaleY(1); }
+  12%  { transform: translateX(-9px)  scaleX(1)  translateY(-3px) scaleY(0.97); }
+  16%  { transform: translateX(-4px)  scaleX(1)  translateY(0)    scaleY(1); }
+  20%  { transform: translateX(1px)   scaleX(1)  translateY(-3px) scaleY(0.97); }
+  24%  { transform: translateX(6px)   scaleX(1)  translateY(0)    scaleY(1); }
+  28%  { transform: translateX(11px)  scaleX(1)  translateY(-3px) scaleY(0.97); }
+  32%  { transform: translateX(16px)  scaleX(1)  translateY(0)    scaleY(1); }
+  36%  { transform: translateX(21px)  scaleX(1)  translateY(-3px) scaleY(0.97); }
+  40%  { transform: translateX(24px)  scaleX(1)  translateY(0)    scaleY(1); }
+  47%  { transform: translateX(24px)  scaleX(1)  translateY(0)    scaleY(1); }
+  50%  { transform: translateX(24px)  scaleX(-1) translateY(0)    scaleY(1); }
+  54%  { transform: translateX(19px)  scaleX(-1) translateY(-3px) scaleY(0.97); }
+  58%  { transform: translateX(14px)  scaleX(-1) translateY(0)    scaleY(1); }
+  62%  { transform: translateX(9px)   scaleX(-1) translateY(-3px) scaleY(0.97); }
+  66%  { transform: translateX(4px)   scaleX(-1) translateY(0)    scaleY(1); }
+  70%  { transform: translateX(-1px)  scaleX(-1) translateY(-3px) scaleY(0.97); }
+  74%  { transform: translateX(-6px)  scaleX(-1) translateY(0)    scaleY(1); }
+  78%  { transform: translateX(-11px) scaleX(-1) translateY(-3px) scaleY(0.97); }
+  82%  { transform: translateX(-16px) scaleX(-1) translateY(0)    scaleY(1); }
+  86%  { transform: translateX(-21px) scaleX(-1) translateY(-3px) scaleY(0.97); }
+  90%  { transform: translateX(-24px) scaleX(-1) translateY(0)    scaleY(1); }
+  97%  { transform: translateX(-24px) scaleX(-1) translateY(0)    scaleY(1); }
+  100% { transform: translateX(-24px) scaleX(1)  translateY(0)    scaleY(1); }
 }
 @keyframes pet-running-bounce {
   0%, 100% { transform: translateY(0) scale(1); }
